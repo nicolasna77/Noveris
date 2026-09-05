@@ -7,7 +7,11 @@ import { buildSystemPrompt } from "@/lib/voice-agent/prompt";
 import { getToolDefinitions, runTool, toRealtimeTools } from "@/lib/voice-agent/tools";
 import { recordUsageEvent } from "@/lib/usage-events";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Construit à la demande, pas au chargement du module — voir le même choix
+// et la même raison dans src/lib/voice-agent/tools.ts.
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 const REALTIME_MODEL = "gpt-realtime";
 
 // "sip:+33612345678@sip.example.com" / "tel:+33612345678" -> "+33612345678"
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
 
   let event;
   try {
-    event = await openai.webhooks.unwrap(payload, request.headers, process.env.OPENAI_WEBHOOK_SECRET);
+    event = await getOpenAIClient().webhooks.unwrap(payload, request.headers, process.env.OPENAI_WEBHOOK_SECRET);
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -70,7 +74,7 @@ export async function POST(request: Request) {
   const tools = getToolDefinitions(clientService.service.slug, configuration, calendarConnected);
 
   try {
-    await openai.realtime.calls.accept(callId, {
+    await getOpenAIClient().realtime.calls.accept(callId, {
       type: "realtime",
       model: REALTIME_MODEL,
       instructions: systemPrompt,

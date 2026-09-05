@@ -3,7 +3,14 @@ import { db } from "@/lib/db";
 import { createCalendarEvent, isSlotFree } from "@/lib/google-calendar";
 import { asStringArray, type Configuration, type RuleRow } from "@/lib/catalog";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Construit à la demande plutôt qu'au chargement du module : le SDK OpenAI
+// lève une exception dès la construction si aucune clé n'est disponible, ce
+// qui ferait planter le build Next.js (exécuté sans OPENAI_API_KEY tant que
+// l'agent vocal n'est pas configuré) — voir getTwilioClient() dans
+// src/lib/twilio.ts pour le même principe.
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 // Schéma de tool au format Chat Completions (utilisé par
 // scripts/test-voice-agent.ts) — voir buildSystemPrompt pour le prompt
@@ -284,7 +291,7 @@ export async function runTool(
         return `Transfert simulé vers ${target} (motif : « ${reason} »).`;
       }
       try {
-        await openai.realtime.calls.refer(context.callId, { target_uri: `tel:${target}` });
+        await getOpenAIClient().realtime.calls.refer(context.callId, { target_uri: `tel:${target}` });
         return `Appel transféré vers ${target}.`;
       } catch {
         return "Le transfert a échoué — propose de prendre un message à la place.";
