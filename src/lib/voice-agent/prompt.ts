@@ -1,0 +1,186 @@
+import {
+  asStringArray,
+  WEEK_DAYS,
+  WEEK_DAY_LABELS,
+  type Configuration,
+  type RuleRow,
+  type WeeklyHours,
+} from "@/lib/catalog";
+
+function asString(value: Configuration[string] | undefined): string {
+  return typeof value === "string" ? value : "";
+}
+
+function asWeeklyHours(value: Configuration[string] | undefined): WeeklyHours | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as WeeklyHours;
+}
+
+function formatWeeklyHours(hours: WeeklyHours | null): string {
+  if (!hours) return "non précisés";
+  return WEEK_DAYS.filter((day) => !hours[day].closed)
+    .map((day) => `${WEEK_DAY_LABELS[day]} ${hours[day].open}-${hours[day].close}`)
+    .join(", ") || "fermé toute la semaine";
+}
+
+const INTL_WEEKDAY_TO_WEEK_DAY: Record<string, (typeof WEEK_DAYS)[number]> = {
+  Mon: "mon",
+  Tue: "tue",
+  Wed: "wed",
+  Thu: "thu",
+  Fri: "fri",
+  Sat: "sat",
+  Sun: "sun",
+};
+
+// Heure d'appel calculée côté serveur (fuseau Europe/Paris) plutôt que
+// laissée au modèle — évite qu'il improvise l'heure actuelle. Horaires non
+// configurés : on part du principe que l'entreprise est ouverte (neutre,
+// mieux vaut renseigner l'appelant que le décourager à tort).
+function isOpenNow(hours: WeeklyHours | null): boolean {
+  if (!hours) return true;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Paris",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const weekdayPart = parts.find((p) => p.type === "weekday")?.value ?? "Mon";
+  const hourPart = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minutePart = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const day = INTL_WEEKDAY_TO_WEEK_DAY[weekdayPart] ?? "mon";
+
+  const today = hours[day];
+  if (!today || today.closed) return false;
+  const [openH, openM] = today.open.split(":").map(Number);
+  const [closeH, closeM] = today.close.split(":").map(Number);
+  const currentMinutes = hourPart * 60 + minutePart;
+  return currentMinutes >= openH * 60 + openM && currentMinutes < closeH * 60 + closeM;
+}
+
+function asRuleRows(value: Configuration[string] | undefined): RuleRow[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (row): row is RuleRow =>
+      typeof row === "object" && row !== null && "trigger" in row && "target" in row
+  );
+}
+
+function buildPriseRdvPrompt(configuration: Configuration, companyName: string, calendarConnected: boolean): string {
+  const objectives = asStringArray(configuration.objectives);
+  const canBookAppointments = objectives.includes("appointment") && calendarConnected;
+  const takesOrders = objectives.includes("order");
+
+  const lines = [
+    `Tu es l'assistant téléphonique de ${companyName}. Tu réponds en français, de façon`,
+    `chaleureuse, concise, et tu vouvoies l'appelant.`,
+    `Horaires d'ouverture : ${formatWeeklyHours(asWeeklyHours(configuration.businessHours))}.`,
+  ];
+
+  const callInstructions = asString(configuration.callInstructions);
+  if (callInstructions) lines.push(`Consignes particulières : ${callInstructions}`);
+
+  if (canBookAppointments) {
+    const appointmentTypes = asStringArray(configuration.appointmentTypes);
+    const slotDuration = asString(configuration.slotDuration);
+    lines.push(
+      "Tu peux prendre un rendez-vous avec l'outil book_appointment, après avoir",
+      "vérifié un créneau disponible avec check_availability. Demande le nom, le",
+      "numéro de téléphone de l'appelant, et le motif du rendez-vous avant de",
+      "réserver.",
+      appointmentTypes.length > 0
+        ? `Types de rendez-vous proposés : ${appointmentTypes.join(", ")}.`
+        : "",
+      slotDuration ? `Durée standard d'un créneau : ${slotDuration} minutes.` : ""
+    );
+  }
+
+  if (takesOrders) {
+    const productCatalog = asString(configuration.productCatalog);
+    const businessAddress = asString(configuration.businessAddress);
+    const deliveryZone = asString(configuration.deliveryZone);
+    lines.push(
+      "Tu peux enregistrer une commande avec l'outil take_order, après avoir",
+      "confirmé les articles, le nom et le numéro de téléphone de l'appelant, et",
+      "s'il souhaite un retrait ou une livraison.",
+      productCatalog ? `Catalogue :\n${productCatalog}` : "",
+      businessAddress ? `Adresse (retrait) : ${businessAddress}` : "",
+      deliveryZone ? `Zone de livraison : ${deliveryZone}` : ""
+    );
+  }
+
+  const wantsAppointments = objectives.includes("appointment");
+  if (wantsAppointments && !canBookAppointments) {
+    lines.push(
+      "Aucun agenda n'est encore connecté pour les rendez-vous : si l'appelant en",
+      "demande un, note ses coordonnées et indique qu'il sera rappelé."
+    );
+  }
+
+  return lines.filter(Boolean).join("\n");
+}
+
+function buildStandardTelephoniquePrompt(configuration: Configuration, companyName: string): string {
+  const openingHours = asWeeklyHours(configuration.openingHours);
+  const greetingMessage = asString(configuration.greetingMessage);
+  const callRouting = asRuleRows(configuration.callRouting);
+  const open = isOpenNow(openingHours);
+
+  const lines = [
+    `Tu es le standard téléphonique de ${companyName}. Tu réponds en français,`,
+    `de façon chaleureuse, concise, et tu vouvoies l'appelant.`,
+    greetingMessage
+      ? `Commence l'appel en disant exactement : « ${greetingMessage} »`
+      : `Commence l'appel par une salutation brève, en te présentant comme l'assistant de ${companyName}.`,
+    `Horaires d'ouverture : ${formatWeeklyHours(openingHours)}.`,
+    open
+      ? "L'entreprise est actuellement ouverte."
+      : "L'entreprise est actuellement fermée — informe-en l'appelant, mais reste utile : tu peux toujours transférer un motif urgent ou prendre un message.",
+  ];
+
+  if (callRouting.length > 0) {
+    lines.push(
+      "Tu disposes de l'outil transfer_call pour transférer l'appel — uniquement",
+      "pour l'un de ces motifs précis (pas d'autres, pas de numéro inventé) :",
+      callRouting.map((rule) => `« ${rule.trigger} »`).join(", ") + ".",
+      "Dès que tu décides de transférer, appelle immédiatement l'outil",
+      "transfer_call — ne dis jamais à l'appelant que tu transfères sans avoir",
+      "réellement appelé l'outil au même tour de parole."
+    );
+  }
+
+  lines.push(
+    "Pour toute autre demande, ou si l'appelant refuse d'être transféré, utilise",
+    "l'outil take_message pour noter son nom, son numéro et le motif de son",
+    "appel — indique-lui que l'entreprise le rappellera."
+  );
+
+  return lines.join("\n");
+}
+
+// Construit les instructions système de l'agent vocal à partir de la
+// configuration saisie par le client à l'activation (voir configFields de
+// chaque service dans src/lib/catalog-data.ts) — un seul point d'entrée,
+// dispatché par `serviceSlug`, réutilisé tel quel en mode texte
+// (scripts/test-voice-agent.ts) et en mode appel réel
+// (src/app/api/voice/openai-webhook/route.ts).
+//
+// `companyName` vient de l'organisation du client (Organization.name) et
+// non de `configuration` : aucun service n'a de champ "nom d'entreprise" —
+// c'était un bug (le prompt retombait toujours sur "cette entreprise").
+export function buildSystemPrompt(
+  serviceSlug: string,
+  configuration: Configuration,
+  options: { calendarConnected: boolean; companyName: string }
+): string {
+  const companyName = options.companyName || "cette entreprise";
+
+  switch (serviceSlug) {
+    case "standard-telephonique-ia":
+      return buildStandardTelephoniquePrompt(configuration, companyName);
+    case "prise-rdv-telephone":
+    default:
+      return buildPriseRdvPrompt(configuration, companyName, options.calendarConnected);
+  }
+}

@@ -1,0 +1,416 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                      String          @id
+  name                    String
+  email                   String
+  emailVerified           Boolean         @default(false)
+  image                   String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  stripeCustomerId        String?
+  role                    String?         @default("CLIENT")
+  // Champs requis par le plugin `admin` de better-auth (voir src/lib/auth.ts)
+  // — gestion des comptes depuis /admin/users.
+  banned                  Boolean?        @default(false)
+  banReason               String?
+  banExpires              DateTime?
+  // Préférences de notification par e-mail — { [type: NotificationType]:
+  // boolean }, voir src/lib/email/preferences.ts. Une clé absente vaut
+  // "activée" (opt-out plutôt qu'opt-in), pour que les notifications
+  // existantes continuent d'être envoyées aux comptes créés avant l'ajout
+  // d'un nouveau type.
+  notificationPreferences Json            @default("{}")
+  sessions                Session[]
+  accounts                Account[]
+  clientServices          ClientService[]
+  helpRequests            HelpRequest[]
+
+  members     Member[]
+  invitations Invitation[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  // Id de l'admin qui a lancé une usurpation d'identité (plugin `admin`
+  // better-auth) — non utilisé pour l'instant (pas d'usurpation dans
+  // /admin/users), mais requis par le schéma du plugin.
+  impersonatedBy String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  activeOrganizationId String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Subscription {
+  id                   String    @id
+  plan                 String
+  referenceId          String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  status               String?   @default("incomplete")
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  cancelAtPeriodEnd    Boolean?  @default(false)
+  cancelAt             DateTime?
+  canceledAt           DateTime?
+  endedAt              DateTime?
+  seats                Int?
+  billingInterval      String?
+  stripeScheduleId     String?
+
+  @@map("subscription")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue Noveris
+// ---------------------------------------------------------------------------
+
+enum ServiceCategory {
+  COMMUNICATION
+  ADMINISTRATION
+  INFORMATION
+  ABONNEMENT
+}
+
+model Service {
+  id                String          @id @default(cuid())
+  slug              String          @unique
+  name              String
+  description       String
+  category          ServiceCategory
+  // Modèle tarifaire hybride : frais de mise en place ponctuel et/ou
+  // abonnement mensuel, indépendamment optionnels (au moins un des deux).
+  setupFeeCents     Int?
+  monthlyPriceCents Int?
+  // Plafond d'usage affiché au client (ex. "150 min incluses, puis 0,30 €/min").
+  usageCapLabel     String?
+  // Champs de configuration demandés au client à l'activation :
+  // [{ "key": "phoneNumber", "label": "...", "type": "tel", "required": true, "placeholder": "..." }]
+  configFields      Json            @default("[]")
+  sortOrder         Int             @default(0)
+  // Désactivation temporaire par un admin (/admin/services) : masque la
+  // prestation du catalogue public et du catalogue d'activation du
+  // dashboard, sans toucher aux ClientService existants (un client déjà
+  // abonné garde sa prestation, seules les nouvelles activations sont
+  // bloquées). Réactivable à tout moment.
+  isActive          Boolean         @default(true)
+  clientServices    ClientService[]
+
+  @@map("service")
+}
+
+enum ClientServiceStatus {
+  PENDING_PAYMENT
+  CONFIGURING
+  ACTIVE
+  CANCELED
+}
+
+model ClientService {
+  id                      String              @id @default(cuid())
+  userId                  String
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Entreprise du client à laquelle cette activation est rattachée — un même
+  // client peut avoir plusieurs organisations (voir Organization ci-dessus),
+  // et activer plusieurs fois la même prestation (ex. deux boutiques), d'où
+  // `name` pour les distinguer et l'absence de contrainte d'unicité sur
+  // (organizationId, serviceId) seul.
+  organizationId          String
+  organization            Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  // Nom donné par le client à cette activation (ex. "Boutique Paris") —
+  // pré-rempli avec le nom de la prestation à l'activation, modifiable.
+  name                    String
+  serviceId               String
+  service                 Service             @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  status                  ClientServiceStatus @default(PENDING_PAYMENT)
+  // Configuration saisie par le client (numéro WhatsApp, ligne à connecter, etc.)
+  configuration           Json                @default("{}")
+  // Note libre de l'équipe Noveris lors de la bascule vers un statut (ex. « connexion agenda en cours »).
+  adminNote               String?
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
+  stripeSubscriptionId    String?
+  // Numéro Twilio acheté en libre-service par le client depuis son tableau
+  // de bord (voir src/lib/twilio.ts) — le webhook /api/voice/incoming
+  // retrouve le client à partir du `To` reçu. `externalPhoneNumberSid` est
+  // conservé pour pouvoir relâcher le numéro (et arrêter sa facturation
+  // Twilio) si la prestation est résiliée.
+  externalPhoneNumber     String?
+  externalPhoneNumberSid  String?
+  activatedAt             DateTime?
+  canceledAt              DateTime?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  usageEvents        UsageEvent[]
+  calendarConnection CalendarConnection?
+  bookings           Booking[]
+  events             ServiceEvent[]
+  helpRequests       HelpRequest[]
+
+  @@unique([organizationId, serviceId, name])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("client_service")
+}
+
+enum ServiceEventType {
+  CREATED
+  PAYMENT_RECEIVED
+  ACTIVATED
+  NOTE_ADDED
+  PHONE_ASSIGNED
+  CALENDAR_CONNECTED
+  CALENDAR_DISCONNECTED
+  CONFIGURATION_UPDATED
+  CANCELED
+}
+
+// Historique d'une prestation, affiché au client (voir service-timeline.tsx)
+// pour qu'il voie ce qui se passe sans avoir à deviner à partir des seuls
+// champs `activatedAt`/`canceledAt`/`adminNote` (qui n'écrasent que la
+// dernière valeur — une note remplacée perdait jusqu'ici toute trace de la
+// précédente). Écrit ponctuellement à chaque transition, jamais modifié.
+model ServiceEvent {
+  id              String           @id @default(cuid())
+  clientServiceId String
+  clientService   ClientService    @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  type            ServiceEventType
+  // Détail spécifique à l'événement (texte de la note, numéro attribué,
+  // e-mail du compte Google connecté…) — null quand le type se suffit à
+  // lui-même (ex. CANCELED).
+  message         String?
+  createdAt       DateTime         @default(now())
+
+  @@index([clientServiceId, createdAt])
+  @@map("service_event")
+}
+
+// Connexion OAuth Google Calendar d'un client pour une prestation donnée —
+// une par ClientService (un même client peut avoir plusieurs entreprises,
+// donc plusieurs agendas). Les tokens permettent à l'agent vocal d'écrire
+// directement les rendez-vous pris par téléphone dans l'agenda réel du client.
+
+model CalendarConnection {
+  id                   String        @id @default(cuid())
+  clientServiceId      String        @unique
+  clientService        ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  googleAccountEmail   String
+  accessToken          String
+  refreshToken         String
+  accessTokenExpiresAt DateTime
+  calendarId           String        @default("primary")
+  scope                String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@map("calendar_connection")
+}
+
+// Rendez-vous ou commande pris par l'agent vocal IA lors d'un appel —
+// modèle unifié (kind) plutôt que deux tables, les deux partageant le même
+// cycle de vie (créés pendant un appel, affichés dans la même liste côté
+// client) ; voir le même choix pour UsageEvent.type plus bas.
+
+model Booking {
+  id              String        @id @default(cuid())
+  clientServiceId String
+  clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  kind            String
+  customerName    String
+  customerPhone   String
+  // Renseignés pour un rendez-vous ; null pour une commande.
+  startAt         DateTime?
+  endAt           DateTime?
+  // Id de l'événement Google Calendar créé — null si l'écriture a échoué
+  // (la réservation est quand même conservée pour ne rien perdre).
+  googleEventId   String?
+  notes           String?
+  // Détails propres au type (ex. items/total/adresse pour une commande).
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+
+  @@index([clientServiceId, createdAt])
+  @@map("booking")
+}
+
+// Un événement d'usage par appel/action facturable (ex. un appel reçu par le
+// standard téléphonique IA), reporté par le système externe concerné via le
+// webhook POST /api/usage-events. Sert à afficher un compteur en direct côté
+// client (voir usage-counter.tsx) — le type reste une simple chaîne plutôt
+// qu'un enum pour ne pas nécessiter de migration à chaque nouvelle métrique.
+
+model UsageEvent {
+  id              String        @id @default(cuid())
+  clientServiceId String
+  clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
+  type            String        @default("call")
+  // "in_progress" tant que l'appel n'est pas terminé (posé par le webhook au
+  // décroché, voir /api/usage-events), puis "completed" une fois raccroché
+  // — permet d'afficher les appels en cours côté client, pas seulement le
+  // récapitulatif après coup.
+  status          String        @default("completed")
+  occurredAt      DateTime
+  endedAt         DateTime?
+  // Durée en secondes, quand la prestation facture au temps plutôt qu'à
+  // l'événement (ex. minutes du standard téléphonique IA) — null sinon.
+  durationSec     Int?
+  // Identifiant côté système externe (ex. call_id Retell), pour dédupliquer
+  // les webhooks qui peuvent être renvoyés plusieurs fois par l'émetteur.
+  externalId      String?       @unique
+  // Détails bruts propres au type d'événement (ex. fromNumber, transcript,
+  // endedReason pour un appel) — volontairement non typé pour ne pas
+  // nécessiter de migration à chaque nouvelle métrique.
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+
+  @@index([clientServiceId, occurredAt])
+  @@index([clientServiceId, status])
+  @@map("usage_event")
+}
+
+// Messages envoyés depuis la page de contact publique (visiteurs non
+// authentifiés — pas de lien vers User).
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  activity  String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("contact_message")
+}
+
+enum HelpRequestStatus {
+  OPEN
+  RESOLVED
+}
+
+// Demande envoyée depuis le centre d'aide du dashboard client (contrairement
+// à ContactMessage, envoyé par un visiteur non authentifié) — le profil du
+// client et, si renseignée, la prestation concernée sont donc déjà connus
+// côté admin sans qu'il ait à les redemander.
+model HelpRequest {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // Absente pour une question générale (pas liée à une prestation précise).
+  clientServiceId String?
+  clientService   ClientService?    @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
+  subject         String
+  message         String
+  status          HelpRequestStatus @default(OPEN)
+  createdAt       DateTime          @default(now())
+  resolvedAt      DateTime?
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("help_request")
+}
+
+model Organization {
+  id             String          @id
+  name           String
+  slug           String
+  logo           String?
+  createdAt      DateTime
+  metadata       String?
+  members        Member[]
+  invitations    Invitation[]
+  clientServices ClientService[]
+  helpRequests   HelpRequest[]
+
+  @@unique([slug])
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member")
+  createdAt      DateTime
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  status         String       @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitation")
+}

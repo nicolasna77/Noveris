@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: noveris-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: noveris
+      POSTGRES_PASSWORD: noveris
+      POSTGRES_DB: noveris
+    ports:
+      - "5433:5432"
+    volumes:
+      - noveris_pgdata:/var/lib/postgresql/data
+
+volumes:
+  noveris_pgdata:
