@@ -74,10 +74,18 @@ function ServiceCard({ service }: { service: ServiceDTO }) {
 }
 
 export function ServicesSection({ services }: { services: ServiceDTO[] }) {
+  const categories = SERVICE_SECTION_CATEGORIES.map((category) => ({
+    category,
+    categoryServices: services.filter((s) => s.category === category),
+  }))
+    // Une catégorie entièrement désactivée (voir /admin/services) ne doit
+    // pas laisser un titre et une description sans aucune prestation dessous.
+    .filter(({ categoryServices }) => categoryServices.length > 0);
+
   return (
     <section id="prestations" className="bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {SERVICE_SECTION_CATEGORIES.map((category, index) => (
+        {categories.map(({ category, categoryServices }, index) => (
           <div key={category} className={index > 0 ? "mt-16" : undefined}>
             <div className="mb-6 flex items-start gap-3">
               <span
@@ -95,7 +103,7 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
             </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {services.filter((s) => s.category === category).map((service) => (
+              {categoryServices.map((service) => (
                 <ServiceCard key={service.slug} service={service} />
               ))}
             </div>

@@ -27,7 +27,14 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <NoverisLogo />
+        <div className="flex items-center gap-1">
+          <SiteMobileNav
+            services={services}
+            loggedIn={!!user}
+            isAdmin={!!user?.isAdmin}
+          />
+          <NoverisLogo />
+        </div>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <PrestationsMenu services={services} />
           {NAV_LINKS.map((link) => (
@@ -57,23 +64,18 @@ export async function SiteHeader() {
           )}
         </nav>
         <div className="flex items-center gap-2">
-          <SiteMobileNav
-            services={services}
-            loggedIn={!!user}
-            isAdmin={!!user?.isAdmin}
-          />
           <ThemeToggle />
           {user ? (
             <UserMenu name={user.name} email={user.email} />
           ) : (
-            <>
+            <div className="hidden items-center gap-2 md:flex">
               <Button variant="ghost" nativeButton={false} render={<Link href="/login" />}>
                 Connexion
               </Button>
               <Button nativeButton={false} render={<Link href="/signup" />}>
                 Créer un compte
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>

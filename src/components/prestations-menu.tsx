@@ -24,22 +24,29 @@ export function PrestationsMenu({ services }: { services: ServiceDTO[] }) {
         <ChevronDown className="size-3.5" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
-        {MENU_CATEGORIES.map((category, index) => (
-          <Fragment key={category}>
-            {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{CATEGORY_LABELS[category]}</DropdownMenuLabel>
-              {services.filter((s) => s.category === category).map((service) => (
-                <DropdownMenuItem
-                  key={service.slug}
-                  render={<Link href={`/prestations/${service.slug}`} />}
-                >
-                  {service.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </Fragment>
-        ))}
+        {MENU_CATEGORIES.map((category) => ({
+          category,
+          categoryServices: services.filter((s) => s.category === category),
+        }))
+          // Une catégorie entièrement désactivée (voir /admin/services) ne
+          // doit pas laisser un titre vide sans rien en dessous.
+          .filter(({ categoryServices }) => categoryServices.length > 0)
+          .map(({ category, categoryServices }, index) => (
+            <Fragment key={category}>
+              {index > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{CATEGORY_LABELS[category]}</DropdownMenuLabel>
+                {categoryServices.map((service) => (
+                  <DropdownMenuItem
+                    key={service.slug}
+                    render={<Link href={`/prestations/${service.slug}`} />}
+                  >
+                    {service.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+            </Fragment>
+          ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

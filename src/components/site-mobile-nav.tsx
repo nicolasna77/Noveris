@@ -58,24 +58,31 @@ export function SiteMobileNav({
         </SheetHeader>
         <SheetBody>
           <nav className="flex flex-col gap-6 text-sm">
-            {MENU_CATEGORIES.map((category) => (
-              <div key={category}>
-                <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {CATEGORY_LABELS[category]}
-                </p>
-                <ul className="flex flex-col gap-0.5">
-                  {services.filter((s) => s.category === category).map(
-                    (service) => (
+            {MENU_CATEGORIES.map((category) => {
+              const categoryServices = services.filter(
+                (s) => s.category === category
+              );
+              // Une catégorie entièrement désactivée (voir /admin/services)
+              // ne doit pas laisser un titre vide sans rien en dessous.
+              if (categoryServices.length === 0) return null;
+
+              return (
+                <div key={category}>
+                  <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                    {CATEGORY_LABELS[category]}
+                  </p>
+                  <ul className="flex flex-col gap-0.5">
+                    {categoryServices.map((service) => (
                       <li key={service.slug}>
                         <MobileNavLink href={`/prestations/${service.slug}`}>
                           {service.name}
                         </MobileNavLink>
                       </li>
-                    )
-                  )}
-                </ul>
-              </div>
-            ))}
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
 
             <Separator />
 
@@ -85,15 +92,26 @@ export function SiteMobileNav({
                   <MobileNavLink href={link.href}>{link.label}</MobileNavLink>
                 </li>
               ))}
-              {loggedIn && (
-                <li>
-                  <MobileNavLink href="/dashboard">Tableau de bord</MobileNavLink>
-                </li>
-              )}
-              {isAdmin && (
-                <li>
-                  <MobileNavLink href="/admin">Administration</MobileNavLink>
-                </li>
+              {loggedIn ? (
+                <>
+                  <li>
+                    <MobileNavLink href="/dashboard">Tableau de bord</MobileNavLink>
+                  </li>
+                  {isAdmin && (
+                    <li>
+                      <MobileNavLink href="/admin">Administration</MobileNavLink>
+                    </li>
+                  )}
+                </>
+              ) : (
+                <>
+                  <li>
+                    <MobileNavLink href="/login">Connexion</MobileNavLink>
+                  </li>
+                  <li>
+                    <MobileNavLink href="/signup">Créer un compte</MobileNavLink>
+                  </li>
+                </>
               )}
             </ul>
           </nav>
