@@ -17,6 +17,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import type { OrganizationSummary } from "@/lib/organization";
@@ -38,6 +39,7 @@ export function OrganizationSwitcher({
   organizations: OrganizationSummary[];
 }) {
   const router = useRouter();
+  const { isMobile } = useSidebar();
   const [createOpen, setCreateOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
@@ -82,7 +84,15 @@ export function OrganizationSwitcher({
                 aria-hidden="true"
               />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="right" className="w-64">
+            {/* "right" suppose une sidebar étroite et fixe (desktop) ; sur
+                mobile la sidebar devient un Sheet plein écran (voir isMobile
+                dans Sidebar, ui/sidebar.tsx) et "right" fait alors déborder
+                le menu hors du Sheet, sur le fond assombri. */}
+            <DropdownMenuContent
+              align="start"
+              side={isMobile ? "bottom" : "right"}
+              className="w-64"
+            >
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Organisations</DropdownMenuLabel>
                 {organizations.map((organization) => (
