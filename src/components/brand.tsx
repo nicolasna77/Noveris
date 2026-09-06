@@ -1,15 +1,41 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+// Le "N" est tracé comme un tracé continu (bas-gauche → haut-gauche →
+// bas-droite → haut-droite, comme on écrirait la lettre) plutôt qu'affiché en
+// texte — les deux points aux extrémités de la diagonale évoquent des points
+// reliés (l'automatisation connecte des systèmes entre eux), sans complexifier
+// le tracé au point de le rendre illisible en petite taille (favicon 16 px).
+export function NoverisMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      className={className}
+      role="img"
+      aria-label="Noveris"
+    >
+      <rect width="32" height="32" rx="9" fill="var(--primary)" />
+      <path
+        d="M11 21V11L21 21V11"
+        fill="none"
+        stroke="var(--primary-foreground)"
+        strokeWidth="2.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="11" cy="11" r="2" fill="var(--primary-foreground)" />
+      <circle cx="21" cy="21" r="2" fill="var(--primary-foreground)" />
+    </svg>
+  );
+}
+
 export function NoverisLogo({ className }: { className?: string }) {
   return (
     <Link
       href="/"
       className={cn("flex items-center gap-2 font-semibold", className)}
     >
-      <span className="flex size-7 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-        N
-      </span>
+      <NoverisMark className="size-7 shrink-0" />
       <span className="text-lg tracking-tight">Noveris</span>
     </Link>
   );
