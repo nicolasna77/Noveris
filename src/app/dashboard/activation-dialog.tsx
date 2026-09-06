@@ -2,6 +2,7 @@
 
 import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { PhoneForwarded } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import {
   findMissingRequiredField,
   formatPrice,
+  TELEPHONY_SERVICE_SLUGS,
   type Configuration,
   type ServiceDTO,
 } from "@/lib/catalog";
@@ -99,6 +101,24 @@ export function ActivationDialog({
                   : "Vous allez être redirigé vers le paiement sécurisé Stripe."}
               </DialogDescription>
             </DialogHeader>
+
+            {TELEPHONY_SERVICE_SLUGS.has(service.slug) && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-border bg-muted/50 p-3 text-sm">
+                <PhoneForwarded
+                  className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <p className="text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    Vous gardez votre numéro actuel.
+                  </span>{" "}
+                  Un numéro dédié à l&apos;IA vous sera attribué ; vos clients
+                  continueront d&apos;appeler celui qu&apos;ils connaissent déjà
+                  grâce à un simple renvoi d&apos;appel, gratuit et réversible,
+                  à activer une fois la prestation active.
+                </p>
+              </div>
+            )}
 
             <div className="-mr-1 max-h-[60vh] overflow-y-auto pr-1">
               <div className="space-y-2 pb-6">

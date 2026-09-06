@@ -14,7 +14,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { CATEGORY_LABELS, formatCents } from "@/lib/catalog";
+import { CATEGORY_LABELS, TELEPHONY_SERVICE_SLUGS, formatCents } from "@/lib/catalog";
 import { getCatalog, getServiceBySlug } from "@/lib/get-catalog";
 import { SERVICE_ICONS } from "@/lib/service-icons";
 
@@ -39,6 +39,28 @@ export async function generateMetadata({
 // vous configurez" pour ne garder que ce qui est propre à celle-ci.
 const GENERIC_FIELD_KEYS = new Set(["companyName"]);
 
+// Réponse à la question qu'un prospect se pose avant même d'activer une
+// prestation de téléphonie : "dois-je changer de numéro ?" — voir aussi le
+// guide interactif équivalent dans le tableau de bord une fois le numéro
+// attribué (src/app/dashboard/call-forwarding-guide.tsx).
+const PHONE_FORWARDING_STEPS = [
+  {
+    title: "Un numéro dédié à l'IA",
+    description:
+      "Dès l'activation, nous vous attribuons un numéro rien que pour cette prestation.",
+  },
+  {
+    title: "Un renvoi d'appel, gratuit et réversible",
+    description:
+      "Depuis votre ligne actuelle, vous activez un simple renvoi vers ce numéro — désactivable à tout moment.",
+  },
+  {
+    title: "Vos clients ne voient aucun changement",
+    description:
+      "Ils composent le numéro qu'ils connaissent déjà ; l'IA prend le relais automatiquement.",
+  },
+];
+
 export default async function PrestationDetailPage({
   params,
 }: {
@@ -50,6 +72,7 @@ export default async function PrestationDetailPage({
 
   const [session, allServices] = await Promise.all([getSession(), getCatalog()]);
   const Icon = SERVICE_ICONS[service.slug] ?? Bot;
+  const isTelephony = TELEPHONY_SERVICE_SLUGS.has(service.slug);
   const configFields = service.configFields.filter(
     (field) => !GENERIC_FIELD_KEYS.has(field.key)
   );
@@ -147,6 +170,43 @@ export default async function PrestationDetailPage({
                 </div>
               )}
             </dl>
+
+            {isTelephony && (
+              <div className="mt-14">
+                <span className="text-xs tracking-widest text-primary uppercase">
+                  Numéro de téléphone
+                </span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance text-foreground">
+                  Vous gardez votre numéro actuel
+                </h2>
+                <p className="mt-2 max-w-xl text-muted-foreground">
+                  Aucune portabilité, aucune interruption de service : vos
+                  clients continuent d&apos;appeler le numéro qu&apos;ils
+                  connaissent déjà.
+                </p>
+                <ol className="mt-8 grid gap-6 sm:grid-cols-3">
+                  {PHONE_FORWARDING_STEPS.map((step, index) => (
+                    <li key={step.title} className="relative">
+                      {index < PHONE_FORWARDING_STEPS.length - 1 && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute top-4 left-8 hidden h-px w-[calc(100%-2rem)] bg-border sm:block"
+                        />
+                      )}
+                      <span className="relative flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
+                        {index + 1}
+                      </span>
+                      <h3 className="mt-4 font-semibold text-foreground">
+                        {step.title}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                        {step.description}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
             {configFields.length > 0 && (
               <div className="mt-14">

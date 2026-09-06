@@ -6,6 +6,7 @@ import {
 import { CalendarConnection } from "./calendar-connection";
 import { BookingsList } from "./bookings-list";
 import { CallActivity } from "./call-activity";
+import { CallForwardingGuide } from "./call-forwarding-guide";
 import { PhoneNumberPurchase } from "./phone-number-purchase";
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -85,6 +86,14 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
                 Numéro de téléphone
               </h3>
               <PhoneNumberPurchase clientServiceId={item.clientServiceId} />
+            </div>
+          )}
+          {item.externalPhoneNumber && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-foreground">
+                Recevoir vos appels
+              </h3>
+              <CallForwardingGuide targetNumber={item.externalPhoneNumber} />
             </div>
           )}
           {takesAppointments && (
