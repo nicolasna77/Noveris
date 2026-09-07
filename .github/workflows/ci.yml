@@ -52,11 +52,14 @@ jobs:
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      # Node 24 (runtime par défaut de Vercel) : il embarque npm 11, celui
+      # qui a écrit package-lock.json. Le npm 10 de Node 22 refuse ce
+      # lockfile ("does not satisfy picomatch@…") alors qu'il est valide.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Installer les dépendances
