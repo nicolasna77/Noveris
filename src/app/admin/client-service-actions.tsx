@@ -9,6 +9,7 @@ import { cn, getErrorMessage } from "@/lib/utils";
 import {
   markServiceActive,
   setExternalPhoneNumber,
+  setWhatsAppPhoneNumberId,
   updateServiceNote,
 } from "./actions";
 
@@ -124,6 +125,27 @@ export function PhoneNumberEditor({
       successMessage="Numéro enregistré."
       saveLabel="Enregistrer le numéro"
       onSave={(value) => setExternalPhoneNumber(clientServiceId, value)}
+    />
+  );
+}
+
+export function WhatsAppPhoneNumberEditor({
+  clientServiceId,
+  initialPhoneNumberId,
+}: {
+  clientServiceId: string;
+  initialPhoneNumberId: string;
+}) {
+  return (
+    <InlineFieldEditor
+      id={`whatsapp-${clientServiceId}`}
+      label="Phone Number ID Meta"
+      value={initialPhoneNumberId}
+      placeholder="ex. 109876543210987"
+      inputClassName="min-w-36"
+      successMessage="Numéro WhatsApp connecté."
+      saveLabel="Enregistrer le numéro"
+      onSave={(value) => setWhatsAppPhoneNumberId(clientServiceId, value)}
     />
   );
 }

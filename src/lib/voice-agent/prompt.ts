@@ -159,6 +159,30 @@ function buildStandardTelephoniquePrompt(configuration: Configuration, companyNa
   return lines.join("\n");
 }
 
+// Agent WhatsApp : bien plus simple que le téléphone pour l'instant (pas de
+// rendez-vous ni de commande — configFields de "assistant-whatsapp" dans
+// catalog-data.ts n'a qu'un FAQ) — un tour de message à la fois, pas de
+// notion d'ouverture/fermeture puisque WhatsApp n'a pas d'attente en ligne.
+function buildWhatsAppPrompt(configuration: Configuration, companyName: string): string {
+  const faq = asString(configuration.faq);
+  const lines = [
+    `Tu es l'assistant WhatsApp de ${companyName}. Tu réponds en français, de`,
+    `façon chaleureuse et concise (quelques phrases maximum, comme dans une`,
+    `vraie conversation WhatsApp), et tu vouvoies l'interlocuteur.`,
+  ];
+  lines.push(
+    faq
+      ? `Questions fréquentes et réponses à utiliser en priorité :\n${faq}`
+      : "Aucune question fréquente n'a été renseignée — réponds du mieux que tu peux avec les informations disponibles."
+  );
+  lines.push(
+    "Si tu ne peux pas répondre avec certitude, dis-le simplement et indique",
+    "que l'entreprise reviendra vers la personne rapidement — n'invente jamais",
+    "de prix, de disponibilité ni d'information que tu ne connais pas."
+  );
+  return lines.join("\n");
+}
+
 // Construit les instructions système de l'agent vocal à partir de la
 // configuration saisie par le client à l'activation (voir configFields de
 // chaque service dans src/lib/catalog-data.ts) — un seul point d'entrée,
@@ -179,6 +203,8 @@ export function buildSystemPrompt(
   switch (serviceSlug) {
     case "standard-telephonique-ia":
       return buildStandardTelephoniquePrompt(configuration, companyName);
+    case "assistant-whatsapp":
+      return buildWhatsAppPrompt(configuration, companyName);
     case "prise-rdv-telephone":
     default:
       return buildPriseRdvPrompt(configuration, companyName, options.calendarConnected);

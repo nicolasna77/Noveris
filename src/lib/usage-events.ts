@@ -3,6 +3,13 @@ import { db } from "@/lib/db";
 
 export type RecordUsageEventInput = {
   clientServiceId: string;
+  // "call" par défaut (seul type existant jusqu'ici) — "whatsapp_message"
+  // pour un message reçu sur /api/whatsapp/webhook. Ne change pas le calcul
+  // de `count` ci-dessous (compteur mensuel d'appels affiché par
+  // UsageCounter) : WhatsApp n'a pas de plafond d'usage au catalogue
+  // (usageCapLabel: null pour "assistant-whatsapp"), donc rien n'en dépend
+  // encore — juste une meilleure étiquette dans l'historique brut.
+  type?: string;
   externalId?: string | null;
   status?: "in_progress" | "completed";
   occurredAt?: Date;
@@ -28,6 +35,7 @@ export async function recordUsageEvent(
   }
 
   const { clientServiceId, externalId, durationSec, metadata } = input;
+  const type = input.type ?? "call";
   const occurredAt = input.occurredAt ?? new Date();
   const status = input.status ?? "completed";
 
@@ -36,6 +44,7 @@ export async function recordUsageEvent(
       where: { externalId },
       create: {
         clientServiceId,
+        type,
         externalId,
         status,
         occurredAt,
@@ -54,6 +63,7 @@ export async function recordUsageEvent(
     await db.usageEvent.create({
       data: {
         clientServiceId,
+        type,
         status: "completed",
         occurredAt,
         durationSec: durationSec ?? null,

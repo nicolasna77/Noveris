@@ -88,3 +88,27 @@ export async function setExternalPhoneNumber(
   revalidatePath("/admin");
   revalidatePath("/dashboard");
 }
+
+// Renseigne l'identifiant Meta ("Phone Number ID") du numéro WhatsApp
+// Business du client — pas de connexion en libre-service pour l'instant
+// (contrairement au numéro Twilio), donc entièrement manuel : le client
+// communique son numéro à l'équipe, qui le connecte à l'app Meta de Noveris
+// (Embedded Signup) et reporte ici l'identifiant obtenu. Pas de type
+// ServiceEventType dédié pour éviter une migration d'enum pour un seul
+// champ admin — CONFIGURATION_UPDATED reste sémantiquement correct.
+export async function setWhatsAppPhoneNumberId(
+  clientServiceId: string,
+  phoneNumberId: string
+) {
+  await requireAdmin();
+
+  const trimmed = phoneNumberId.trim();
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: { whatsappPhoneNumberId: trimmed || null },
+  });
+  if (trimmed) await logServiceEvent(clientServiceId, "CONFIGURATION_UPDATED", "Numéro WhatsApp connecté");
+
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+}

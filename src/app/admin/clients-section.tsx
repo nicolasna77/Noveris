@@ -31,6 +31,7 @@ import {
   NoteEditor,
   MarkActiveButton,
   PhoneNumberEditor,
+  WhatsAppPhoneNumberEditor,
 } from "./client-service-actions";
 
 const PAGE_SIZE = 20;
@@ -137,7 +138,7 @@ export async function ClientsSection({
                       <TableHead>Statut</TableHead>
                       <TableHead>Configuration</TableHead>
                       <TableHead>Note pour le client</TableHead>
-                      <TableHead>Numéro Twilio</TableHead>
+                      <TableHead>Connexion externe</TableHead>
                       <TableHead className="text-right">Prix</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
@@ -187,11 +188,19 @@ export async function ClientsSection({
                             )}
                           </TableCell>
                           <TableCell>
-                            {cs.status !== "CANCELED" &&
-                            TELEPHONY_SERVICE_SLUGS.has(cs.service.slug) ? (
+                            {cs.status === "CANCELED" ? (
+                              <span className="text-sm text-muted-foreground">
+                                —
+                              </span>
+                            ) : TELEPHONY_SERVICE_SLUGS.has(cs.service.slug) ? (
                               <PhoneNumberEditor
                                 clientServiceId={cs.id}
                                 initialPhoneNumber={cs.externalPhoneNumber ?? ""}
+                              />
+                            ) : cs.service.slug === "assistant-whatsapp" ? (
+                              <WhatsAppPhoneNumberEditor
+                                clientServiceId={cs.id}
+                                initialPhoneNumberId={cs.whatsappPhoneNumberId ?? ""}
                               />
                             ) : (
                               <span className="text-sm text-muted-foreground">

@@ -191,6 +191,13 @@ model ClientService {
   // Twilio) si la prestation est résiliée.
   externalPhoneNumber     String?
   externalPhoneNumberSid  String?
+  // Identifiant Meta ("Phone Number ID") du numéro WhatsApp Business du
+  // client, connecté à l'app Meta de Noveris (voir src/lib/whatsapp.ts) —
+  // sert à la fois à retrouver le client depuis le webhook entrant
+  // (metadata.phone_number_id) et à cibler l'envoi de la réponse. Distinct
+  // du numéro humainement lisible saisi par le client à l'activation
+  // (configuration.whatsappNumber), qui n'est qu'informatif.
+  whatsappPhoneNumberId   String?
   activatedAt             DateTime?
   canceledAt              DateTime?
   createdAt               DateTime            @default(now())
