@@ -112,3 +112,35 @@ export async function setWhatsAppPhoneNumberId(
   revalidatePath("/admin");
   revalidatePath("/dashboard");
 }
+
+// Même repli manuel que setWhatsAppPhoneNumberId ci-dessus, pour la Page
+// Facebook (Messenger) d'un client — utile si la connexion self-service
+// échoue ou pour notre propre Page de test.
+export async function setFacebookPageId(clientServiceId: string, pageId: string) {
+  await requireAdmin();
+
+  const trimmed = pageId.trim();
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: { facebookPageId: trimmed || null },
+  });
+  if (trimmed) await logServiceEvent(clientServiceId, "CONFIGURATION_UPDATED", "Page Facebook connectée");
+
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+}
+
+// Même repli manuel, pour le compte Instagram d'un client.
+export async function setInstagramAccountId(clientServiceId: string, accountId: string) {
+  await requireAdmin();
+
+  const trimmed = accountId.trim();
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: { instagramAccountId: trimmed || null },
+  });
+  if (trimmed) await logServiceEvent(clientServiceId, "CONFIGURATION_UPDATED", "Compte Instagram connecté");
+
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+}

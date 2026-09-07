@@ -63,6 +63,10 @@ export function toMyServiceDTO(
     calendarConnected: !!cs.calendarConnection,
     whatsappConnected: !!cs.whatsappPhoneNumberId,
     whatsappDisplayNumber: cs.whatsappDisplayNumber,
+    facebookConnected: !!cs.facebookPageId,
+    facebookPageName: cs.facebookPageName,
+    instagramConnected: !!cs.instagramAccountId,
+    instagramUsername: cs.instagramUsername,
     bookings: (cs.bookings ?? []).map(toBookingDTO),
     events: (cs.events ?? []).map(toServiceEventDTO),
     service: {

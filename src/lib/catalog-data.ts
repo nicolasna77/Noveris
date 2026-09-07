@@ -174,26 +174,21 @@ export const CATALOG: CatalogService[] = [
     sortOrder: 3,
   },
   {
-    slug: "assistant-messenger-instagram",
-    name: "Assistant Messenger / Instagram",
+    slug: "assistant-facebook",
+    name: "Assistant Facebook Messenger",
     description:
-      "Un assistant automatisé répond aux messages de votre page Facebook et de votre compte Instagram, qualifie les demandes et oriente vers vous.",
+      "Réponses instantanées à vos clients sur Messenger : questions fréquentes, devis, disponibilités.",
     category: "COMMUNICATION",
     setupFeeCents: 45000,
-    monthlyPriceCents: 4900,
+    monthlyPriceCents: 5900,
     usageCapLabel: null,
     configFields: [
       {
-        key: "facebookPage",
-        label: "URL de votre page Facebook",
-        type: "url",
-        placeholder: "https://facebook.com/votre-page",
-      },
-      {
-        key: "instagramHandle",
-        label: "Compte Instagram",
+        key: "facebookPageName",
+        label: "Nom de votre page Facebook",
         type: "text",
-        placeholder: "@votre-compte",
+        required: true,
+        placeholder: "Ex. Plomberie Lefèvre",
       },
       {
         key: "metaConnection",
@@ -203,6 +198,32 @@ export const CATALOG: CatalogService[] = [
       { key: "faq", label: "Questions fréquentes", type: "textarea" },
     ],
     sortOrder: 4,
+  },
+  {
+    slug: "assistant-instagram",
+    name: "Assistant Instagram",
+    description:
+      "Réponses instantanées à vos clients en messages privés Instagram : questions fréquentes, devis, disponibilités.",
+    category: "COMMUNICATION",
+    setupFeeCents: 45000,
+    monthlyPriceCents: 5900,
+    usageCapLabel: null,
+    configFields: [
+      {
+        key: "instagramUsername",
+        label: "Nom d'utilisateur Instagram",
+        type: "text",
+        required: true,
+        placeholder: "@plomberielefevre",
+      },
+      {
+        key: "metaConnection",
+        label: "Connexion Meta Business",
+        type: "text",
+      },
+      { key: "faq", label: "Questions fréquentes", type: "textarea" },
+    ],
+    sortOrder: 5,
   },
   {
     slug: "reponses-emails",
@@ -229,7 +250,7 @@ export const CATALOG: CatalogService[] = [
       },
       { key: "replyTemplates", label: "Modèles de réponses", type: "file-link" },
     ],
-    sortOrder: 5,
+    sortOrder: 6,
   },
   {
     slug: "prise-rdv-automatique",
@@ -256,7 +277,7 @@ export const CATALOG: CatalogService[] = [
         options: SLOT_DURATION_OPTIONS,
       },
     ],
-    sortOrder: 6,
+    sortOrder: 7,
   },
 
   // --- Administration automatisée ---
@@ -287,7 +308,7 @@ export const CATALOG: CatalogService[] = [
         type: "textarea",
       },
     ],
-    sortOrder: 7,
+    sortOrder: 8,
   },
   {
     slug: "contrats-courriers-administratifs",
@@ -316,7 +337,7 @@ export const CATALOG: CatalogService[] = [
         ],
       },
     ],
-    sortOrder: 8,
+    sortOrder: 9,
   },
   {
     slug: "relance-impayes",
@@ -341,7 +362,7 @@ export const CATALOG: CatalogService[] = [
         helpText: "Ex. J+7 → e-mail doux, J+30 → courrier",
       },
     ],
-    sortOrder: 9,
+    sortOrder: 10,
   },
   {
     slug: "signature-electronique",
@@ -365,7 +386,7 @@ export const CATALOG: CatalogService[] = [
       },
       { key: "documentTypes", label: "Documents types à signer", type: "tags" },
     ],
-    sortOrder: 10,
+    sortOrder: 11,
   },
   {
     slug: "archivage-intelligent",
@@ -385,7 +406,7 @@ export const CATALOG: CatalogService[] = [
       },
       { key: "classificationRules", label: "Règles de classement", type: "rules-list" },
     ],
-    sortOrder: 11,
+    sortOrder: 12,
   },
 
   // --- Traitement de l'information ---
@@ -415,7 +436,7 @@ export const CATALOG: CatalogService[] = [
         ],
       },
     ],
-    sortOrder: 12,
+    sortOrder: 13,
   },
   {
     slug: "resume-reunions",
@@ -450,7 +471,7 @@ export const CATALOG: CatalogService[] = [
         helpText: "Bloque l'activation tant que non coché (RGPD).",
       },
     ],
-    sortOrder: 13,
+    sortOrder: 14,
   },
   {
     slug: "ocr-lecture-automatique",
@@ -470,7 +491,7 @@ export const CATALOG: CatalogService[] = [
       },
       { key: "targetTool", label: "Outil de gestion cible", type: "text" },
     ],
-    sortOrder: 14,
+    sortOrder: 15,
   },
 
   // --- Abonnement ---
@@ -484,6 +505,6 @@ export const CATALOG: CatalogService[] = [
     monthlyPriceCents: 9900,
     usageCapLabel: null,
     configFields: [],
-    sortOrder: 15,
+    sortOrder: 16,
   },
 ];

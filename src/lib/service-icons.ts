@@ -1,4 +1,5 @@
 import {
+  Camera,
   CalendarCheck,
   CalendarClock,
   FileArchive,
@@ -23,7 +24,8 @@ export const SERVICE_ICONS: Record<string, LucideIcon> = {
   "standard-telephonique-ia": PhoneCall,
   "prise-rdv-telephone": Phone,
   "assistant-whatsapp": MessageCircle,
-  "assistant-messenger-instagram": MessageSquare,
+  "assistant-facebook": MessageSquare,
+  "assistant-instagram": Camera,
   "reponses-emails": Mail,
   "prise-rdv-automatique": CalendarCheck,
   "devis-factures-bons-commande": FileText,

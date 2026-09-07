@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   asStringArray,
+  FACEBOOK_SERVICE_SLUG,
+  INSTAGRAM_SERVICE_SLUG,
   needsCalendarConnection,
+  needsFacebookConnection,
+  needsInstagramConnection,
   needsPhoneNumber,
   needsWhatsAppConnection,
   TELEPHONY_SERVICE_SLUGS,
@@ -11,6 +15,8 @@ import {
   type MyServiceDTO,
 } from "@/lib/catalog";
 import { CalendarConnection } from "./calendar-connection";
+import { InstagramConnection } from "./instagram-connection";
+import { MessengerConnection } from "./messenger-connection";
 import { PhoneNumberPurchase } from "./phone-number-purchase";
 import { WhatsAppConnection } from "./whatsapp-connection";
 
@@ -24,6 +30,8 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
 
   const isTelephony = TELEPHONY_SERVICE_SLUGS.has(item.service.slug);
   const isWhatsApp = item.service.slug === WHATSAPP_SERVICE_SLUG;
+  const isFacebook = item.service.slug === FACEBOOK_SERVICE_SLUG;
+  const isInstagram = item.service.slug === INSTAGRAM_SERVICE_SLUG;
   const takesAppointments = asStringArray(
     item.configuration.objectives
   ).includes("appointment");
@@ -35,7 +43,18 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
   const phoneDone = !isTelephony || hasNumber;
   const calendarDone = !takesAppointments || item.calendarConnected;
   const whatsappDone = !isWhatsApp || item.whatsappConnected;
-  if (paid && phoneDone && calendarDone && whatsappDone && verified) return null;
+  const facebookDone = !isFacebook || item.facebookConnected;
+  const instagramDone = !isInstagram || item.instagramConnected;
+  if (
+    paid &&
+    phoneDone &&
+    calendarDone &&
+    whatsappDone &&
+    facebookDone &&
+    instagramDone &&
+    verified
+  )
+    return null;
 
   const steps = [
     { label: "Paiement", done: paid },
@@ -45,6 +64,12 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
     ...(isWhatsApp
       ? [{ label: "Compte WhatsApp connecté", done: item.whatsappConnected }]
       : []),
+    ...(isFacebook
+      ? [{ label: "Page Facebook connectée", done: item.facebookConnected }]
+      : []),
+    ...(isInstagram
+      ? [{ label: "Compte Instagram connecté", done: item.instagramConnected }]
+      : []),
     ...(takesAppointments
       ? [{ label: "Agenda connecté", done: item.calendarConnected }]
       : []),
@@ -53,10 +78,23 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
 
   const nextIsPhone = needsPhoneNumber(item);
   const nextIsWhatsApp = !nextIsPhone && needsWhatsAppConnection(item);
+  const nextIsFacebook = !nextIsPhone && !nextIsWhatsApp && needsFacebookConnection(item);
+  const nextIsInstagram =
+    !nextIsPhone && !nextIsWhatsApp && !nextIsFacebook && needsInstagramConnection(item);
   const nextIsCalendar =
-    !nextIsPhone && !nextIsWhatsApp && needsCalendarConnection(item);
+    !nextIsPhone &&
+    !nextIsWhatsApp &&
+    !nextIsFacebook &&
+    !nextIsInstagram &&
+    needsCalendarConnection(item);
   const waitingOnNoveris =
-    paid && phoneDone && calendarDone && whatsappDone && !verified;
+    paid &&
+    phoneDone &&
+    calendarDone &&
+    whatsappDone &&
+    facebookDone &&
+    instagramDone &&
+    !verified;
 
   return (
     <Card>
@@ -123,6 +161,40 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
               clientServiceId={item.clientServiceId}
               connected={item.whatsappConnected}
               displayNumber={item.whatsappDisplayNumber}
+            />
+          </div>
+        )}
+
+        {nextIsFacebook && (
+          <div className="rounded-2xl border border-border bg-muted/40 p-4">
+            <p className="text-sm font-medium text-foreground">
+              Connectez votre Page Facebook
+            </p>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              L&apos;IA ne peut pas encore répondre à vos clients tant
+              qu&apos;aucune Page n&apos;est connectée.
+            </p>
+            <MessengerConnection
+              clientServiceId={item.clientServiceId}
+              connected={item.facebookConnected}
+              pageName={item.facebookPageName}
+            />
+          </div>
+        )}
+
+        {nextIsInstagram && (
+          <div className="rounded-2xl border border-border bg-muted/40 p-4">
+            <p className="text-sm font-medium text-foreground">
+              Connectez votre compte Instagram
+            </p>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              L&apos;IA ne peut pas encore répondre à vos clients tant
+              qu&apos;aucun compte n&apos;est connecté.
+            </p>
+            <InstagramConnection
+              clientServiceId={item.clientServiceId}
+              connected={item.instagramConnected}
+              username={item.instagramUsername}
             />
           </div>
         )}

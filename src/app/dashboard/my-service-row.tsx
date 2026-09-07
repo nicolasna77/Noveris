@@ -20,6 +20,8 @@ import {
   describeServiceStatus,
   formatPrice,
   needsCalendarConnection,
+  needsFacebookConnection,
+  needsInstagramConnection,
   needsPhoneNumber,
   needsWhatsAppConnection,
   TELEPHONY_SERVICE_SLUGS,
@@ -55,9 +57,13 @@ export function MyServiceRow({
     ? "Choisissez un numéro pour que l'IA puisse décrocher"
     : needsWhatsAppConnection(item)
       ? "Connectez votre compte WhatsApp pour que l'IA puisse répondre"
-      : needsCalendarConnection(item)
-        ? "Connectez votre agenda pour recevoir les rendez-vous"
-        : null;
+      : needsFacebookConnection(item)
+        ? "Connectez votre Page Facebook pour que l'IA puisse répondre"
+        : needsInstagramConnection(item)
+          ? "Connectez votre compte Instagram pour que l'IA puisse répondre"
+          : needsCalendarConnection(item)
+            ? "Connectez votre agenda pour recevoir les rendez-vous"
+            : null;
 
   function handleResume() {
     startTransition(async () => {

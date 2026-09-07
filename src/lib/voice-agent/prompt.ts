@@ -159,16 +159,22 @@ function buildStandardTelephoniquePrompt(configuration: Configuration, companyNa
   return lines.join("\n");
 }
 
-// Agent WhatsApp : bien plus simple que le téléphone pour l'instant (pas de
-// rendez-vous ni de commande — configFields de "assistant-whatsapp" dans
-// catalog-data.ts n'a qu'un FAQ) — un tour de message à la fois, pas de
-// notion d'ouverture/fermeture puisque WhatsApp n'a pas d'attente en ligne.
-function buildWhatsAppPrompt(configuration: Configuration, companyName: string): string {
+// Agent de messagerie (WhatsApp, Messenger, Instagram) : bien plus simple
+// que le téléphone pour l'instant (pas de rendez-vous ni de commande — les
+// configFields de ces services dans catalog-data.ts n'ont qu'un FAQ) — un
+// tour de message à la fois, pas de notion d'ouverture/fermeture puisque la
+// messagerie n'a pas d'attente en ligne. Les 3 canaux partagent exactement
+// le même périmètre, seul le nom du canal change dans le prompt.
+function buildMessagingPrompt(
+  configuration: Configuration,
+  companyName: string,
+  channelLabel: string
+): string {
   const faq = asString(configuration.faq);
   const lines = [
-    `Tu es l'assistant WhatsApp de ${companyName}. Tu réponds en français, de`,
-    `façon chaleureuse et concise (quelques phrases maximum, comme dans une`,
-    `vraie conversation WhatsApp), et tu vouvoies l'interlocuteur.`,
+    `Tu es l'assistant ${channelLabel} de ${companyName}. Tu réponds en`,
+    `français, de façon chaleureuse et concise (quelques phrases maximum,`,
+    `comme dans une vraie conversation), et tu vouvoies l'interlocuteur.`,
   ];
   lines.push(
     faq
@@ -204,7 +210,11 @@ export function buildSystemPrompt(
     case "standard-telephonique-ia":
       return buildStandardTelephoniquePrompt(configuration, companyName);
     case "assistant-whatsapp":
-      return buildWhatsAppPrompt(configuration, companyName);
+      return buildMessagingPrompt(configuration, companyName, "WhatsApp");
+    case "assistant-facebook":
+      return buildMessagingPrompt(configuration, companyName, "Messenger");
+    case "assistant-instagram":
+      return buildMessagingPrompt(configuration, companyName, "Instagram");
     case "prise-rdv-telephone":
     default:
       return buildPriseRdvPrompt(configuration, companyName, options.calendarConnected);

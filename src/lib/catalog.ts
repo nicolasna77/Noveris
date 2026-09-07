@@ -26,9 +26,13 @@ export const TELEPHONY_SERVICE_SLUGS = new Set([
 ]);
 
 // Même raison que TELEPHONY_SERVICE_SLUGS ci-dessus — utilisé partout où le
-// code a besoin de savoir "est-ce la prestation WhatsApp" (admin, tableau de
-// bord, prompt de l'agent).
+// code a besoin de savoir "est-ce la prestation WhatsApp/Facebook/Instagram"
+// (admin, tableau de bord, prompt de l'agent). Trois prestations distinctes
+// (pas une seule "réseaux sociaux") : un client peut vouloir l'une sans les
+// autres, avec des tarifs et des connexions Meta indépendantes.
 export const WHATSAPP_SERVICE_SLUG = "assistant-whatsapp";
+export const FACEBOOK_SERVICE_SLUG = "assistant-facebook";
+export const INSTAGRAM_SERVICE_SLUG = "assistant-instagram";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -188,6 +192,10 @@ export type ServiceEventType =
   | "CALENDAR_DISCONNECTED"
   | "WHATSAPP_CONNECTED"
   | "WHATSAPP_DISCONNECTED"
+  | "FACEBOOK_CONNECTED"
+  | "FACEBOOK_DISCONNECTED"
+  | "INSTAGRAM_CONNECTED"
+  | "INSTAGRAM_DISCONNECTED"
   | "CONFIGURATION_UPDATED"
   | "CANCELED";
 
@@ -201,6 +209,10 @@ export const SERVICE_EVENT_LABELS: Record<ServiceEventType, string> = {
   CALENDAR_DISCONNECTED: "Agenda Google déconnecté",
   WHATSAPP_CONNECTED: "Compte WhatsApp connecté",
   WHATSAPP_DISCONNECTED: "Compte WhatsApp déconnecté",
+  FACEBOOK_CONNECTED: "Page Facebook connectée",
+  FACEBOOK_DISCONNECTED: "Page Facebook déconnectée",
+  INSTAGRAM_CONNECTED: "Compte Instagram connecté",
+  INSTAGRAM_DISCONNECTED: "Compte Instagram déconnecté",
   CONFIGURATION_UPDATED: "Configuration mise à jour",
   CANCELED: "Solution résiliée",
 };
@@ -229,6 +241,10 @@ export type MyServiceDTO = {
   calendarConnected: boolean;
   whatsappConnected: boolean;
   whatsappDisplayNumber: string | null;
+  facebookConnected: boolean;
+  facebookPageName: string | null;
+  instagramConnected: boolean;
+  instagramUsername: string | null;
   bookings: BookingDTO[];
   events: ServiceEventDTO[];
   service: ServiceDTO;
@@ -293,6 +309,8 @@ type SetupSubject = {
   externalPhoneNumber: string | null;
   calendarConnected: boolean;
   whatsappConnected: boolean;
+  facebookConnected: boolean;
+  instagramConnected: boolean;
   configuration: Configuration;
   service: { slug: string };
 };
@@ -326,6 +344,22 @@ export function needsWhatsAppConnection(item: SetupSubject): boolean {
     isDeployable(item.status) &&
     item.service.slug === WHATSAPP_SERVICE_SLUG &&
     !item.whatsappConnected
+  );
+}
+
+export function needsFacebookConnection(item: SetupSubject): boolean {
+  return (
+    isDeployable(item.status) &&
+    item.service.slug === FACEBOOK_SERVICE_SLUG &&
+    !item.facebookConnected
+  );
+}
+
+export function needsInstagramConnection(item: SetupSubject): boolean {
+  return (
+    isDeployable(item.status) &&
+    item.service.slug === INSTAGRAM_SERVICE_SLUG &&
+    !item.instagramConnected
   );
 }
 

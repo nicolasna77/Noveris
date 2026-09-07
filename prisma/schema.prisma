@@ -210,6 +210,24 @@ model ClientService {
   whatsappBusinessAccountId String?
   whatsappAccessToken       String?
   whatsappDisplayNumber     String?
+  // Connexion self-service de la Page Facebook du client (Facebook Login for
+  // Business, voir src/lib/messenger.ts et messenger-connection.tsx) —
+  // facebookPageAccessToken est propre à cette Page (pas au client
+  // Facebook), c'est lui qui sert à envoyer et à s'abonner aux webhooks de
+  // la Page. facebookPageName n'est que la confirmation affichée à l'écran.
+  facebookPageId           String?
+  facebookPageAccessToken  String?
+  facebookPageName         String?
+  // Connexion self-service du compte Instagram du client ("Business Login
+  // for Instagram", OAuth classique — voir src/lib/instagram.ts et
+  // instagram-connection.tsx). instagramAccessToken est un jeton longue
+  // durée (60 jours, cf. exchangeForLongLivedInstagramToken) qu'il faut
+  // rafraîchir avant expiration (instagramTokenExpiresAt) — même principe
+  // que CalendarConnection.accessTokenExpiresAt pour Google Agenda.
+  instagramAccountId       String?
+  instagramAccessToken     String?
+  instagramTokenExpiresAt  DateTime?
+  instagramUsername        String?
   activatedAt             DateTime?
   canceledAt              DateTime?
   createdAt               DateTime            @default(now())
@@ -238,6 +256,10 @@ enum ServiceEventType {
   CALENDAR_DISCONNECTED
   WHATSAPP_CONNECTED
   WHATSAPP_DISCONNECTED
+  FACEBOOK_CONNECTED
+  FACEBOOK_DISCONNECTED
+  INSTAGRAM_CONNECTED
+  INSTAGRAM_DISCONNECTED
   CONFIGURATION_UPDATED
   CANCELED
 }

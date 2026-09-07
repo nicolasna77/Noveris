@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 import { db } from "@/lib/db";
-import type { Configuration } from "@/lib/catalog";
-import { buildSystemPrompt } from "@/lib/voice-agent/prompt";
-import { getToolDefinitions, runTool } from "@/lib/voice-agent/tools";
+import { generateMessagingReply } from "@/lib/messaging-agent";
 import { recordUsageEvent } from "@/lib/usage-events";
-import { sendWhatsAppMessage, validateWhatsAppSignature, verifyWebhookChallenge } from "@/lib/whatsapp";
-
-// Construit à la demande, pas au chargement du module — voir la même raison
-// dans src/lib/voice-agent/tools.ts et src/lib/twilio.ts.
-function getOpenAIClient() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
-const CHAT_MODEL = "gpt-5-mini";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { validateMetaSignature, verifyMetaWebhookChallenge } from "@/lib/meta";
 
 // Vérification du webhook faite une fois par Meta à sa configuration —
 // https://developers.facebook.com/docs/graph-api/webhooks/getting-started.
@@ -22,7 +13,7 @@ export async function GET(request: Request) {
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
 
-  if (verifyWebhookChallenge(mode, token) && challenge) {
+  if (verifyMetaWebhookChallenge(mode, token) && challenge) {
     return new NextResponse(challenge, { status: 200 });
   }
   return new NextResponse("Forbidden", { status: 403 });
@@ -53,7 +44,7 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
 
-  if (!validateWhatsAppSignature(signature, rawBody)) {
+  if (!validateMetaSignature(signature, rawBody)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -79,62 +70,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  const configuration = (clientService.configuration ?? {}) as Configuration;
-  const systemPrompt = buildSystemPrompt(clientService.service.slug, configuration, {
-    calendarConnected: false,
-    companyName: clientService.organization.name,
-  });
-  const tools = getToolDefinitions(clientService.service.slug, configuration, false);
-
   try {
-    const completion = await getOpenAIClient().chat.completions.create({
-      model: CHAT_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message.text.body },
-      ],
-      tools: tools.length > 0 ? tools : undefined,
-    });
-
-    const choice = completion.choices[0];
-    const toolCalls = choice.message.tool_calls ?? [];
-
-    let replyText = choice.message.content ?? "";
-
-    // Le modèle appelle un outil (ex. take_message) plutôt que de répondre
-    // directement au premier tour — on l'exécute puis on redemande une
-    // réponse en langage naturel avec le résultat, comme un second tour de
-    // conversation classique (Chat Completions, pas de session à tenir
-    // ouverte contrairement à l'agent vocal en Realtime).
-    const functionCalls = toolCalls.filter((call) => call.type === "function");
-    if (functionCalls.length > 0) {
-      const toolResults = await Promise.all(
-        functionCalls.map(async (call) => ({
-          tool_call_id: call.id,
-          output: await runTool(
-            call.function.name,
-            JSON.parse(call.function.arguments || "{}"),
-            { clientServiceId: clientService.id, callId: null, configuration }
-          ),
-        }))
-      );
-
-      const followUp = await getOpenAIClient().chat.completions.create({
-        model: CHAT_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message.text.body },
-          choice.message,
-          ...toolResults.map((r) => ({
-            role: "tool" as const,
-            tool_call_id: r.tool_call_id,
-            content: r.output,
-          })),
-        ],
-      });
-      replyText = followUp.choices[0].message.content ?? "";
-    }
-
+    const replyText = await generateMessagingReply(clientService, message.text.body);
     if (replyText) {
       await sendWhatsAppMessage(
         phoneNumberId,

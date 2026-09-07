@@ -19,8 +19,10 @@ import {
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import {
+  FACEBOOK_SERVICE_SLUG,
   formatConfigValue,
   formatPrice,
+  INSTAGRAM_SERVICE_SLUG,
   TELEPHONY_SERVICE_SLUGS,
   WHATSAPP_SERVICE_SLUG,
   type ClientServiceStatus,
@@ -29,6 +31,8 @@ import {
 import { StatusBadge } from "@/components/status-badge";
 import { PaginationNav } from "@/components/pagination-nav";
 import {
+  FacebookPageIdEditor,
+  InstagramAccountIdEditor,
   NoteEditor,
   MarkActiveButton,
   PhoneNumberEditor,
@@ -202,6 +206,16 @@ export async function ClientsSection({
                               <WhatsAppPhoneNumberEditor
                                 clientServiceId={cs.id}
                                 initialPhoneNumberId={cs.whatsappPhoneNumberId ?? ""}
+                              />
+                            ) : cs.service.slug === FACEBOOK_SERVICE_SLUG ? (
+                              <FacebookPageIdEditor
+                                clientServiceId={cs.id}
+                                initialPageId={cs.facebookPageId ?? ""}
+                              />
+                            ) : cs.service.slug === INSTAGRAM_SERVICE_SLUG ? (
+                              <InstagramAccountIdEditor
+                                clientServiceId={cs.id}
+                                initialAccountId={cs.instagramAccountId ?? ""}
                               />
                             ) : (
                               <span className="text-sm text-muted-foreground">

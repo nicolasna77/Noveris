@@ -20,11 +20,12 @@ import {
   type AvailableNumber,
 } from "@/lib/twilio";
 import {
-  exchangeEmbeddedSignupCode,
   fetchDisplayPhoneNumber,
   registerPhoneNumber,
   subscribeAppToWaba,
 } from "@/lib/whatsapp";
+import { exchangeMetaEmbeddedSignupCode } from "@/lib/meta";
+import { fetchManagedPage, subscribePageToApp } from "@/lib/messenger";
 import { sendServiceCanceledEmail } from "@/lib/email/notifications";
 
 // Délègue à src/lib/session.ts (mémoïsé par requête) plutôt que de
@@ -278,7 +279,7 @@ export async function completeWhatsAppEmbeddedSignup(
     throw new Error("UNAUTHORIZED");
   }
 
-  const accessToken = await exchangeEmbeddedSignupCode(code);
+  const accessToken = await exchangeMetaEmbeddedSignupCode(code);
   await subscribeAppToWaba(wabaId, accessToken);
   await registerPhoneNumber(phoneNumberId, accessToken);
   const displayNumber = await fetchDisplayPhoneNumber(phoneNumberId, accessToken);
@@ -318,6 +319,89 @@ export async function disconnectWhatsApp(clientServiceId: string) {
     },
   });
   await logServiceEvent(clientServiceId, "WHATSAPP_DISCONNECTED");
+  revalidateDashboard(clientServiceId);
+}
+
+// Termine la connexion self-service de la Page Facebook (Facebook Login for
+// Business, voir messenger-connection.tsx) : échange le code contre un
+// jeton utilisateur, retrouve la Page gérée et son jeton propre (voir
+// fetchManagedPage dans src/lib/messenger.ts), abonne notre app à ses
+// webhooks, et stocke le tout sur le ClientService.
+export async function completeMessengerConnection(clientServiceId: string, code: string) {
+  const [userId, clientService] = await Promise.all([
+    requireUserId(),
+    db.clientService.findUniqueOrThrow({ where: { id: clientServiceId } }),
+  ]);
+  if (clientService.userId !== userId) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  const userAccessToken = await exchangeMetaEmbeddedSignupCode(code);
+  const page = await fetchManagedPage(userAccessToken);
+  if (!page) {
+    throw new Error("Aucune Page Facebook trouvée — vérifiez que vous en gérez au moins une.");
+  }
+  await subscribePageToApp(page.id, page.access_token);
+
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: {
+      facebookPageId: page.id,
+      facebookPageAccessToken: page.access_token,
+      facebookPageName: page.name,
+    },
+  });
+  await logServiceEvent(clientServiceId, "FACEBOOK_CONNECTED", page.name);
+  revalidateDashboard(clientServiceId);
+}
+
+// Déconnecte la Page Facebook d'une prestation — suppression simple, pas de
+// révocation côté Meta (le client peut retirer l'accès de l'app Noveris
+// lui-même depuis son Gestionnaire d'entreprise si besoin).
+export async function disconnectMessenger(clientServiceId: string) {
+  const [userId, clientService] = await Promise.all([
+    requireUserId(),
+    db.clientService.findUniqueOrThrow({ where: { id: clientServiceId } }),
+  ]);
+  if (clientService.userId !== userId) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: {
+      facebookPageId: null,
+      facebookPageAccessToken: null,
+      facebookPageName: null,
+    },
+  });
+  await logServiceEvent(clientServiceId, "FACEBOOK_DISCONNECTED");
+  revalidateDashboard(clientServiceId);
+}
+
+// Déconnecte le compte Instagram d'une prestation — la connexion elle-même
+// se fait par redirect (voir src/app/api/instagram/connect et callback,
+// completeInstagramConnection dans src/lib/instagram.ts), pas par une
+// action serveur invoquée depuis le client comme WhatsApp/Messenger.
+export async function disconnectInstagram(clientServiceId: string) {
+  const [userId, clientService] = await Promise.all([
+    requireUserId(),
+    db.clientService.findUniqueOrThrow({ where: { id: clientServiceId } }),
+  ]);
+  if (clientService.userId !== userId) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: {
+      instagramAccountId: null,
+      instagramAccessToken: null,
+      instagramTokenExpiresAt: null,
+      instagramUsername: null,
+    },
+  });
+  await logServiceEvent(clientServiceId, "INSTAGRAM_DISCONNECTED");
   revalidateDashboard(clientServiceId);
 }
 

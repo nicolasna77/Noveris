@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   asStringArray,
+  FACEBOOK_SERVICE_SLUG,
   formatConfigValue,
+  INSTAGRAM_SERVICE_SLUG,
   TELEPHONY_SERVICE_SLUGS,
   WHATSAPP_SERVICE_SLUG,
   type MyServiceDTO,
@@ -10,6 +12,8 @@ import { CalendarConnection } from "./calendar-connection";
 import { CallActivity } from "./call-activity";
 import { CallForwardingGuide } from "./call-forwarding-guide";
 import { ConfigureButton } from "./configure-button";
+import { InstagramConnection } from "./instagram-connection";
+import { MessengerConnection } from "./messenger-connection";
 import { UsageCounter } from "./usage-counter";
 import { WhatsAppConnection } from "./whatsapp-connection";
 
@@ -43,11 +47,13 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
     (item.status === "ACTIVE" || item.status === "CONFIGURING") &&
     item.service.configFields.length > 0;
   const showCalendarRow = isLive && takesAppointments && item.calendarConnected;
+  const isDeployedStatus = item.status === "ACTIVE" || item.status === "CONFIGURING";
   const isWhatsApp = item.service.slug === WHATSAPP_SERVICE_SLUG;
-  const showWhatsAppRow =
-    isWhatsApp &&
-    (item.status === "ACTIVE" || item.status === "CONFIGURING") &&
-    item.whatsappConnected;
+  const showWhatsAppRow = isWhatsApp && isDeployedStatus && item.whatsappConnected;
+  const isFacebook = item.service.slug === FACEBOOK_SERVICE_SLUG;
+  const showFacebookRow = isFacebook && isDeployedStatus && item.facebookConnected;
+  const isInstagram = item.service.slug === INSTAGRAM_SERVICE_SLUG;
+  const showInstagramRow = isInstagram && isDeployedStatus && item.instagramConnected;
   const hasFacts =
     item.service.usageCapLabel ||
     (item.externalPhoneNumber && !isLive) ||
@@ -87,7 +93,12 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
         </Card>
       )}
 
-      {(hasFacts || showCalendarRow || showWhatsAppRow || canEditConfig) && (
+      {(hasFacts ||
+        showCalendarRow ||
+        showWhatsAppRow ||
+        showFacebookRow ||
+        showInstagramRow ||
+        canEditConfig) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
             <CardTitle className="text-base">Configuration</CardTitle>
@@ -142,6 +153,20 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
                 clientServiceId={item.clientServiceId}
                 connected={item.whatsappConnected}
                 displayNumber={item.whatsappDisplayNumber}
+              />
+            )}
+            {showFacebookRow && (
+              <MessengerConnection
+                clientServiceId={item.clientServiceId}
+                connected={item.facebookConnected}
+                pageName={item.facebookPageName}
+              />
+            )}
+            {showInstagramRow && (
+              <InstagramConnection
+                clientServiceId={item.clientServiceId}
+                connected={item.instagramConnected}
+                username={item.instagramUsername}
               />
             )}
           </CardContent>

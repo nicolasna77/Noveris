@@ -9,6 +9,8 @@ import { cn, getErrorMessage } from "@/lib/utils";
 import {
   markServiceActive,
   setExternalPhoneNumber,
+  setFacebookPageId,
+  setInstagramAccountId,
   setWhatsAppPhoneNumberId,
   updateServiceNote,
 } from "./actions";
@@ -146,6 +148,48 @@ export function WhatsAppPhoneNumberEditor({
       successMessage="Numéro WhatsApp connecté."
       saveLabel="Enregistrer le numéro"
       onSave={(value) => setWhatsAppPhoneNumberId(clientServiceId, value)}
+    />
+  );
+}
+
+export function FacebookPageIdEditor({
+  clientServiceId,
+  initialPageId,
+}: {
+  clientServiceId: string;
+  initialPageId: string;
+}) {
+  return (
+    <InlineFieldEditor
+      id={`facebook-${clientServiceId}`}
+      label="ID de la Page Facebook"
+      value={initialPageId}
+      placeholder="ex. 109876543210987"
+      inputClassName="min-w-36"
+      successMessage="Page Facebook connectée."
+      saveLabel="Enregistrer la Page"
+      onSave={(value) => setFacebookPageId(clientServiceId, value)}
+    />
+  );
+}
+
+export function InstagramAccountIdEditor({
+  clientServiceId,
+  initialAccountId,
+}: {
+  clientServiceId: string;
+  initialAccountId: string;
+}) {
+  return (
+    <InlineFieldEditor
+      id={`instagram-${clientServiceId}`}
+      label="ID du compte Instagram"
+      value={initialAccountId}
+      placeholder="ex. 17841400000000000"
+      inputClassName="min-w-36"
+      successMessage="Compte Instagram connecté."
+      saveLabel="Enregistrer le compte"
+      onSave={(value) => setInstagramAccountId(clientServiceId, value)}
     />
   );
 }
