@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { recordUsageEvent } from "@/lib/usage-events";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Webhook appelé par le système externe qui gère réellement la prestation
 // pour reporter le cycle de vie d'un appel : un premier appel au décroché
@@ -22,6 +23,13 @@ import { recordUsageEvent } from "@/lib/usage-events";
 //   -H "x-api-key: $USAGE_EVENTS_API_KEY" -H "Content-Type: application/json" \
 //   -d '{"clientServiceId":"...","externalId":"CA123","status":"completed","durationSec":42,"metadata":{"outcome":"appointment_booked"}}'
 export async function POST(request: Request) {
+  // Protégée par x-api-key, pas par une signature cryptographique — un
+  // rate limit par IP en défense supplémentaire contre le bourrage.
+  const allowed = await checkRateLimit("usage-events", await getClientIp(), "1 m", 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const apiKey = request.headers.get("x-api-key");
   if (!apiKey || apiKey !== process.env.USAGE_EVENTS_API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

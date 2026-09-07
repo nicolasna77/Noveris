@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { sendNewContactMessageInternalEmail } from "@/lib/email/notifications";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type ContactFormState = {
   status: "idle" | "success" | "error";
@@ -16,6 +17,17 @@ export async function submitContactMessage(
     message: string;
   }
 ): Promise<ContactFormState> {
+  // 5 messages / 10 min par IP — un formulaire public sans compte associé
+  // est une cible facile pour du bourrage (spam, saturation de la boîte
+  // interne qui reçoit chaque message).
+  const allowed = await checkRateLimit("contact-form", await getClientIp(), "10 m", 5);
+  if (!allowed) {
+    return {
+      status: "error",
+      error: "Trop de messages envoyés récemment — merci de réessayer dans quelques minutes.",
+    };
+  }
+
   const name = input.name.trim();
   const email = input.email.trim();
   const message = input.message.trim();

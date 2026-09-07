@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { releasePhoneNumber } from "@/lib/twilio";
 import { logServiceEvent } from "@/lib/service-events";
 import { sendPasswordResetEmail } from "@/lib/email/notifications";
+import { redisRateLimitStorage } from "@/lib/rate-limit";
 
 export const stripeClient = new Stripe(
   process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder",
@@ -33,6 +34,17 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
+  // Protège /sign-in, /sign-up, /change-password, /change-email
+  // (3 tentatives / 10s) et /request-password-reset, /forget-password,
+  // /email-otp/* (3 / 60s) via les règles par défaut de better-auth — pas
+  // besoin de customRules pour ça. customStorage (Redis, voir
+  // src/lib/rate-limit.ts) plutôt que le backend "memory" par défaut : sur
+  // Vercel, chaque instance serverless aurait sinon son propre compteur,
+  // contournable simplement en retombant sur une autre instance.
+  rateLimit: {
+    enabled: true,
+    customStorage: redisRateLimitStorage,
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
