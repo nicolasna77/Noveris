@@ -21,6 +21,7 @@ import {
   formatPrice,
   needsCalendarConnection,
   needsPhoneNumber,
+  needsWhatsAppConnection,
   TELEPHONY_SERVICE_SLUGS,
   type MyServiceDTO,
 } from "@/lib/catalog";
@@ -52,9 +53,11 @@ export function MyServiceRow({
   // sans avoir à ouvrir chaque page détail une par une.
   const setupHint = needsPhoneNumber(item)
     ? "Choisissez un numéro pour que l'IA puisse décrocher"
-    : needsCalendarConnection(item)
-      ? "Connectez votre agenda pour recevoir les rendez-vous"
-      : null;
+    : needsWhatsAppConnection(item)
+      ? "Connectez votre compte WhatsApp pour que l'IA puisse répondre"
+      : needsCalendarConnection(item)
+        ? "Connectez votre agenda pour recevoir les rendez-vous"
+        : null;
 
   function handleResume() {
     startTransition(async () => {

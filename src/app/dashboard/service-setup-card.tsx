@@ -5,11 +5,14 @@ import {
   asStringArray,
   needsCalendarConnection,
   needsPhoneNumber,
+  needsWhatsAppConnection,
   TELEPHONY_SERVICE_SLUGS,
+  WHATSAPP_SERVICE_SLUG,
   type MyServiceDTO,
 } from "@/lib/catalog";
 import { CalendarConnection } from "./calendar-connection";
 import { PhoneNumberPurchase } from "./phone-number-purchase";
+import { WhatsAppConnection } from "./whatsapp-connection";
 
 // Ce qui manque pour que la solution fonctionne vraiment, et à qui d'agir.
 // Sans ça, un client dont le standard téléphonique n'a pas encore de numéro
@@ -20,6 +23,7 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
   if (item.status === "CANCELED") return null;
 
   const isTelephony = TELEPHONY_SERVICE_SLUGS.has(item.service.slug);
+  const isWhatsApp = item.service.slug === WHATSAPP_SERVICE_SLUG;
   const takesAppointments = asStringArray(
     item.configuration.objectives
   ).includes("appointment");
@@ -30,12 +34,16 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
 
   const phoneDone = !isTelephony || hasNumber;
   const calendarDone = !takesAppointments || item.calendarConnected;
-  if (paid && phoneDone && calendarDone && verified) return null;
+  const whatsappDone = !isWhatsApp || item.whatsappConnected;
+  if (paid && phoneDone && calendarDone && whatsappDone && verified) return null;
 
   const steps = [
     { label: "Paiement", done: paid },
     ...(isTelephony
       ? [{ label: "Numéro de téléphone attribué", done: hasNumber }]
+      : []),
+    ...(isWhatsApp
+      ? [{ label: "Compte WhatsApp connecté", done: item.whatsappConnected }]
       : []),
     ...(takesAppointments
       ? [{ label: "Agenda connecté", done: item.calendarConnected }]
@@ -44,8 +52,11 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
   ];
 
   const nextIsPhone = needsPhoneNumber(item);
-  const nextIsCalendar = !nextIsPhone && needsCalendarConnection(item);
-  const waitingOnNoveris = paid && phoneDone && calendarDone && !verified;
+  const nextIsWhatsApp = !nextIsPhone && needsWhatsAppConnection(item);
+  const nextIsCalendar =
+    !nextIsPhone && !nextIsWhatsApp && needsCalendarConnection(item);
+  const waitingOnNoveris =
+    paid && phoneDone && calendarDone && whatsappDone && !verified;
 
   return (
     <Card>
@@ -96,6 +107,23 @@ export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
               actuelle, sans changer de numéro.
             </p>
             <PhoneNumberPurchase clientServiceId={item.clientServiceId} />
+          </div>
+        )}
+
+        {nextIsWhatsApp && (
+          <div className="rounded-2xl border border-border bg-muted/40 p-4">
+            <p className="text-sm font-medium text-foreground">
+              Connectez votre compte WhatsApp Business
+            </p>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              L&apos;IA ne peut pas encore répondre à vos clients tant qu&apos;aucun
+              compte n&apos;est connecté — vous gardez votre numéro actuel.
+            </p>
+            <WhatsAppConnection
+              clientServiceId={item.clientServiceId}
+              connected={item.whatsappConnected}
+              displayNumber={item.whatsappDisplayNumber}
+            />
           </div>
         )}
 

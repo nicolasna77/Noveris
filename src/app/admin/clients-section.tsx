@@ -22,6 +22,7 @@ import {
   formatConfigValue,
   formatPrice,
   TELEPHONY_SERVICE_SLUGS,
+  WHATSAPP_SERVICE_SLUG,
   type ClientServiceStatus,
   type ConfigValue,
 } from "@/lib/catalog";
@@ -197,7 +198,7 @@ export async function ClientsSection({
                                 clientServiceId={cs.id}
                                 initialPhoneNumber={cs.externalPhoneNumber ?? ""}
                               />
-                            ) : cs.service.slug === "assistant-whatsapp" ? (
+                            ) : cs.service.slug === WHATSAPP_SERVICE_SLUG ? (
                               <WhatsAppPhoneNumberEditor
                                 clientServiceId={cs.id}
                                 initialPhoneNumberId={cs.whatsappPhoneNumberId ?? ""}

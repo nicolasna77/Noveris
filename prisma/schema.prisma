@@ -197,7 +197,19 @@ model ClientService {
   // (metadata.phone_number_id) et à cibler l'envoi de la réponse. Distinct
   // du numéro humainement lisible saisi par le client à l'activation
   // (configuration.whatsappNumber), qui n'est qu'informatif.
-  whatsappPhoneNumberId   String?
+  whatsappPhoneNumberId    String?
+  // Renseignés uniquement quand la connexion vient du parcours self-service
+  // du client (Embedded Signup, voir whatsapp-connection.tsx) plutôt que
+  // d'une saisie manuelle par l'admin : whatsappBusinessAccountId identifie
+  // le WABA du client (nécessaire pour abonner l'app à ses webhooks),
+  // whatsappAccessToken est le jeton propre à ce client (Business
+  // Integration System User) utilisé pour envoyer en son nom — à défaut on
+  // retombe sur WHATSAPP_ACCESS_TOKEN (notre propre numéro de test).
+  // whatsappDisplayNumber n'est que la confirmation lisible affichée au
+  // client, jamais utilisé pour router quoi que ce soit.
+  whatsappBusinessAccountId String?
+  whatsappAccessToken       String?
+  whatsappDisplayNumber     String?
   activatedAt             DateTime?
   canceledAt              DateTime?
   createdAt               DateTime            @default(now())
@@ -224,6 +236,8 @@ enum ServiceEventType {
   PHONE_ASSIGNED
   CALENDAR_CONNECTED
   CALENDAR_DISCONNECTED
+  WHATSAPP_CONNECTED
+  WHATSAPP_DISCONNECTED
   CONFIGURATION_UPDATED
   CANCELED
 }

@@ -25,6 +25,11 @@ export const TELEPHONY_SERVICE_SLUGS = new Set([
   "standard-telephonique-ia",
 ]);
 
+// Même raison que TELEPHONY_SERVICE_SLUGS ci-dessus — utilisé partout où le
+// code a besoin de savoir "est-ce la prestation WhatsApp" (admin, tableau de
+// bord, prompt de l'agent).
+export const WHATSAPP_SERVICE_SLUG = "assistant-whatsapp";
+
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 export const WEEK_DAYS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -181,6 +186,8 @@ export type ServiceEventType =
   | "PHONE_ASSIGNED"
   | "CALENDAR_CONNECTED"
   | "CALENDAR_DISCONNECTED"
+  | "WHATSAPP_CONNECTED"
+  | "WHATSAPP_DISCONNECTED"
   | "CONFIGURATION_UPDATED"
   | "CANCELED";
 
@@ -192,6 +199,8 @@ export const SERVICE_EVENT_LABELS: Record<ServiceEventType, string> = {
   PHONE_ASSIGNED: "Numéro de téléphone attribué",
   CALENDAR_CONNECTED: "Agenda Google connecté",
   CALENDAR_DISCONNECTED: "Agenda Google déconnecté",
+  WHATSAPP_CONNECTED: "Compte WhatsApp connecté",
+  WHATSAPP_DISCONNECTED: "Compte WhatsApp déconnecté",
   CONFIGURATION_UPDATED: "Configuration mise à jour",
   CANCELED: "Solution résiliée",
 };
@@ -218,6 +227,8 @@ export type MyServiceDTO = {
   canceledAt: Date | null;
   externalPhoneNumber: string | null;
   calendarConnected: boolean;
+  whatsappConnected: boolean;
+  whatsappDisplayNumber: string | null;
   bookings: BookingDTO[];
   events: ServiceEventDTO[];
   service: ServiceDTO;
@@ -281,6 +292,7 @@ type SetupSubject = {
   status: ClientServiceStatus;
   externalPhoneNumber: string | null;
   calendarConnected: boolean;
+  whatsappConnected: boolean;
   configuration: Configuration;
   service: { slug: string };
 };
@@ -304,6 +316,16 @@ export function needsCalendarConnection(item: SetupSubject): boolean {
     isDeployable(item.status) &&
     asStringArray(item.configuration.objectives).includes("appointment") &&
     !item.calendarConnected
+  );
+}
+
+// Une prestation WhatsApp sans compte connecté ne peut recevoir ni répondre
+// à aucun message — même statut "bloquant" que needsPhoneNumber ci-dessus.
+export function needsWhatsAppConnection(item: SetupSubject): boolean {
+  return (
+    isDeployable(item.status) &&
+    item.service.slug === WHATSAPP_SERVICE_SLUG &&
+    !item.whatsappConnected
   );
 }
 

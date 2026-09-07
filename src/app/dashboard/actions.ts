@@ -19,6 +19,12 @@ import {
   searchAvailableNumbers,
   type AvailableNumber,
 } from "@/lib/twilio";
+import {
+  exchangeEmbeddedSignupCode,
+  fetchDisplayPhoneNumber,
+  registerPhoneNumber,
+  subscribeAppToWaba,
+} from "@/lib/whatsapp";
 import { sendServiceCanceledEmail } from "@/lib/email/notifications";
 
 // Délègue à src/lib/session.ts (mémoïsé par requête) plutôt que de
@@ -249,6 +255,69 @@ export async function disconnectGoogleCalendar(clientServiceId: string) {
 
   const { count } = await db.calendarConnection.deleteMany({ where: { clientServiceId } });
   if (count > 0) await logServiceEvent(clientServiceId, "CALENDAR_DISCONNECTED");
+  revalidateDashboard(clientServiceId);
+}
+
+// Termine le parcours d'auto-connexion WhatsApp (Embedded Signup — voir
+// src/app/dashboard/whatsapp-connection.tsx) : échange le code renvoyé par
+// FB.login contre un jeton propre à ce client, abonne notre app à son WABA
+// (sinon on ne recevrait jamais ses messages), enregistre son numéro pour
+// l'API Cloud, et va chercher le numéro lisible pour confirmation à
+// l'écran.
+export async function completeWhatsAppEmbeddedSignup(
+  clientServiceId: string,
+  code: string,
+  wabaId: string,
+  phoneNumberId: string
+) {
+  const [userId, clientService] = await Promise.all([
+    requireUserId(),
+    db.clientService.findUniqueOrThrow({ where: { id: clientServiceId } }),
+  ]);
+  if (clientService.userId !== userId) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  const accessToken = await exchangeEmbeddedSignupCode(code);
+  await subscribeAppToWaba(wabaId, accessToken);
+  await registerPhoneNumber(phoneNumberId, accessToken);
+  const displayNumber = await fetchDisplayPhoneNumber(phoneNumberId, accessToken);
+
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: {
+      whatsappPhoneNumberId: phoneNumberId,
+      whatsappBusinessAccountId: wabaId,
+      whatsappAccessToken: accessToken,
+      whatsappDisplayNumber: displayNumber,
+    },
+  });
+  await logServiceEvent(clientServiceId, "WHATSAPP_CONNECTED", displayNumber);
+  revalidateDashboard(clientServiceId);
+}
+
+// Déconnecte le compte WhatsApp d'une prestation — suppression simple, pas
+// de révocation côté Meta (le client peut retirer l'accès de l'app Noveris
+// lui-même depuis son Gestionnaire d'entreprise si besoin).
+export async function disconnectWhatsApp(clientServiceId: string) {
+  const [userId, clientService] = await Promise.all([
+    requireUserId(),
+    db.clientService.findUniqueOrThrow({ where: { id: clientServiceId } }),
+  ]);
+  if (clientService.userId !== userId) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  await db.clientService.update({
+    where: { id: clientServiceId },
+    data: {
+      whatsappPhoneNumberId: null,
+      whatsappBusinessAccountId: null,
+      whatsappAccessToken: null,
+      whatsappDisplayNumber: null,
+    },
+  });
+  await logServiceEvent(clientServiceId, "WHATSAPP_DISCONNECTED");
   revalidateDashboard(clientServiceId);
 }
 

@@ -136,7 +136,12 @@ export async function POST(request: Request) {
     }
 
     if (replyText) {
-      await sendWhatsAppMessage(phoneNumberId, message.from, replyText);
+      await sendWhatsAppMessage(
+        phoneNumberId,
+        message.from,
+        replyText,
+        clientService.whatsappAccessToken
+      );
     }
   } catch (err) {
     console.error(`[whatsapp] échec de réponse au message ${message.id} :`, err);

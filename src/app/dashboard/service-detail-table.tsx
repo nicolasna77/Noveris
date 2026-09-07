@@ -3,6 +3,7 @@ import {
   asStringArray,
   formatConfigValue,
   TELEPHONY_SERVICE_SLUGS,
+  WHATSAPP_SERVICE_SLUG,
   type MyServiceDTO,
 } from "@/lib/catalog";
 import { CalendarConnection } from "./calendar-connection";
@@ -10,6 +11,7 @@ import { CallActivity } from "./call-activity";
 import { CallForwardingGuide } from "./call-forwarding-guide";
 import { ConfigureButton } from "./configure-button";
 import { UsageCounter } from "./usage-counter";
+import { WhatsAppConnection } from "./whatsapp-connection";
 
 // Libellé à gauche, valeur à gauche juste en dessous (ou en colonne sur
 // écran large) : une valeur longue — des horaires sur sept jours, un menu de
@@ -41,6 +43,11 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
     (item.status === "ACTIVE" || item.status === "CONFIGURING") &&
     item.service.configFields.length > 0;
   const showCalendarRow = isLive && takesAppointments && item.calendarConnected;
+  const isWhatsApp = item.service.slug === WHATSAPP_SERVICE_SLUG;
+  const showWhatsAppRow =
+    isWhatsApp &&
+    (item.status === "ACTIVE" || item.status === "CONFIGURING") &&
+    item.whatsappConnected;
   const hasFacts =
     item.service.usageCapLabel ||
     (item.externalPhoneNumber && !isLive) ||
@@ -80,7 +87,7 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
         </Card>
       )}
 
-      {(hasFacts || showCalendarRow || canEditConfig) && (
+      {(hasFacts || showCalendarRow || showWhatsAppRow || canEditConfig) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
             <CardTitle className="text-base">Configuration</CardTitle>
@@ -128,6 +135,13 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
               <CalendarConnection
                 clientServiceId={item.clientServiceId}
                 connected={item.calendarConnected}
+              />
+            )}
+            {showWhatsAppRow && (
+              <WhatsAppConnection
+                clientServiceId={item.clientServiceId}
+                connected={item.whatsappConnected}
+                displayNumber={item.whatsappDisplayNumber}
               />
             )}
           </CardContent>

@@ -61,6 +61,8 @@ export function toMyServiceDTO(
     canceledAt: cs.canceledAt,
     externalPhoneNumber: cs.externalPhoneNumber,
     calendarConnected: !!cs.calendarConnection,
+    whatsappConnected: !!cs.whatsappPhoneNumberId,
+    whatsappDisplayNumber: cs.whatsappDisplayNumber,
     bookings: (cs.bookings ?? []).map(toBookingDTO),
     events: (cs.events ?? []).map(toServiceEventDTO),
     service: {
