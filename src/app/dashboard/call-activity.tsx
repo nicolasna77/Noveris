@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { PhoneCall, PhoneOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const POLL_INTERVAL_MS = 5_000;
 
@@ -79,7 +80,19 @@ export function CallActivity({ clientServiceId }: { clientServiceId: string }) {
     };
   }, [clientServiceId]);
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div
+        role="status"
+        aria-label="Chargement de l'activité des appels…"
+        className="space-y-2"
+      >
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-14 w-full rounded-2xl" />
+        <Skeleton className="h-14 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

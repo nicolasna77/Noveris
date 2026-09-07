@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const POLL_INTERVAL_MS = 15_000;
 
@@ -34,7 +35,18 @@ export function UsageCounter({ clientServiceId }: { clientServiceId: string }) {
     };
   }, [clientServiceId]);
 
-  if (count === null) return null;
+  if (count === null) {
+    return (
+      <div
+        role="status"
+        aria-label="Chargement de l'usage…"
+        className="mt-3 flex items-center gap-2 rounded-2xl bg-muted p-3"
+      >
+        <Skeleton className="size-1.5 shrink-0 rounded-full" />
+        <Skeleton className="h-4 w-48" />
+      </div>
+    );
+  }
 
   return (
     <div
