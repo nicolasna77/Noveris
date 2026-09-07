@@ -4,6 +4,7 @@
 // internes à l'équipe Noveris (nouvelle demande d'aide, message de contact)
 // n'en font pas partie : il n'y a pas de préférence client à vérifier.
 export const NOTIFICATION_TYPES = [
+  "HELP_REQUEST_REPLY",
   "HELP_REQUEST_RESOLVED",
   "SERVICE_ACTIVATED",
   "SERVICE_NOTE_ADDED",
@@ -13,13 +14,16 @@ export const NOTIFICATION_TYPES = [
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
-  HELP_REQUEST_RESOLVED: "Réponse à une demande d'aide",
+  HELP_REQUEST_REPLY: "Réponse de l'équipe dans une demande d'aide",
+  HELP_REQUEST_RESOLVED: "Demande d'aide marquée comme traitée",
   SERVICE_ACTIVATED: "Activation d'une solution",
   SERVICE_NOTE_ADDED: "Note ajoutée par l'équipe",
   SERVICE_CANCELED: "Confirmation de résiliation",
 };
 
 export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationType, string> = {
+  HELP_REQUEST_REPLY:
+    "Quand l'équipe Noveris répond dans le fil d'une de vos demandes d'aide.",
   HELP_REQUEST_RESOLVED:
     "Quand l'équipe Noveris marque votre demande d'aide comme traitée.",
   SERVICE_ACTIVATED: "Quand une solution payée devient active.",

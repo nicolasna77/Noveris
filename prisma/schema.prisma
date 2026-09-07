@@ -31,6 +31,7 @@ model User {
   accounts                Account[]
   clientServices          ClientService[]
   helpRequests            HelpRequest[]
+  helpRequestMessages     HelpRequestMessage[]
 
   members     Member[]
   invitations Invitation[]
@@ -400,15 +401,40 @@ model HelpRequest {
   clientServiceId String?
   clientService   ClientService?    @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
   subject         String
+  // Message d'ouverture — les réponses qui suivent, des deux côtés, vivent
+  // dans HelpRequestMessage ci-dessous.
   message         String
   status          HelpRequestStatus @default(OPEN)
   createdAt       DateTime          @default(now())
   resolvedAt      DateTime?
 
+  messages HelpRequestMessage[]
+
   @@index([status, createdAt])
   @@index([userId])
   @@index([organizationId])
   @@map("help_request")
+}
+
+// Fil de discussion d'une demande d'aide, alimenté dans les deux sens : le
+// client depuis /dashboard/aide, l'équipe depuis /admin/aide. Le message
+// d'ouverture reste sur HelpRequest.message (il porte aussi le sujet et le
+// statut) — seules les réponses arrivent ici.
+model HelpRequestMessage {
+  id            String      @id @default(cuid())
+  helpRequestId String
+  helpRequest   HelpRequest @relation(fields: [helpRequestId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // Côté figé à l'écriture plutôt que déduit du rôle de l'auteur au moment
+  // de l'affichage : une promotion ou une rétrogradation ultérieure ne doit
+  // pas réécrire qui parlait au nom de Noveris dans un fil déjà clos.
+  fromTeam      Boolean
+  body          String
+  createdAt     DateTime    @default(now())
+
+  @@index([helpRequestId, createdAt])
+  @@map("help_request_message")
 }
 
 model Organization {

@@ -12,7 +12,9 @@ import {
 import { PaginationNav } from "@/components/pagination-nav";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/catalog";
-import { HELP_REQUEST_STATUS_LABELS } from "@/lib/help";
+import { HELP_REQUEST_STATUS_LABELS, toHelpRequestMessageDTOs } from "@/lib/help";
+import { HelpRequestThread } from "@/components/help-request-thread";
+import { HelpRequestReplyForm } from "./help-request-reply-form";
 import { HelpRequestStatusButton } from "./help-request-status-button";
 
 const PAGE_SIZE = 20;
@@ -47,6 +49,10 @@ export async function HelpRequestsSection({
         user: { select: { id: true, name: true, email: true } },
         organization: { select: { name: true } },
         clientService: { select: { name: true } },
+        messages: {
+          orderBy: { createdAt: "asc" },
+          include: { author: { select: { name: true } } },
+        },
       },
     }),
   ]);
@@ -95,6 +101,8 @@ export async function HelpRequestsSection({
               <p className="whitespace-pre-wrap text-sm text-foreground">
                 {r.message}
               </p>
+              <HelpRequestThread messages={toHelpRequestMessageDTOs(r.messages)} />
+              <HelpRequestReplyForm helpRequestId={r.id} />
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
                   Reçue le {formatDate(r.createdAt)}

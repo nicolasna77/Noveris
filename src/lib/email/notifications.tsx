@@ -1,6 +1,8 @@
 import { sendEmail } from "./client";
 import { isNotificationEnabled } from "./preferences";
 import { HelpRequestResolvedEmail } from "./templates/help-request-resolved";
+import { HelpRequestReplyEmail } from "./templates/help-request-reply";
+import { HelpRequestClientReplyInternalEmail } from "./templates/help-request-client-reply-internal";
 import { ServiceActivatedEmail } from "./templates/service-activated";
 import { ServiceNoteAddedEmail } from "./templates/service-note-added";
 import { ServiceCanceledEmail } from "./templates/service-canceled";
@@ -29,6 +31,27 @@ export async function sendHelpRequestResolvedEmail(
     to: recipient.email,
     subject: `Votre demande « ${subject} » a été traitée`,
     react: <HelpRequestResolvedEmail recipientName={recipient.name} subject={subject} />,
+  });
+}
+
+export async function sendHelpRequestReplyEmail(
+  recipient: Recipient,
+  subject: string,
+  body: string
+) {
+  if (!isNotificationEnabled(recipient.notificationPreferences, "HELP_REQUEST_REPLY")) {
+    return;
+  }
+  await sendEmail({
+    to: recipient.email,
+    subject: `Réponse à votre demande « ${subject} »`,
+    react: (
+      <HelpRequestReplyEmail
+        recipientName={recipient.name}
+        subject={subject}
+        body={body}
+      />
+    ),
   });
 }
 
@@ -104,6 +127,20 @@ export async function sendNewHelpRequestInternalEmail(input: {
     to: teamEmail(),
     subject: `Nouvelle demande d'aide : ${input.subject}`,
     react: <NewHelpRequestInternalEmail {...input} />,
+  });
+}
+
+export async function sendHelpRequestClientReplyInternalEmail(input: {
+  clientName: string;
+  clientEmail: string;
+  organizationName: string;
+  subject: string;
+  body: string;
+}) {
+  await sendEmail({
+    to: teamEmail(),
+    subject: `Réponse de ${input.clientName} : ${input.subject}`,
+    react: <HelpRequestClientReplyInternalEmail {...input} />,
   });
 }
 

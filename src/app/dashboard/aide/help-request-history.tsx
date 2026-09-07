@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatDate } from "@/lib/catalog";
 import { HELP_REQUEST_STATUS_LABELS, type HelpRequestDTO } from "@/lib/help";
+import { HelpRequestThread } from "@/components/help-request-thread";
+import { HelpRequestReplyForm } from "./help-request-reply-form";
 
 export function HelpRequestHistory({ items }: { items: HelpRequestDTO[] }) {
   return (
@@ -58,6 +60,11 @@ export function HelpRequestHistory({ items }: { items: HelpRequestDTO[] }) {
                 <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                   {item.message}
                 </p>
+                <HelpRequestThread messages={item.messages} />
+                <HelpRequestReplyForm
+                  helpRequestId={item.id}
+                  resolved={item.status === "RESOLVED"}
+                />
               </CardContent>
             </Card>
           ))}

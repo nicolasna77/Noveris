@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { LifeBuoy } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireActiveOrganization } from "@/lib/organization";
-import type { HelpRequestDTO, HelpRequestServiceOption } from "@/lib/help";
+import {
+  toHelpRequestMessageDTOs,
+  type HelpRequestDTO,
+  type HelpRequestServiceOption,
+} from "@/lib/help";
 import { HelpRequestForm } from "./help-request-form";
 import { HelpRequestHistory } from "./help-request-history";
 import { HowItWorks } from "./how-it-works";
@@ -20,7 +24,13 @@ export default async function AidePage() {
     }),
     db.helpRequest.findMany({
       where: { organizationId: organization.id },
-      include: { clientService: { select: { id: true, name: true } } },
+      include: {
+        clientService: { select: { id: true, name: true } },
+        messages: {
+          orderBy: { createdAt: "asc" },
+          include: { author: { select: { name: true } } },
+        },
+      },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -43,6 +53,7 @@ export default async function AidePage() {
     service: r.clientService
       ? { clientServiceId: r.clientService.id, name: r.clientService.name }
       : null,
+    messages: toHelpRequestMessageDTOs(r.messages),
   }));
 
   return (
