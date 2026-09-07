@@ -25,8 +25,15 @@ function getTwilioClient() {
   return twilioLib(apiKeySid, apiKeySecret, { accountSid });
 }
 
+// NEXT_PUBLIC_APP_URL avec un slash final (ex. Vercel Settings > Environment
+// Variables) produirait sinon une URL à double slash, différente de celle
+// que Vercel normalise réellement à la réception — Twilio calculerait sa
+// signature sur l'URL configurée (avec le double slash), la nôtre sur l'URL
+// normalisée, et la validation échouerait systématiquement. Un vrai appel
+// entrant se serait aussi heurté à la redirection 308 que Next.js renvoie
+// pour ce chemin, que Twilio ne suit pas forcément sur un webhook vocal.
 export function voiceWebhookUrl(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
   return `${appUrl}/api/voice/incoming`;
 }
 
