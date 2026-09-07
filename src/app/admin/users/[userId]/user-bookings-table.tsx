@@ -47,7 +47,7 @@ export function UserBookingsTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Type</TableHead>
-                <TableHead>Prestation</TableHead>
+                <TableHead>Solution</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead className="text-right">Le</TableHead>
               </TableRow>

@@ -43,7 +43,7 @@ export default async function DashboardPage() {
                 Aucune automatisation activée pour l&apos;instant
               </p>
               <p className="text-sm text-muted-foreground">
-                Choisissez une prestation dans le catalogue pour démarrer.
+                Choisissez une solution dans le catalogue pour démarrer.
               </p>
             </div>
           </div>
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
             nativeButton={false}
             render={<Link href="/dashboard/prestations#prestations-disponibles" />}
           >
-            Découvrir les prestations
+            Découvrir les solutions
           </Button>
         </div>
       )}

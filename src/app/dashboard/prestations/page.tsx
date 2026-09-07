@@ -6,7 +6,7 @@ import { type MyServiceDTO } from "@/lib/catalog";
 import { toMyServiceDTO } from "../get-my-service";
 import { PrestationsView } from "./prestations-view";
 
-export const metadata: Metadata = { title: "Prestations" };
+export const metadata: Metadata = { title: "Solutions" };
 
 export default async function PrestationsPage({
   searchParams,

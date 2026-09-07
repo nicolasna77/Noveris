@@ -20,7 +20,7 @@ import type { OrganizationSummary } from "@/lib/organization";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
-  { href: "/dashboard/prestations", label: "Prestations", icon: Layers },
+  { href: "/dashboard/prestations", label: "Solutions", icon: Layers },
   { href: "/dashboard/paiements", label: "Paiements", icon: Receipt },
   { href: "/dashboard/profile", label: "Profil", icon: UserRound },
   { href: "/dashboard/aide", label: "Aide", icon: LifeBuoy },

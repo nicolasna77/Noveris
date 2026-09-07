@@ -40,7 +40,7 @@ function ServiceCard({ service }: { service: ServiceDTO }) {
               aria-hidden="true"
             />
           </div>
-          <CardTitle>{service.name}</CardTitle>
+          <CardTitle className="text-primary">{service.name}</CardTitle>
           <CardDescription>{service.description}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -102,7 +102,7 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
               </div>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {categoryServices.map((service) => (
                 <ServiceCard key={service.slug} service={service} />
               ))}

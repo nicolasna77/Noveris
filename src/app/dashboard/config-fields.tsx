@@ -34,7 +34,7 @@ import {
 // Regroupe les champs visibles par section (dans l'ordre d'apparition) — les
 // champs sans section explicite tombent dans un groupe générique commun, ce
 // qui évite d'avoir à étiqueter chaque champ individuellement.
-const DEFAULT_SECTION = "Détail de la prestation";
+const DEFAULT_SECTION = "Détail de la solution";
 
 function groupBySection(fields: ConfigField[]): [string, ConfigField[]][] {
   const groups = new Map<string, ConfigField[]>();

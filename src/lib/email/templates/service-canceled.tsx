@@ -24,16 +24,16 @@ export function ServiceCanceledEmail({
       </Heading>
       <Text style={emailTextStyle}>Bonjour {recipientName},</Text>
       <Text style={emailTextStyle}>
-        Votre prestation « {serviceName} » a bien été résiliée. L&apos;abonnement
+        Votre solution « {serviceName} » a bien été résiliée. L&apos;abonnement
         mensuel est annulé immédiatement ; les frais de mise en place déjà
         réglés ne sont pas remboursés.
       </Text>
       <Text style={emailMutedTextStyle}>
-        Vous pouvez réactiver cette prestation à tout moment depuis votre
+        Vous pouvez réactiver cette solution à tout moment depuis votre
         tableau de bord.
       </Text>
       <Link href={appUrl("/dashboard/prestations")} style={emailButtonStyle}>
-        Voir mes prestations
+        Voir mes solutions
       </Link>
     </EmailLayout>
   );

@@ -20,7 +20,7 @@ export function SiteFooter() {
             <ul className="mt-3 space-y-2">
               <li>
                 <Link href="/#prestations" className="hover:text-foreground">
-                  Prestations
+                  Solutions
                 </Link>
               </li>
               <li>

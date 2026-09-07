@@ -49,7 +49,7 @@ export function MaintenanceSection({ services }: { services: ServiceDTO[] }) {
             </div>
             <CardTitle>{support.name}</CardTitle>
             <CardDescription>
-              En plus du support déjà inclus dans chacune de vos prestations,
+              En plus du support déjà inclus dans chacune de vos solutions,
               le support prioritaire vous donne un accompagnement dédié.
             </CardDescription>
           </CardHeader>

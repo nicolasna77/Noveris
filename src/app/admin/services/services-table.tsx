@@ -28,10 +28,10 @@ export function ServicesTable({ services }: { services: EditableService[] }) {
       <Card>
         <CardContent>
           <Table>
-            <TableCaption className="sr-only">Catalogue des prestations</TableCaption>
+            <TableCaption className="sr-only">Catalogue des solutions</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Prestation</TableHead>
+                <TableHead>Solution</TableHead>
                 <TableHead>Catégorie</TableHead>
                 <TableHead>Prix</TableHead>
                 <TableHead>Plafond d&apos;usage</TableHead>

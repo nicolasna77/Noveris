@@ -22,7 +22,7 @@ export function ServiceActivatedEmail({
         as="h2"
         style={{ fontSize: "16px", margin: "0 0 12px", color: "#09090b" }}
       >
-        Votre prestation est active
+        Votre solution est active
       </Heading>
       <Text style={emailTextStyle}>Bonjour {recipientName},</Text>
       <Text style={emailTextStyle}>
@@ -36,7 +36,7 @@ export function ServiceActivatedEmail({
         href={appUrl(`/dashboard/services/${clientServiceId}`)}
         style={emailButtonStyle}
       >
-        Voir ma prestation
+        Voir ma solution
       </Link>
     </EmailLayout>
   );

@@ -187,13 +187,13 @@ export type ServiceEventType =
 export const SERVICE_EVENT_LABELS: Record<ServiceEventType, string> = {
   CREATED: "Demande d'activation envoyée",
   PAYMENT_RECEIVED: "Paiement reçu",
-  ACTIVATED: "Prestation vérifiée et activée",
+  ACTIVATED: "Solution vérifiée et activée",
   NOTE_ADDED: "Note de l'équipe Noveris",
   PHONE_ASSIGNED: "Numéro de téléphone attribué",
   CALENDAR_CONNECTED: "Agenda Google connecté",
   CALENDAR_DISCONNECTED: "Agenda Google déconnecté",
   CONFIGURATION_UPDATED: "Configuration mise à jour",
-  CANCELED: "Prestation résiliée",
+  CANCELED: "Solution résiliée",
 };
 
 export type ServiceEventDTO = {

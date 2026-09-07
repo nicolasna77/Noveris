@@ -33,24 +33,24 @@ export function UserServicesTable({
   return (
     <section className="mt-10">
       <h2 className="mb-3 text-lg font-semibold text-foreground">
-        Prestations
+        Solutions
       </h2>
       <Card>
         {clientServices.length === 0 ? (
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Aucune prestation activée.
+              Aucune solution activée.
             </p>
           </CardContent>
         ) : (
           <CardContent>
             <Table>
               <TableCaption className="sr-only">
-                Prestations de {userName}
+                Solutions de {userName}
               </TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Prestation</TableHead>
+                  <TableHead>Solution</TableHead>
                   <TableHead>Organisation</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Prix</TableHead>

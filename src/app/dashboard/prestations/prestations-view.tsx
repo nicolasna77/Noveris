@@ -46,7 +46,7 @@ export function PrestationsView({
       >
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Prestations
+            Solutions
           </h1>
           <p className="mt-1 text-muted-foreground">
             Vos automatisations activées et le catalogue disponible.
@@ -54,7 +54,7 @@ export function PrestationsView({
         </div>
         <Button onClick={() => setCatalogOpen(true)} className="shrink-0">
           <Sparkles aria-hidden="true" data-icon="inline-start" />
-          Découvrir les prestations
+          Découvrir les solutions
         </Button>
       </div>
 

@@ -59,7 +59,7 @@ export function HelpRequestForm({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="help-service">Prestation concernée</Label>
+            <Label htmlFor="help-service">Solution concernée</Label>
             <Select
               value={values.clientServiceId}
               onValueChange={(value) =>

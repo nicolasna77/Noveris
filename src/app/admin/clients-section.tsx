@@ -119,7 +119,7 @@ export async function ClientsSection({
                   </CardDescription>
                 </div>
                 <Badge variant="secondary">
-                  {client.clientServices.length} prestation
+                  {client.clientServices.length} solution
                   {client.clientServices.length > 1 ? "s" : ""}
                 </Badge>
               </div>
@@ -128,11 +128,11 @@ export async function ClientsSection({
               <CardContent>
                 <Table>
                   <TableCaption className="sr-only">
-                    Prestations de {client.name}
+                    Solutions de {client.name}
                   </TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Prestation</TableHead>
+                      <TableHead>Solution</TableHead>
                       <TableHead>Organisation</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Configuration</TableHead>

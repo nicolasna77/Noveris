@@ -33,7 +33,7 @@ export async function deleteOrganizationAction(organizationId: string) {
   }
   if (blockingCount > 0) {
     throw new Error(
-      "Impossible de supprimer une organisation avec des prestations en cours. Résiliez-les d'abord."
+      "Impossible de supprimer une organisation avec des solutions en cours. Résiliez-les d'abord."
     );
   }
 

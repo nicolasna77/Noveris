@@ -65,7 +65,7 @@ export function OrganizationCreateDialog({
             Créer une organisation
           </DialogTitle>
           <DialogDescription>
-            Une organisation regroupe les prestations d&apos;une même
+            Une organisation regroupe les solutions d&apos;une même
             entreprise.
           </DialogDescription>
         </DialogHeader>

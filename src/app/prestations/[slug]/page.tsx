@@ -47,7 +47,7 @@ const PHONE_FORWARDING_STEPS = [
   {
     title: "Un numéro dédié à l'IA",
     description:
-      "Dès l'activation, nous vous attribuons un numéro rien que pour cette prestation.",
+      "Dès l'activation, nous vous attribuons un numéro rien que pour cette solution.",
   },
   {
     title: "Un renvoi d'appel, gratuit et réversible",
@@ -95,7 +95,7 @@ export default async function PrestationDetailPage({
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="size-4" aria-hidden="true" />
-              Toutes les prestations
+              Toutes les solutions
             </Link>
 
             <div className="mt-6 flex items-center gap-3">
@@ -214,7 +214,7 @@ export default async function PrestationDetailPage({
                   Ce que vous configurez à l&apos;activation
                 </h2>
                 <p className="mt-2 max-w-xl text-muted-foreground">
-                  L&apos;équipe Noveris installe et connecte la prestation —
+                  L&apos;équipe Noveris installe et connecte la solution —
                   voici les informations qu&apos;on vous demande pour la
                   personnaliser à votre activité.
                 </p>
@@ -242,7 +242,7 @@ export default async function PrestationDetailPage({
           <section className="border-t border-border bg-muted py-16 sm:py-20">
             <div className="mx-auto max-w-3xl px-4 sm:px-6">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                Autres prestations — {CATEGORY_LABELS[service.category]}
+                Autres solutions — {CATEGORY_LABELS[service.category]}
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {related.map((relatedService) => {

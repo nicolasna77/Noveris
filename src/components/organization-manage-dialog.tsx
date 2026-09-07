@@ -143,7 +143,7 @@ export function OrganizationManageDialog({
             </AlertDialogTitle>
             <AlertDialogDescription>
               Cette action est irréversible. Elle n&apos;est possible que si
-              aucune prestation de cette organisation n&apos;est en cours
+              aucune solution de cette organisation n&apos;est en cours
               (payée, en configuration ou active).
             </AlertDialogDescription>
           </AlertDialogHeader>

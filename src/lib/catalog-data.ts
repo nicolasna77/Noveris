@@ -278,7 +278,7 @@ export const CATALOG: CatalogService[] = [
         key: "productCatalog",
         label: "Catalogue produits/services",
         type: "textarea",
-        placeholder: "Prestation A — 120 €\nPrestation B — 45 €",
+        placeholder: "Solution A — 120 €\nSolution B — 45 €",
       },
       { key: "existingTemplate", label: "Modèle existant", type: "file-link" },
       {
@@ -478,7 +478,7 @@ export const CATALOG: CatalogService[] = [
     slug: "support-prioritaire",
     name: "Support prioritaire",
     description:
-      "Accompagnement dédié, en plus du support déjà inclus dans chacune de vos prestations.",
+      "Accompagnement dédié, en plus du support déjà inclus dans chacune de vos solutions.",
     category: "ABONNEMENT",
     setupFeeCents: null,
     monthlyPriceCents: 9900,

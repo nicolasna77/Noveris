@@ -155,7 +155,7 @@ export async function activateService(
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       throw new Error(
-        `Vous avez déjà une prestation nommée « ${trimmedName} » pour ce service dans cette organisation.`
+        `Vous avez déjà une solution nommée « ${trimmedName} » pour ce service dans cette organisation.`
       );
     }
     throw err;
@@ -184,7 +184,7 @@ export async function resumeServiceCheckout(clientServiceId: string) {
     throw new Error("UNAUTHORIZED");
   }
   if (clientService.status !== "PENDING_PAYMENT" && clientService.status !== "CANCELED") {
-    throw new Error("Cette prestation est déjà active.");
+    throw new Error("Cette solution est déjà active.");
   }
 
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
@@ -262,16 +262,16 @@ async function requireOwnedTelephonyService(
   });
   if (clientService.userId !== userId) throw new Error("UNAUTHORIZED");
   if (!TELEPHONY_SERVICE_SLUGS.has(clientService.service.slug)) {
-    throw new Error("Cette prestation ne prend pas de numéro de téléphone.");
+    throw new Error("Cette solution ne prend pas de numéro de téléphone.");
   }
   // Achat autorisé une fois le paiement confirmé (CONFIGURING) — pas besoin
   // d'attendre le passage à ACTIVE par l'équipe Noveris, le numéro fait
   // partie de la configuration que le client met en place lui-même.
   if (clientService.status !== "CONFIGURING" && clientService.status !== "ACTIVE") {
-    throw new Error("La prestation doit être payée avant de choisir un numéro.");
+    throw new Error("La solution doit être payée avant de choisir un numéro.");
   }
   if (clientService.externalPhoneNumber) {
-    throw new Error("Un numéro est déjà assigné à cette prestation.");
+    throw new Error("Un numéro est déjà assigné à cette solution.");
   }
   return clientService;
 }
@@ -313,7 +313,7 @@ export async function purchasePhoneNumberForService(
   });
   if (count === 0) {
     await releasePhoneNumber(purchased.sid);
-    throw new Error("Un numéro a déjà été assigné à cette prestation entre-temps.");
+    throw new Error("Un numéro a déjà été assigné à cette solution entre-temps.");
   }
   await logServiceEvent(clientServiceId, "PHONE_ASSIGNED", purchased.phoneNumber);
 

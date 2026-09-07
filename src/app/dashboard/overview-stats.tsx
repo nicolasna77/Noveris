@@ -33,7 +33,7 @@ export async function OverviewStats({ organizationId }: { organizationId: string
   );
 
   const stats = [
-    { icon: Zap, label: "Prestations actives", value: String(activeServices.length) },
+    { icon: Zap, label: "Solutions actives", value: String(activeServices.length) },
     { icon: Wallet, label: "Dépense mensuelle", value: formatPrice(null, monthlySpendCents) },
     { icon: PhoneCall, label: "Appels ce mois-ci", value: String(callsThisMonth) },
   ];

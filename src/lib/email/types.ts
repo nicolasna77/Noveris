@@ -14,7 +14,7 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   HELP_REQUEST_RESOLVED: "Réponse à une demande d'aide",
-  SERVICE_ACTIVATED: "Activation d'une prestation",
+  SERVICE_ACTIVATED: "Activation d'une solution",
   SERVICE_NOTE_ADDED: "Note ajoutée par l'équipe",
   SERVICE_CANCELED: "Confirmation de résiliation",
 };
@@ -22,7 +22,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
 export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationType, string> = {
   HELP_REQUEST_RESOLVED:
     "Quand l'équipe Noveris marque votre demande d'aide comme traitée.",
-  SERVICE_ACTIVATED: "Quand une prestation payée devient active.",
-  SERVICE_NOTE_ADDED: "Quand l'équipe ajoute une note sur une de vos prestations.",
-  SERVICE_CANCELED: "Confirmation quand vous résiliez vous-même une prestation.",
+  SERVICE_ACTIVATED: "Quand une solution payée devient active.",
+  SERVICE_NOTE_ADDED: "Quand l'équipe ajoute une note sur une de vos solutions.",
+  SERVICE_CANCELED: "Confirmation quand vous résiliez vous-même une solution.",
 };

@@ -30,7 +30,7 @@ export function NewHelpRequestInternalEmail({
         {clientName} ({clientEmail}) — {organizationName}
       </Text>
       <Text style={emailTextStyle}>
-        Prestation concernée : {serviceName ?? "Question générale"}
+        Solution concernée : {serviceName ?? "Question générale"}
       </Text>
       <Text style={{ ...emailTextStyle, fontWeight: 600 }}>{subject}</Text>
       <Section

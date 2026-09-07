@@ -9,7 +9,7 @@ const FAQS = [
   {
     question: "Combien de temps avant que ce soit actif ?",
     answer:
-      "La plupart des prestations sont déployées et vérifiées en quelques jours après l'audit initial.",
+      "La plupart des solutions sont déployées et vérifiées en quelques jours après l'audit initial.",
   },
   {
     question: "Je peux arrêter quand je veux ?",

@@ -19,7 +19,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <HeroSection serviceCount={services.length} />
+        <HeroSection />
         <ProblemSection />
         <PresentationSection />
         <ServicesSection services={services} />

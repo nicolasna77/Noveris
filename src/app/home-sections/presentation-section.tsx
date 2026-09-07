@@ -12,7 +12,7 @@ export function PresentationSection() {
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
             Noveris installe des automatisations pour les artisans, coachs,
             indépendants et TPE/PME. Nous ne vendons pas un accès à
-            paramétrer vous-même : chaque prestation est installée, connectée
+            paramétrer vous-même : chaque solution est installée, connectée
             à vos outils existants et vérifiée par notre équipe avant
             d&apos;être activée. Vous n&apos;avez rien à programmer, rien à
             apprendre.
@@ -22,7 +22,7 @@ export function PresentationSection() {
           <div>
             <dt className="font-medium text-foreground">Client</dt>
             <dd className="mt-1 text-sm text-muted-foreground">
-              Active et suit ses prestations depuis un tableau de bord
+              Active et suit ses solutions depuis un tableau de bord
               simple, sans réglage technique.
             </dd>
           </div>

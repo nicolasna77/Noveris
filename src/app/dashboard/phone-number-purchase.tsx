@@ -136,7 +136,7 @@ export function PhoneNumberPurchase({
             </AlertDialogTitle>
             <AlertDialogDescription>
               Ce numéro sera acheté immédiatement et rattaché à votre
-              prestation — le coût est couvert par votre abonnement.
+              solution — le coût est couvert par votre abonnement.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

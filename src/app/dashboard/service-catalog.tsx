@@ -49,7 +49,7 @@ export function ServiceCatalog({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-xl">
           <SheetHeader>
-            <SheetTitle>Prestations disponibles</SheetTitle>
+            <SheetTitle>Solutions disponibles</SheetTitle>
             <SheetDescription>
               Activez une nouvelle automatisation pour votre entreprise.
             </SheetDescription>

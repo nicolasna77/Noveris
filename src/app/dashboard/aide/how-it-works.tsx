@@ -2,7 +2,7 @@ const STEPS = [
   {
     title: "Décrivez votre demande",
     description:
-      "Choisissez la prestation concernée si besoin, puis expliquez votre problème ou votre question.",
+      "Choisissez la solution concernée si besoin, puis expliquez votre problème ou votre question.",
   },
   {
     title: "L'équipe Noveris répond",

@@ -17,7 +17,7 @@ export function ServiceProgress({ status }: { status: ClientServiceStatus }) {
   const currentIndex = PROGRESS_STEPS.findIndex((s) => s.status === status);
 
   return (
-    <ol aria-label="Étapes de la prestation" className="mt-3 flex items-center">
+    <ol aria-label="Étapes de la solution" className="mt-3 flex items-center">
       {PROGRESS_STEPS.map((step, index) => {
         const done = index <= currentIndex;
         const current = index === currentIndex;

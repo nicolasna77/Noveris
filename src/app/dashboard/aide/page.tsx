@@ -56,7 +56,7 @@ export default async function AidePage() {
             Aide
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Une question sur une prestation, un souci technique ? Décrivez-le
+            Une question sur une solution, un souci technique ? Décrivez-le
             ci-dessous.
           </p>
         </div>

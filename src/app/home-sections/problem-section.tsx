@@ -61,7 +61,7 @@ export function ProblemSection() {
             href="#prestations"
             className="text-primary underline-offset-4 hover:underline"
           >
-            Voir les prestations
+            Voir les solutions
           </Link>
         </p>
       </div>

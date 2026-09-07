@@ -34,7 +34,7 @@ export async function submitHelpRequest(input: {
       select: { organizationId: true, name: true },
     });
     if (!clientService || clientService.organizationId !== active.id) {
-      throw new Error("Prestation introuvable.");
+      throw new Error("Solution introuvable.");
     }
   }
 

@@ -20,7 +20,7 @@ export function PrestationsMenu({ services }: { services: ServiceDTO[] }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground transition-colors outline-none hover:text-foreground">
-        Prestations
+        Solutions
         <ChevronDown className="size-3.5" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">

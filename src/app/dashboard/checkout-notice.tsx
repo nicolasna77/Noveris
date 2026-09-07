@@ -67,14 +67,14 @@ export function CheckoutNotice({
         {status === "success" &&
           isActivating &&
           !timedOut &&
-          "Votre prestation est en cours d'activation, cela ne prend généralement que quelques secondes…"}
+          "Votre solution est en cours d'activation, cela ne prend généralement que quelques secondes…"}
         {status === "success" &&
           isActivating &&
           timedOut &&
           "L'activation prend plus de temps que prévu. Actualisez la page dans un instant, ou contactez-nous si le problème persiste."}
         {status === "success" &&
           !isActivating &&
-          "Votre prestation est active. Retrouvez-la dans « Mes prestations » ci-dessous."}
+          "Votre solution est active. Retrouvez-la dans « Mes solutions » ci-dessous."}
       </AlertDescription>
       <AlertAction>
         <Button

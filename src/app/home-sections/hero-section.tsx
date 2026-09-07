@@ -2,19 +2,25 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { HeroNetworkVisual } from "./hero-network-visual";
 
-export function HeroSection({ serviceCount }: { serviceCount: number }) {
-  const heroStats = [
-    { label: "Prestations au catalogue", value: `${serviceCount}` },
-    { label: "Disponibilité des assistants", value: "24/7" },
-    { label: "Activation en ligne", value: "100 %" },
-    { label: "Garantie satisfait ou remboursé", value: "30 jours" },
-  ];
-
+export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-muted">
-      <div className="relative mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-center">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-[0.15]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, var(--foreground) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          maskImage:
+            "radial-gradient(ellipse 65% 65% at 50% 50%, black 0%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 65% 65% at 50% 50%, black 0%, transparent 100%)",
+        }}
+      />
+      <div className="relative mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center">
         <div>
           <Badge variant="secondary" className="mb-6">
             Agence d&apos;automatisation pour indépendants et TPE/PME
@@ -48,32 +54,11 @@ export function HeroSection({ serviceCount }: { serviceCount: number }) {
               nativeButton={false}
               render={<Link href="#prestations" />}
             >
-              Découvrir les prestations
+              Découvrir les solutions
             </Button>
           </div>
-          <dl className="mt-12 grid max-w-xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-4">
-            {heroStats.map((stat) => (
-              <div key={stat.label} className="bg-card px-4 py-3.5">
-                <dt className="min-h-8 text-xs leading-4 text-muted-foreground">
-                  {stat.label}
-                </dt>
-                <dd className="mt-1 text-2xl font-semibold text-primary">
-                  {stat.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
         </div>
-        <Image
-          src="/undraw_building-websites_k2zp.svg"
-          alt=""
-          width={500}
-          height={500}
-          priority
-          quality={100}
-          aria-hidden="true"
-          className="w-full"
-        />
+        <HeroNetworkVisual />
       </div>
     </section>
   );

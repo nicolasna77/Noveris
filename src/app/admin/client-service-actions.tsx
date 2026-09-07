@@ -139,7 +139,7 @@ export function MarkActiveButton({
     startTransition(async () => {
       try {
         await markServiceActive(clientServiceId);
-        toast.success("Prestation marquée active.");
+        toast.success("Solution marquée active.");
       } catch (err) {
         toast.error(getErrorMessage(err));
       }

@@ -81,7 +81,7 @@ export function ServiceEditDialog({
       onOpenChange(false);
       router.refresh();
     } catch (err) {
-      toast.error(getErrorMessage(err, "Impossible de mettre à jour la prestation."));
+      toast.error(getErrorMessage(err, "Impossible de mettre à jour la solution."));
     } finally {
       setIsSubmitting(false);
     }

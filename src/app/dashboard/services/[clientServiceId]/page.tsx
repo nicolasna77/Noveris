@@ -12,7 +12,7 @@ import { ServiceProgress } from "@/app/dashboard/service-progress";
 import { ServiceTimeline } from "@/app/dashboard/service-timeline";
 import { ServiceDetailTable } from "@/app/dashboard/service-detail-table";
 
-export const metadata: Metadata = { title: "Détail de la prestation" };
+export const metadata: Metadata = { title: "Détail de la solution" };
 
 export default async function ServiceDetailPage({
   params,
@@ -38,7 +38,7 @@ export default async function ServiceDetailPage({
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Retour aux prestations
+        Retour aux solutions
       </Link>
 
       {calendar === "error" && (

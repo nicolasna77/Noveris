@@ -55,7 +55,7 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
               id="my-services-heading"
               className="text-lg font-semibold text-foreground"
             >
-              Mes prestations
+              Mes solutions
             </h2>
             <p className="text-sm text-muted-foreground">
               Les automatisations que vous avez activées.
@@ -98,7 +98,7 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
           </span>
           <div>
             <p className="font-medium text-foreground">
-              Vous n&apos;avez encore activé aucune prestation
+              Vous n&apos;avez encore activé aucune solution
             </p>
             <p className="text-sm text-muted-foreground">
               Parcourez le catalogue ci-dessus pour démarrer votre première

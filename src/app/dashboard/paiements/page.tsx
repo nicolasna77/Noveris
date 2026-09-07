@@ -45,7 +45,7 @@ export default async function PaiementsPage() {
           Paiements
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Vos factures, par prestation.
+          Vos factures, par solution.
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default async function PaiementsPage() {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Vos factures apparaîtront ici dès l&apos;activation d&apos;une
-            prestation.
+            solution.
           </p>
         </div>
       ) : (
@@ -65,7 +65,7 @@ export default async function PaiementsPage() {
             <TableCaption className="sr-only">Historique des factures</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Prestation</TableHead>
+                <TableHead>Solution</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Montant</TableHead>
                 <TableHead>Statut</TableHead>

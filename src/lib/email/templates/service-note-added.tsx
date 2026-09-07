@@ -48,7 +48,7 @@ export function ServiceNoteAddedEmail({
         href={appUrl(`/dashboard/services/${clientServiceId}`)}
         style={emailButtonStyle}
       >
-        Voir ma prestation
+        Voir ma solution
       </Link>
     </EmailLayout>
   );

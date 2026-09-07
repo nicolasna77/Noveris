@@ -115,7 +115,7 @@ export function ActivationDialog({
                   Un numéro dédié à l&apos;IA vous sera attribué ; vos clients
                   continueront d&apos;appeler celui qu&apos;ils connaissent déjà
                   grâce à un simple renvoi d&apos;appel, gratuit et réversible,
-                  à activer une fois la prestation active.
+                  à activer une fois la solution active.
                 </p>
               </div>
             )}
@@ -130,7 +130,7 @@ export function ActivationDialog({
                   aria-invalid={submitAttempted && !name.trim()}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Utile si vous activez la même prestation plusieurs fois
+                  Utile si vous activez la même solution plusieurs fois
                   (plusieurs boutiques, par exemple).
                 </p>
               </div>

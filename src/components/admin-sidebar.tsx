@@ -20,7 +20,7 @@ import {
 const NAV_ITEMS = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
-  { href: "/admin/services", label: "Prestations", icon: Package },
+  { href: "/admin/services", label: "Solutions", icon: Package },
   { href: "/admin/aide", label: "Centre d'aide", icon: LifeBuoy },
 ];
 
