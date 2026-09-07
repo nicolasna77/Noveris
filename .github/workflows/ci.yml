@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Un push qui en remplace un autre annule la vérification devenue inutile.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Types, lint et build
+    runs-on: ubuntu-latest
+
+    # Postgres jetable pour que `npm run build` puisse s'exécuter tel quel,
+    # migrations comprises (`prisma migrate deploy`) : une migration qui ne
+    # s'applique pas sur une base vierge casse le déploiement Vercel, autant
+    # le voir ici. Même image que docker-compose.yml en local.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: noveris
+          POSTGRES_PASSWORD: noveris
+          POSTGRES_DB: noveris
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Valeurs factices volontairement : aucune n'est un secret du dépôt, la
+    # CI tourne donc aussi sur une pull request venant d'un fork. Seules
+    # figurent ici les variables lues au chargement des modules ou au build
+    # (Prisma, better-auth, Stripe, et les NEXT_PUBLIC_* inlinées dans le
+    # bundle client). Toutes les autres — OpenAI, Twilio, Meta, Upstash… —
+    # sont lues à la requête via une construction paresseuse et n'ont donc
+    # pas à être renseignées pour que le build passe.
+    env:
+      DATABASE_URL: postgresql://noveris:noveris@localhost:5432/noveris
+      BETTER_AUTH_SECRET: ci-dummy-secret-0123456789abcdefghijklmnop
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      STRIPE_SECRET_KEY: sk_test_ci_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_ci_dummy
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      # Avant tsc : les types du client Prisma sont générés, pas versionnés.
+      - name: Générer le client Prisma
+        run: npx prisma generate
+
+      - name: Vérifier les types
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
