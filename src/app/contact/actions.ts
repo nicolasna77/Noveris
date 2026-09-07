@@ -15,8 +15,17 @@ export async function submitContactMessage(
     email: string;
     activity: string;
     message: string;
+    // Honeypot (voir contact-form.tsx) : invisible pour une personne réelle,
+    // rempli par la plupart des bots qui soumettent tout champ trouvé dans
+    // le formulaire. On répond "success" sans rien faire plutôt qu'une
+    // erreur — un bot qui voit un rejet explicite apprend à éviter ce champ.
+    website: string;
   }
 ): Promise<ContactFormState> {
+  if (input.website.trim()) {
+    return { status: "success" };
+  }
+
   // 5 messages / 10 min par IP — un formulaire public sans compte associé
   // est une cible facile pour du bourrage (spam, saturation de la boîte
   // interne qui reçoit chaque message).
