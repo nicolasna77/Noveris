@@ -31,13 +31,12 @@ export function HeroSection() {
               Vos automatisations s&apos;occupent du reste.
             </span>
           </h1>
+          {/* Le schéma de droite nomme déjà les automatisations une par une :
+              ce paragraphe dit ce qu'il ne montre pas — qui fait le travail. */}
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Noveris installe et connecte des automatisations prêtes à
-            l&apos;emploi pour les artisans, coachs, indépendants et TPE/PME :
-            standard téléphonique qui répond à votre place, messages clients
-            traités en continu, devis et factures générés automatiquement. Vous
-            n&apos;ouvrez aucun logiciel technique — notre équipe s&apos;occupe
-            de tout, de l&apos;installation au suivi mensuel.
+            Notre équipe installe vos automatisations, les connecte à vos
+            outils et les surveille chaque mois. Vous ne paramétrez rien, vous
+            n&apos;ouvrez aucun logiciel technique.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button
@@ -57,6 +56,10 @@ export function HeroSection() {
               Découvrir les solutions
             </Button>
           </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Sans engagement, et remboursé si ça ne vous convient pas sous 30
+            jours.
+          </p>
         </div>
         <HeroNetworkVisual />
       </div>

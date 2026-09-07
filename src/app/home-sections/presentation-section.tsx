@@ -20,17 +20,19 @@ export function PresentationSection() {
         </div>
         <dl className="space-y-6 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
           <div>
-            <dt className="font-medium text-foreground">Client</dt>
-            <dd className="mt-1 text-sm text-muted-foreground">
-              Active et suit ses solutions depuis un tableau de bord
-              simple, sans réglage technique.
+            <dt className="font-medium text-foreground">Ce que vous faites</dt>
+            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              Vous choisissez une solution, vous répondez à quelques questions
+              sur votre activité, et vous suivez le tout depuis un tableau de
+              bord. Rien à installer, rien à paramétrer.
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-foreground">Équipe Noveris</dt>
-            <dd className="mt-1 text-sm text-muted-foreground">
-              Installe, connecte et supervise chaque automatisation
-              commandée, du premier jour au suivi mensuel.
+            <dt className="font-medium text-foreground">Ce qu&apos;on fait</dt>
+            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              On installe l&apos;automatisation, on la connecte à vos outils,
+              on la teste, puis on la surveille et on l&apos;ajuste chaque
+              mois.
             </dd>
           </div>
         </dl>

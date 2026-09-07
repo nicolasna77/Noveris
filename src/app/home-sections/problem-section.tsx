@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Banknote, FileClock, PhoneMissed } from "lucide-react";
+import { ArrowRight, Banknote, FileClock, PhoneMissed } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PROBLEMS = [
@@ -55,15 +56,20 @@ export function ProblemSection() {
             </Card>
           ))}
         </div>
-        <p className="mt-10 text-lg font-medium text-foreground">
-          C&apos;est exactement ce que Noveris automatise pour vous.{" "}
-          <Link
-            href="#prestations"
-            className="text-primary underline-offset-4 hover:underline"
+        <div className="mt-10 flex flex-col items-start gap-4 rounded-3xl border border-border bg-muted/40 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-lg font-medium text-balance text-foreground">
+            Ces trois-là, une automatisation s&apos;en charge sans que vous y
+            pensiez.
+          </p>
+          <Button
+            nativeButton={false}
+            render={<Link href="#prestations" />}
+            className="shrink-0"
           >
             Voir les solutions
-          </Link>
-        </p>
+            <ArrowRight data-icon="inline-end" />
+          </Button>
+        </div>
       </div>
     </section>
   );

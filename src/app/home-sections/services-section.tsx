@@ -85,18 +85,32 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
   return (
     <section id="prestations" className="bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="max-w-2xl">
+          <span className="text-xs tracking-widest text-primary uppercase">
+            Nos solutions
+          </span>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Choisissez ce que vous voulez arrêter de faire vous-même
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Prix affichés, sans engagement. Notre équipe installe et connecte
+            chaque solution à vos outils — vous l&apos;activez en ligne quand
+            vous êtes prêt.
+          </p>
+        </div>
+
         {categories.map(({ category, categoryServices }, index) => (
-          <div key={category} className={index > 0 ? "mt-16" : undefined}>
-            <div className="mb-6 flex items-start gap-3">
+          <div key={category} className={index > 0 ? "mt-14" : "mt-12"}>
+            <div className="mb-5 flex items-start gap-3">
               <span
                 aria-hidden="true"
                 className="mt-1 h-6 w-1 shrink-0 rounded-full bg-primary"
               />
               <div className="max-w-2xl">
-                <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                <h3 className="text-xl font-semibold tracking-tight text-foreground">
                   {CATEGORY_LABELS[category]}
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground">
+                </h3>
+                <p className="mt-2 text-muted-foreground">
                   {CATEGORY_DESCRIPTIONS[category]}
                 </p>
               </div>

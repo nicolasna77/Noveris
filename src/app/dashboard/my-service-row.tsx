@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Bot, ChevronRight, Loader2, Settings2 } from "lucide-react";
+import { Bot, ChevronRight, Loader2, Phone, Settings2, TriangleAlert } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import {
   describeServiceStatus,
-  formatConfigValue,
   formatPrice,
+  needsCalendarConnection,
+  needsPhoneNumber,
   TELEPHONY_SERVICE_SLUGS,
   type MyServiceDTO,
 } from "@/lib/catalog";
@@ -29,11 +30,6 @@ import { SERVICE_ICONS } from "@/lib/service-icons";
 import { cancelService, resumeServiceCheckout } from "./actions";
 import { ServiceProgress } from "./service-progress";
 import { UsageCounter } from "./usage-counter";
-
-// Au-delà de ce nombre, le reste des champs de configuration n'est plus
-// listé sur la ligne (résumé) — le détail complet reste à un clic, sur la
-// page /dashboard/services/[clientServiceId].
-const MAX_CONFIG_ENTRIES_SHOWN = 4;
 
 export function MyServiceRow({
   item,
@@ -47,16 +43,18 @@ export function MyServiceRow({
   const [confirmCancel, setConfirmCancel] = useState(false);
   const { service, status } = item;
   const Icon = SERVICE_ICONS[service.slug] ?? Bot;
-  const configEntries = Object.entries(item.configuration).filter(
-    ([, value]) => value
-  );
-  const shownConfigEntries = configEntries.slice(0, MAX_CONFIG_ENTRIES_SHOWN);
-  const hiddenConfigCount = configEntries.length - shownConfigEntries.length;
   const canManageConfig =
     (status === "ACTIVE" || status === "CONFIGURING") &&
     service.configFields.length > 0;
   const canUnsubscribe = status === "ACTIVE" || status === "CONFIGURING";
-  const hasFacts = item.externalPhoneNumber || shownConfigEntries.length > 0;
+  // Ce qui empêche encore la solution de fonctionner — signalé ici pour
+  // qu'un client qui parcourt sa liste voie laquelle réclame son attention,
+  // sans avoir à ouvrir chaque page détail une par une.
+  const setupHint = needsPhoneNumber(item)
+    ? "Choisissez un numéro pour que l'IA puisse décrocher"
+    : needsCalendarConnection(item)
+      ? "Connectez votre agenda pour recevoir les rendez-vous"
+      : null;
 
   function handleResume() {
     startTransition(async () => {
@@ -127,15 +125,23 @@ export function MyServiceRow({
                 </p>
               )}
 
-              <p className="mt-1 text-sm font-medium tabular-nums text-foreground">
-                {formatPrice(service.setupFeeCents, service.monthlyPriceCents)}
-              </p>
-
               <CardDescription className="mt-1">
                 {describeServiceStatus(item)}
               </CardDescription>
 
-              <ServiceProgress status={status} />
+              {/* Une fois la solution active, la barre d'étapes est pleine et
+                  ne dit plus rien que le badge « Actif » ne dise déjà. */}
+              {status !== "ACTIVE" && <ServiceProgress status={status} />}
+
+              {setupHint && (
+                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                  <TriangleAlert
+                    className="mt-0.5 size-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm text-foreground">{setupHint}</p>
+                </div>
+              )}
 
               {item.adminNote && (
                 <div className="mt-3 rounded-2xl bg-muted p-3">
@@ -153,47 +159,25 @@ export function MyServiceRow({
           </div>
         </CardHeader>
 
-        {hasFacts && (
-          <CardContent>
-            <dl className="space-y-1.5 border-t border-border pt-4 text-sm">
-              {item.externalPhoneNumber && (
-                <div className="flex justify-between gap-4">
-                  <dt className="shrink-0 text-muted-foreground">Numéro</dt>
-                  <dd className="tabular-nums text-foreground">
-                    {item.externalPhoneNumber}
-                  </dd>
-                </div>
-              )}
-              {shownConfigEntries.map(([key, value]) => {
-                const field = service.configFields.find((f) => f.key === key);
-                const displayValue =
-                  field?.type === "select" && typeof value === "string"
-                    ? (field.options?.find((o) => o.value === value)?.label ??
-                      value)
-                    : formatConfigValue(value);
-                return (
-                  <div key={key} className="flex justify-between gap-4">
-                    <dt className="shrink-0 text-muted-foreground">
-                      {field?.label ?? key}
-                    </dt>
-                    <dd
-                      className="truncate text-right text-foreground"
-                      title={displayValue}
-                    >
-                      {displayValue}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-            {hiddenConfigCount > 0 && (
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                +{hiddenConfigCount} autre{hiddenConfigCount > 1 ? "s" : ""}{" "}
-                information{hiddenConfigCount > 1 ? "s" : ""}
-              </p>
+        {/* Le détail complet des réglages vit sur la page détail, mise en
+            page pour ça. Ici on ne garde que ce qui identifie la solution
+            d'un coup d'œil : son numéro et ce qu'elle coûte. */}
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 text-sm">
+            {item.externalPhoneNumber && (
+              <span className="inline-flex items-center gap-1.5 text-foreground">
+                <Phone
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <span className="tabular-nums">{item.externalPhoneNumber}</span>
+              </span>
             )}
-          </CardContent>
-        )}
+            <span className="tabular-nums text-muted-foreground">
+              {formatPrice(service.setupFeeCents, service.monthlyPriceCents)}
+            </span>
+          </div>
+        </CardContent>
 
         {(status === "PENDING_PAYMENT" || status === "CANCELED") && (
           <CardFooter className="relative z-10 mt-auto">
@@ -223,7 +207,7 @@ export function MyServiceRow({
         )}
 
         {(canManageConfig || canUnsubscribe) && (
-          <CardFooter className="relative z-10 mt-auto flex-col gap-2 sm:flex-row">
+          <CardFooter className="relative z-10 mt-auto flex-col gap-2">
             {canManageConfig && (
               <Button className="w-full" variant="outline" onClick={onManage}>
                 <Settings2 aria-hidden="true" data-icon="inline-start" />
@@ -232,7 +216,7 @@ export function MyServiceRow({
             )}
             {canUnsubscribe && (
               <Button
-                className="w-full sm:w-auto"
+                className="w-full"
                 variant="ghost"
                 onClick={() => setConfirmCancel(true)}
               >

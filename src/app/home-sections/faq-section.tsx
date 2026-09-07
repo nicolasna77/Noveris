@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
 const FAQS = [
@@ -32,7 +33,7 @@ export function FaqSection() {
   return (
     <section className="bg-muted/40 py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <div className="text-center">
+        <div className="max-w-2xl">
           <span className="text-xs tracking-widest text-primary uppercase">
             Questions fréquentes
           </span>
@@ -56,6 +57,16 @@ export function FaqSection() {
             </details>
           ))}
         </div>
+        <p className="mt-6 text-sm text-muted-foreground">
+          Votre question n&apos;est pas là ?{" "}
+          <Link
+            href="/contact"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Écrivez-nous
+          </Link>
+          , on répond sous 24h ouvrées.
+        </p>
       </div>
     </section>
   );

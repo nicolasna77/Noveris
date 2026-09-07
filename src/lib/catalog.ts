@@ -272,6 +272,41 @@ export function describeServiceStatus(item: {
   }
 }
 
+// Étapes de mise en service encore à la charge du client. Une même source
+// pour la carte de la liste (my-service-row.tsx), qui signale qu'il reste
+// quelque chose à faire, et la carte « Mise en service » de la page détail
+// (service-setup-card.tsx), qui porte l'action correspondante — sinon les
+// deux finiraient par ne plus dire la même chose.
+type SetupSubject = {
+  status: ClientServiceStatus;
+  externalPhoneNumber: string | null;
+  calendarConnected: boolean;
+  configuration: Configuration;
+  service: { slug: string };
+};
+
+function isDeployable(status: ClientServiceStatus): boolean {
+  return status === "ACTIVE" || status === "CONFIGURING";
+}
+
+// Une prestation de téléphonie sans numéro ne peut tout simplement pas
+// décrocher : c'est bloquant, pas un réglage optionnel.
+export function needsPhoneNumber(item: SetupSubject): boolean {
+  return (
+    isDeployable(item.status) &&
+    TELEPHONY_SERVICE_SLUGS.has(item.service.slug) &&
+    !item.externalPhoneNumber
+  );
+}
+
+export function needsCalendarConnection(item: SetupSubject): boolean {
+  return (
+    isDeployable(item.status) &&
+    asStringArray(item.configuration.objectives).includes("appointment") &&
+    !item.calendarConnected
+  );
+}
+
 // Ramène une valeur de configuration à un tableau de chaînes (ex. un champ
 // "multiselect" comme objectives/appointmentTypes) — [] pour toute autre
 // forme. Partagé par src/lib/voice-agent/prompt.ts et tools.ts, qui lisent

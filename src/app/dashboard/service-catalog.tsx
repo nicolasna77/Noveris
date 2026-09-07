@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bot } from "lucide-react";
+import { Bot, PackageSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -41,8 +41,9 @@ export function ServiceCatalog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [activeService, setActiveService] = useState<ServiceDTO | null>(null);
-
-  if (services.length === 0) return null;
+  const hasAnyService = categories.some(
+    (category) => services.filter((s) => s.category === category).length > 0
+  );
 
   return (
     <>
@@ -56,30 +57,47 @@ export function ServiceCatalog({
           </SheetHeader>
 
           <SheetBody className="space-y-8">
-            {categories.map((category) => {
-              const categoryServices = services.filter(
-                (s) => s.category === category
-              );
-              if (categoryServices.length === 0) return null;
+            {hasAnyService ? (
+              categories.map((category) => {
+                const categoryServices = services.filter(
+                  (s) => s.category === category
+                );
+                if (categoryServices.length === 0) return null;
 
-              return (
-                <section key={category}>
-                  <h3 className="mb-3 text-sm font-medium text-foreground">
-                    {CATEGORY_LABELS[category]}
-                  </h3>
-                  <div className="flex flex-col gap-3">
-                    {categoryServices.map((service) => (
-                      <ServiceCard
-                        key={service.id}
-                        service={service}
-                        status={statusByServiceId[service.id]}
-                        onActivate={() => setActiveService(service)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
+                return (
+                  <section key={category}>
+                    <h3 className="mb-3 text-sm font-medium text-foreground">
+                      {CATEGORY_LABELS[category]}
+                    </h3>
+                    <div className="flex flex-col gap-3">
+                      {categoryServices.map((service) => (
+                        <ServiceCard
+                          key={service.id}
+                          service={service}
+                          status={statusByServiceId[service.id]}
+                          onActivate={() => setActiveService(service)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <PackageSearch className="size-4" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-medium text-foreground">
+                    Aucune solution disponible pour l&apos;instant
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Repassez bientôt, ou contactez-nous si vous cherchiez une
+                    automatisation en particulier.
+                  </p>
+                </div>
+              </div>
+            )}
           </SheetBody>
         </SheetContent>
       </Sheet>
@@ -109,13 +127,12 @@ function ServiceCard({
     <Card className="shadow-sm">
       <CardHeader>
         <div className="flex items-start gap-3">
-          <Icon
-            className="mt-0.5 size-5 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-medium text-foreground">{service.name}</h4>
+              <h4 className="font-medium text-primary">{service.name}</h4>
               {status && <StatusBadge status={status} className="shrink-0" />}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">

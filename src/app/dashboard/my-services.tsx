@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { LayoutGrid, LayoutList, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { LayoutGrid, LayoutList, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { ClientServiceStatus, MyServiceDTO } from "@/lib/catalog";
+import {
+  STATUS_LABELS,
+  type ClientServiceStatus,
+  type MyServiceDTO,
+} from "@/lib/catalog";
 import { ManageConfigurationDialog } from "./manage-configuration-dialog";
 import { MyServiceRow } from "./my-service-row";
 
@@ -15,12 +27,23 @@ const STATUS_PRIORITY: Record<ClientServiceStatus, number> = {
   CANCELED: 3,
 };
 
+const STATUS_FILTER_OPTIONS: ClientServiceStatus[] = [
+  "ACTIVE",
+  "CONFIGURING",
+  "PENDING_PAYMENT",
+  "CANCELED",
+];
+
 type ViewMode = "list" | "grid";
 const VIEW_MODE_STORAGE_KEY = "noveris:my-services-view";
 
 export function MyServices({ items }: { items: MyServiceDTO[] }) {
   const [managingItem, setManagingItem] = useState<MyServiceDTO | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ClientServiceStatus | "all">(
+    "all"
+  );
 
   // La préférence de vue n'existe que côté client (localStorage) — on
   // démarre en liste (le rendu serveur) puis on bascule après le montage
@@ -38,32 +61,87 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
     window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
   }
 
-  const ordered = [...items].sort(
-    (a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]
+  const ordered = useMemo(
+    () =>
+      [...items].sort(
+        (a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]
+      ),
+    [items]
   );
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered = ordered.filter((item) => {
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const matchesSearch =
+      !normalizedSearch ||
+      item.name.toLowerCase().includes(normalizedSearch) ||
+      item.service.name.toLowerCase().includes(normalizedSearch);
+    return matchesStatus && matchesSearch;
+  });
+
+  const hasActiveFilters = normalizedSearch !== "" || statusFilter !== "all";
+
+  function resetFilters() {
+    setSearch("");
+    setStatusFilter("all");
+  }
 
   return (
     <section aria-labelledby="my-services-heading" className="mb-14">
-      <div className="mb-5 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden="true"
-            className="mt-1 h-6 w-1 shrink-0 rounded-full bg-primary"
-          />
-          <div>
-            <h2
-              id="my-services-heading"
-              className="text-lg font-semibold text-foreground"
-            >
-              Mes solutions
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Les automatisations que vous avez activées.
-            </p>
-          </div>
+      <div className="mb-5 flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className="mt-1 h-6 w-1 shrink-0 rounded-full bg-primary"
+        />
+        <div>
+          <h2
+            id="my-services-heading"
+            className="text-lg font-semibold text-foreground"
+          >
+            Mes solutions
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Les automatisations que vous avez activées.
+          </p>
         </div>
+      </div>
 
-        {items.length > 0 && (
+      {items.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <div className="relative min-w-48 flex-1">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une solution…"
+              aria-label="Rechercher parmi mes solutions"
+              className="pl-9"
+            />
+          </div>
+
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              setStatusFilter(value as ClientServiceStatus | "all")
+            }
+          >
+            <SelectTrigger className="w-44" aria-label="Filtrer par statut">
+              <SelectValue placeholder="Tous les statuts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {STATUS_FILTER_OPTIONS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-border p-0.5">
             <Button
               type="button"
@@ -88,8 +166,8 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
               <LayoutGrid aria-hidden="true" />
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="flex items-center gap-4 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-5">
@@ -106,6 +184,25 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
             </p>
           </div>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex items-center gap-4 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-5">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Search className="size-4" aria-hidden="true" />
+          </span>
+          <div className="flex-1">
+            <p className="font-medium text-foreground">
+              Aucune solution ne correspond à ces filtres
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Essayez un autre nom ou un autre statut.
+            </p>
+          </div>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Réinitialiser
+            </Button>
+          )}
+        </div>
       ) : (
         <div
           className={
@@ -114,7 +211,7 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
               : "flex flex-col gap-3"
           }
         >
-          {ordered.map((item) => (
+          {filtered.map((item) => (
             <MyServiceRow
               key={item.clientServiceId}
               item={item}

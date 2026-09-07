@@ -163,7 +163,7 @@ export async function activateService(
 
   await logServiceEvent(clientService.id, "CREATED");
   const checkoutUrl = await createCheckoutSession(clientService.id, service, user);
-  revalidateDashboard();
+  revalidateDashboard(clientService.id);
   return { checkoutUrl };
 }
 
@@ -195,7 +195,7 @@ export async function resumeServiceCheckout(clientServiceId: string) {
   });
 
   const checkoutUrl = await createCheckoutSession(clientService.id, clientService.service, user);
-  revalidateDashboard();
+  revalidateDashboard(clientService.id);
   return { checkoutUrl };
 }
 
@@ -230,7 +230,7 @@ export async function updateServiceConfiguration(
   });
   await logServiceEvent(clientServiceId, "CONFIGURATION_UPDATED");
 
-  revalidateDashboard();
+  revalidateDashboard(clientServiceId);
 }
 
 // Déconnecte l'agenda Google d'une prestation (le client peut vouloir en
@@ -371,5 +371,5 @@ export async function cancelService(clientServiceId: string) {
     clientService.name
   );
 
-  revalidateDashboard();
+  revalidateDashboard(clientServiceId);
 }

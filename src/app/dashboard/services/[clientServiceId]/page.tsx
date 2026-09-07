@@ -3,14 +3,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Bot } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/session";
 import { getMyService } from "@/app/dashboard/get-my-service";
-import { describeServiceStatus, formatPrice } from "@/lib/catalog";
+import {
+  asStringArray,
+  describeServiceStatus,
+  formatPrice,
+  TELEPHONY_SERVICE_SLUGS,
+} from "@/lib/catalog";
 import { StatusBadge } from "@/components/status-badge";
 import { SERVICE_ICONS } from "@/lib/service-icons";
+import { BookingsList } from "@/app/dashboard/bookings-list";
 import { ServiceProgress } from "@/app/dashboard/service-progress";
 import { ServiceTimeline } from "@/app/dashboard/service-timeline";
 import { ServiceDetailTable } from "@/app/dashboard/service-detail-table";
+import { ServiceDetailActions } from "@/app/dashboard/service-detail-actions";
+import { ServiceSetupCard } from "@/app/dashboard/service-setup-card";
 
 export const metadata: Metadata = { title: "Détail de la solution" };
 
@@ -30,9 +39,15 @@ export default async function ServiceDetailPage({
   if (!item) notFound();
 
   const Icon = SERVICE_ICONS[item.service.slug] ?? Bot;
+  const isLive =
+    TELEPHONY_SERVICE_SLUGS.has(item.service.slug) &&
+    (item.status === "ACTIVE" || item.status === "CONFIGURING");
+  const objectives = asStringArray(item.configuration.objectives);
+  const showBookings =
+    isLive && (objectives.includes("appointment") || objectives.includes("order"));
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <Link
         href="/dashboard/prestations"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -52,41 +67,60 @@ export default async function ServiceDetailPage({
         </Alert>
       )}
 
-      <div className="flex items-start gap-3">
-        <Icon
-          className="mt-1 size-6 shrink-0 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-              {item.name}
-            </h1>
-            <div className="flex shrink-0 items-center gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Icon className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
+                {item.name}
+              </h1>
               <StatusBadge status={item.status} />
               <span className="text-base tabular-nums text-foreground">
                 {formatPrice(item.service.setupFeeCents, item.service.monthlyPriceCents)}
               </span>
             </div>
+
+            {item.name !== item.service.name && (
+              <p className="text-sm text-muted-foreground">{item.service.name}</p>
+            )}
+            <p className="mt-2 max-w-xl text-muted-foreground">
+              {item.service.description}
+            </p>
+
+            <p className="mt-4 text-sm font-medium text-foreground">
+              {describeServiceStatus(item)}
+            </p>
+            <ServiceProgress status={item.status} />
           </div>
+        </div>
 
-          {item.name !== item.service.name && (
-            <p className="text-sm text-muted-foreground">{item.service.name}</p>
-          )}
-          <p className="mt-2 max-w-xl text-muted-foreground">
-            {item.service.description}
-          </p>
-
-          <p className="mt-4 text-sm font-medium text-foreground">
-            {describeServiceStatus(item)}
-          </p>
-          <ServiceProgress status={item.status} />
+        <div className="shrink-0 sm:pt-1">
+          <ServiceDetailActions item={item} />
         </div>
       </div>
 
-      <div className="mt-10 space-y-10">
-        <ServiceTimeline events={item.events} />
-        <ServiceDetailTable item={item} />
+      <div className={showBookings ? "mt-8 grid gap-6 lg:grid-cols-3" : "mt-8"}>
+        <div className={showBookings ? "space-y-6 lg:col-span-2" : "space-y-6"}>
+          <ServiceSetupCard item={item} />
+          <ServiceDetailTable item={item} />
+          <ServiceTimeline events={item.events} />
+        </div>
+
+        {showBookings && (
+          <Card className="h-fit">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Rendez-vous et commandes reçus
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BookingsList bookings={item.bookings} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
