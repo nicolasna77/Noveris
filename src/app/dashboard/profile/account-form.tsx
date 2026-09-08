@@ -3,19 +3,12 @@
 import { useRef, useState, useTransition, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { ProfileSection } from "./profile-section";
 
 export type InitialAccount = {
   name: string;
@@ -73,6 +66,12 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
     .join("")
     .toUpperCase();
 
+  // Le bouton ne s'allume que s'il y a réellement quelque chose à
+  // enregistrer : sur une page où les notifications s'enregistrent toutes
+  // seules, un bouton toujours actif laissait planer le doute sur ce qui
+  // avait été pris en compte.
+  const isDirty = name !== initialAccount.name || image !== initialAccount.image;
+
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -107,75 +106,114 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
         toast.error(error.message ?? "Une erreur est survenue.");
         return;
       }
-      toast.success("Compte mis à jour.");
+      toast.success("Profil enregistré.");
       router.refresh();
     });
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Compte</CardTitle>
-        <CardDescription>
-          Vos informations de connexion, gérées par Better Auth.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Avatar size="lg">
-            <AvatarImage src={image || undefined} alt={name} />
-            <AvatarFallback>{initials || "?"}</AvatarFallback>
-          </Avatar>
-          <div className="space-y-2">
-            <Label>Photo de profil</Label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isProcessingImage}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {isProcessingImage ? "Traitement…" : "Changer la photo"}
-              </Button>
-              {image && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setImage("")}
+    <>
+      {/* La personne ouvre sa propre page : son avatar et son nom sont les
+          seuls éléments de grande taille, le reste de la page reste discret. */}
+      <div className="flex flex-wrap items-center gap-5">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isProcessingImage}
+          aria-label="Changer la photo de profil"
+          className="group relative size-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        >
+          {image ? (
+            // Data URL produite côté client (voir resizeImageToDataUrl) :
+            // next/image ne sait pas l'optimiser, il faudrait la passer en
+            // `unoptimized` pour aboutir au même <img>.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={image} alt="" className="size-full object-cover" />
+          ) : (
+            <span className="flex size-full items-center justify-center text-xl font-medium text-muted-foreground">
+              {initials || "?"}
+            </span>
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-foreground/60 text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            {isProcessingImage ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+            ) : (
+              <Camera className="size-5" aria-hidden="true" />
+            )}
+          </span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+
+        <div className="min-w-0">
+          {/* Le nom porte le <h1> : la page n'a pas de titre séparé, c'est
+              lui qui l'ouvre. */}
+          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
+            {name || "Votre nom"}
+          </h1>
+          <p className="truncate text-sm text-muted-foreground">
+            {initialAccount.email}
+          </p>
+          {image && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="mt-1 -ml-2"
+              onClick={() => setImage("")}
+            >
+              Retirer la photo
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <ProfileSection
+          title="Vos informations"
+          description="Le nom qui apparaît dans vos échanges avec l'équipe Noveris."
+          action={
+            <Button
+              onClick={handleSave}
+              disabled={!isDirty || isPending}
+              aria-busy={isPending}
+            >
+              {isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          }
+        >
+          <div className="grid gap-4 sm:max-w-md">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            {/* L'e-mail n'est pas modifiable : l'afficher comme un champ de
+                saisie grisé donnait l'impression d'un formulaire cassé. */}
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">E-mail</p>
+              <p className="text-sm text-muted-foreground">
+                {initialAccount.email} — écrivez-nous depuis{" "}
+                <a
+                  href="/dashboard/aide"
+                  className="text-primary underline-offset-4 hover:underline"
                 >
-                  Retirer
-                </Button>
-              )}
+                  le centre d&apos;aide
+                </a>{" "}
+                pour en changer.
+              </p>
             </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="name">Nom</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">E-mail</Label>
-          <Input id="email" value={initialAccount.email} disabled />
-          <p className="text-xs text-muted-foreground">
-            Contactez-nous pour changer l&apos;adresse e-mail associée à votre
-            compte.
-          </p>
-        </div>
-      </CardContent>
-      <CardFooter className="justify-end">
-        <Button onClick={handleSave} disabled={isPending} aria-busy={isPending}>
-          {isPending ? "Enregistrement…" : "Enregistrer"}
-        </Button>
-      </CardFooter>
-    </Card>
+        </ProfileSection>
+      </div>
+    </>
   );
 }

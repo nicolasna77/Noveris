@@ -2,13 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { getErrorMessage } from "@/lib/utils";
 import {
@@ -19,6 +12,7 @@ import {
 } from "@/lib/email/types";
 import type { NotificationPreferences } from "@/lib/email/preferences";
 import { setNotificationPreference } from "./actions";
+import { ProfileSection } from "./profile-section";
 
 export function NotificationPreferencesForm({
   initialPreferences,
@@ -26,14 +20,19 @@ export function NotificationPreferencesForm({
   initialPreferences: NotificationPreferences;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notifications par e-mail</CardTitle>
-        <CardDescription>
-          Choisissez les e-mails que Noveris peut vous envoyer.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <ProfileSection
+      title="E-mails que nous vous envoyons"
+      description="Les e-mails liés à votre compte et à vos paiements vous parviennent dans tous les cas."
+      // Contrairement aux deux autres sections, chaque interrupteur part
+      // en base au moment où on le bascule — sans cette mention, rien ne
+      // distinguait les deux comportements à l'écran.
+      action={
+        <p className="pt-1 text-xs text-muted-foreground">
+          Enregistré automatiquement
+        </p>
+      }
+    >
+      <ul className="divide-y divide-border rounded-2xl border border-border">
         {NOTIFICATION_TYPES.map((type) => (
           <NotificationToggleRow
             key={type}
@@ -41,8 +40,8 @@ export function NotificationPreferencesForm({
             initialEnabled={initialPreferences[type] !== false}
           />
         ))}
-      </CardContent>
-    </Card>
+      </ul>
+    </ProfileSection>
   );
 }
 
@@ -70,12 +69,12 @@ function NotificationToggleRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
+      <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">
           {NOTIFICATION_TYPE_LABELS[type]}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {NOTIFICATION_TYPE_DESCRIPTIONS[type]}
         </p>
       </div>
@@ -85,6 +84,6 @@ function NotificationToggleRow({
         disabled={isPending}
         aria-label={NOTIFICATION_TYPE_LABELS[type]}
       />
-    </div>
+    </li>
   );
 }

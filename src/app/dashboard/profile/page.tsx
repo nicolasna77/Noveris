@@ -26,21 +26,19 @@ export default async function ProfilePage() {
   });
   const initialPreferences = parsePreferences(user.notificationPreferences);
 
+  // Pas de titre de page : le bandeau d'identité (nom + avatar, rendu par
+  // AccountForm) ouvre la page — un "Mon profil" au-dessus du nom de la
+  // personne ne dirait rien de plus, la navigation le dit déjà.
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        Mon profil
-      </h1>
-      <p className="mt-1 text-muted-foreground">
-        Gérez votre compte. Vos entreprises se gèrent depuis le sélecteur
-        d&apos;organisation en haut du tableau de bord.
-      </p>
+    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      <AccountForm initialAccount={initialAccount} />
+      <NotificationPreferencesForm initialPreferences={initialPreferences} />
+      <PasswordForm />
 
-      <div className="mt-8 space-y-6">
-        <AccountForm initialAccount={initialAccount} />
-        <PasswordForm />
-        <NotificationPreferencesForm initialPreferences={initialPreferences} />
-      </div>
+      <p className="mt-10 text-sm text-muted-foreground">
+        Vos entreprises se gèrent depuis le sélecteur d&apos;organisation, en
+        haut de la barre latérale.
+      </p>
     </div>
   );
 }
