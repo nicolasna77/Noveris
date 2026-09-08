@@ -11,6 +11,7 @@ import { requireAdmin } from "@/lib/session";
 import { UserAccessCards } from "./user-access-cards";
 import { UserSessionsTable } from "./user-sessions-table";
 import { UserServicesTable } from "./user-services-table";
+import { ServiceHistory } from "./service-history";
 
 export const metadata: Metadata = { title: "Détail utilisateur" };
 
@@ -35,7 +36,13 @@ export default async function AdminUserDetailPage({
     }),
     db.clientService.findMany({
       where: { userId },
-      include: { service: true, organization: true },
+      include: {
+        service: true,
+        organization: true,
+        // Le plus récent en premier, comme sur la timeline vue par le
+        // client (voir ServiceTimeline).
+        events: { orderBy: { createdAt: "desc" } },
+      },
       orderBy: { createdAt: "desc" },
     }),
     db.booking.findMany({
@@ -95,6 +102,7 @@ export default async function AdminUserDetailPage({
         userEmail={user.email}
         clientServices={clientServices}
       />
+      <ServiceHistory clientServices={clientServices} />
       {bookings.length > 0 && (
         <Card className="mt-10">
           <CardHeader>
