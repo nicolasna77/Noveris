@@ -86,16 +86,16 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
     <section id="prestations" className="bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <span className="text-xs tracking-widest text-primary uppercase">
-            Nos solutions
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Choisissez ce que vous voulez arrêter de faire vous-même
           </h2>
+          {/* Ce qui est propre à cette section : les prix et la liberté
+              d'activer quand on veut. Que l'équipe installe et connecte tout
+              est déjà dit dans le hero et détaillé plus bas — le répéter ici
+              affaiblissait l'argument au lieu de l'appuyer. */}
           <p className="mt-4 text-lg text-muted-foreground">
-            Prix affichés, sans engagement. Notre équipe installe et connecte
-            chaque solution à vos outils — vous l&apos;activez en ligne quand
-            vous êtes prêt.
+            Prix affichés, sans engagement, activation en ligne quand vous êtes
+            prêt.
           </p>
         </div>
 

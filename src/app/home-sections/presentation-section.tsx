@@ -3,25 +3,20 @@ export function PresentationSection() {
     <section className="bg-muted/40 py-20 sm:py-24">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div>
-          <span className="text-xs tracking-widest text-primary uppercase">
-            Qui nous sommes
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Une agence, pas un logiciel à configurer
           </h2>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground">
             Noveris installe des automatisations pour les artisans, coachs,
-            indépendants et TPE/PME. Nous ne vendons pas un accès à
-            paramétrer vous-même : chaque solution est installée, connectée
-            à vos outils existants et vérifiée par notre équipe avant
-            d&apos;être activée. Vous n&apos;avez rien à programmer, rien à
-            apprendre.
+            indépendants et TPE/PME. Chaque solution est connectée à vos outils
+            existants puis vérifiée par notre équipe avant d&apos;être activée
+            chez vous.
           </p>
         </div>
         <dl className="space-y-6 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
           <div>
             <dt className="font-medium text-foreground">Ce que vous faites</dt>
-            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            <dd className="mt-1 text-sm leading-relaxed text-foreground">
               Vous choisissez une solution, vous répondez à quelques questions
               sur votre activité, et vous suivez le tout depuis un tableau de
               bord. Rien à installer, rien à paramétrer.
@@ -29,7 +24,7 @@ export function PresentationSection() {
           </div>
           <div>
             <dt className="font-medium text-foreground">Ce qu&apos;on fait</dt>
-            <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            <dd className="mt-1 text-sm leading-relaxed text-foreground">
               On installe l&apos;automatisation, on la connecte à vos outils,
               on la teste, puis on la surveille et on l&apos;ajuste chaque
               mois.

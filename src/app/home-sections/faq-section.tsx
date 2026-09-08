@@ -34,10 +34,7 @@ export function FaqSection() {
     <section className="bg-muted/40 py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <span className="text-xs tracking-widest text-primary uppercase">
-            Questions fréquentes
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Ce que nos clients demandent avant de se lancer
           </h2>
         </div>
@@ -57,7 +54,7 @@ export function FaqSection() {
             </details>
           ))}
         </div>
-        <p className="mt-6 text-sm text-muted-foreground">
+        <p className="mt-6 text-sm text-foreground">
           Votre question n&apos;est pas là ?{" "}
           <Link
             href="/contact"

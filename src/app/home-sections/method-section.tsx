@@ -15,7 +15,7 @@ const METHOD_STEPS = [
     step: "03",
     title: "Déploiement",
     description:
-      "Notre équipe installe et connecte vos automatisations à vos outils existants — vous n'installez rien.",
+      "Notre équipe installe et connecte vos automatisations à vos outils existants, puis les teste sur vos vrais cas.",
   },
   {
     step: "04",
@@ -36,10 +36,7 @@ export function MethodSection() {
     <section id="methode" className="bg-muted py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <span className="text-xs tracking-widest text-primary uppercase">
-            Notre méthode
-          </span>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Une méthode de déploiement éprouvée
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">

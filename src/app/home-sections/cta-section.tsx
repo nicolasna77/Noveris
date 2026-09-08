@@ -16,7 +16,7 @@ export function CtaSection() {
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
-              Créer mon compte gratuitement
+              Créer mon compte
               <ArrowRight data-icon="inline-end" />
             </Button>
             <Button

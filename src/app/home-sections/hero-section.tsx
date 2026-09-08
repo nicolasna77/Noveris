@@ -31,11 +31,9 @@ export function HeroSection() {
               Vos automatisations s&apos;occupent du reste.
             </span>
           </h1>
-          {/* Le schéma de droite nomme déjà les automatisations une par une :
-              ce paragraphe dit ce qu'il ne montre pas — qui fait le travail. */}
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Notre équipe installe vos automatisations, les connecte à vos
-            outils et les surveille chaque mois. Vous ne paramétrez rien, vous
+          <p className="mt-6 max-w-xl text-lg text-balance leading-relaxed text-muted-foreground">
+            Notre équipe installe vos automatisations, les connecte à vos outils
+            et les surveille chaque mois. Vous ne paramétrez rien, vous
             n&apos;ouvrez aucun logiciel technique.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -44,7 +42,7 @@ export function HeroSection() {
               nativeButton={false}
               render={<Link href="/signup" />}
             >
-              Activer mes automatisations
+              Créer mon compte
               <ArrowRight data-icon="inline-end" />
             </Button>
             <Button
@@ -53,7 +51,7 @@ export function HeroSection() {
               nativeButton={false}
               render={<Link href="#prestations" />}
             >
-              Découvrir les solutions
+              Voir les solutions
             </Button>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
