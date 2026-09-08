@@ -71,6 +71,11 @@ export function PrestationsView({
       <ServiceCatalog
         services={serviceDTOs}
         statusByServiceId={statusByServiceId}
+        // Volontairement la seule catégorie ouverte à la vente en
+        // libre-service : les prestations d'administration, d'information et
+        // d'abonnement restent au catalogue vitrine mais ne s'activent pas
+        // toutes seules. Ne pas "corriger" en dérivant la liste des
+        // prestations actives — ça les rendrait activables par les clients.
         categories={["COMMUNICATION"]}
         organizationId={organizationId}
         open={catalogOpen}
