@@ -145,6 +145,8 @@ function renderFieldInput({
     case "weekly-hours":
       return (
         <WeeklyHoursField
+          id={field.key}
+          labelledBy={`${field.key}-label`}
           value={
             value && typeof value === "object" && !Array.isArray(value)
               ? (value as WeeklyHours)
@@ -157,6 +159,8 @@ function renderFieldInput({
     case "rules-list":
       return (
         <RulesListField
+          id={field.key}
+          labelledBy={`${field.key}-label`}
           value={Array.isArray(value) ? (value as RuleRow[]) : []}
           onChange={onChange}
         />
@@ -286,9 +290,19 @@ export function ConfigFieldsForm({
               );
             }
 
+            // "weekly-hours" et "rules-list" sont des groupes de contrôles,
+            // pas un champ unique : htmlFor pointerait sur un <div>, que les
+            // lecteurs d'écran ignorent. Ils se nomment eux-mêmes via
+            // aria-labelledby vers l'id de ce label (voir renderFieldInput).
+            const isFieldGroup =
+              field.type === "weekly-hours" || field.type === "rules-list";
+
             return (
               <div key={field.key} className="space-y-2">
-                <Label htmlFor={field.key}>
+                <Label
+                  id={`${field.key}-label`}
+                  htmlFor={isFieldGroup ? undefined : field.key}
+                >
                   {field.label}
                   {field.required && (
                     <span aria-hidden="true" className="text-destructive">

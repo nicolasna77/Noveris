@@ -167,10 +167,15 @@ const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, i) => {
 
 function TimePicker({
   value,
+  label,
   disabled,
   onChange,
 }: {
   value: string;
+  // Nom accessible du bouton : seul "09:00" est affiché, un lecteur d'écran
+  // ne saurait pas sinon s'il s'agit de l'ouverture ou de la fermeture, ni
+  // de quel jour.
+  label: string;
   disabled?: boolean;
   onChange: (value: string) => void;
 }) {
@@ -185,6 +190,7 @@ function TimePicker({
             variant="outline"
             size="sm"
             disabled={disabled}
+            aria-label={`${label} : ${value}`}
             className="w-24 justify-between font-normal"
           >
             {value}
@@ -217,10 +223,17 @@ function TimePicker({
   );
 }
 
+// Groupe de contrôles, pas un champ unique : le <Label> du formulaire ne
+// peut pas le désigner par htmlFor (il ne pointerait sur rien d'étiquetable),
+// d'où role="group" + aria-labelledby vers ce même label.
 export function WeeklyHoursField({
+  id,
+  labelledBy,
   value,
   onChange,
 }: {
+  id: string;
+  labelledBy: string;
   value: WeeklyHours;
   onChange: (value: WeeklyHours) => void;
 }) {
@@ -229,12 +242,19 @@ export function WeeklyHoursField({
   }
 
   return (
-    <div className="space-y-2">
+    <div id={id} role="group" aria-labelledby={labelledBy} className="space-y-2">
       {WEEK_DAYS.map((day) => {
         const hours = value[day];
         return (
-          <div key={day} className="flex flex-wrap items-center gap-3 text-sm">
-            <label className="flex w-28 shrink-0 items-center gap-2">
+          // Sous 640px, le jour passe au-dessus de ses horaires : la ligne
+          // complète (jour + deux sélecteurs) fait ~350px et ne tient pas
+          // dans un Dialog sur mobile, où flex-wrap séparait l'heure de
+          // fermeture de son ouverture au milieu de la ligne.
+          <div
+            key={day}
+            className="flex flex-col gap-1.5 border-b border-border pb-2 text-sm last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:gap-3 sm:border-b-0 sm:pb-0"
+          >
+            <label className="flex items-center gap-2 sm:w-28 sm:shrink-0">
               <Checkbox
                 checked={!hours.closed}
                 onCheckedChange={(checked) =>
@@ -243,17 +263,23 @@ export function WeeklyHoursField({
               />
               {WEEK_DAY_LABELS[day]}
             </label>
-            <TimePicker
-              value={hours.open}
-              disabled={hours.closed}
-              onChange={(open) => updateDay(day, { open })}
-            />
-            <span className="text-muted-foreground">–</span>
-            <TimePicker
-              value={hours.close}
-              disabled={hours.closed}
-              onChange={(close) => updateDay(day, { close })}
-            />
+            <div className="flex items-center gap-2 pl-6 sm:gap-3 sm:pl-0">
+              <TimePicker
+                value={hours.open}
+                label={`Ouverture ${WEEK_DAY_LABELS[day]}`}
+                disabled={hours.closed}
+                onChange={(open) => updateDay(day, { open })}
+              />
+              <span aria-hidden="true" className="text-muted-foreground">
+                –
+              </span>
+              <TimePicker
+                value={hours.close}
+                label={`Fermeture ${WEEK_DAY_LABELS[day]}`}
+                disabled={hours.closed}
+                onChange={(close) => updateDay(day, { close })}
+              />
+            </div>
           </div>
         );
       })}
@@ -261,10 +287,15 @@ export function WeeklyHoursField({
   );
 }
 
+// Même raison que WeeklyHoursField ci-dessus pour role="group".
 export function RulesListField({
+  id,
+  labelledBy,
   value,
   onChange,
 }: {
+  id: string;
+  labelledBy: string;
   value: RuleRow[];
   onChange: (value: RuleRow[]) => void;
 }) {
@@ -293,24 +324,34 @@ export function RulesListField({
   }
 
   return (
-    <div className="space-y-2">
+    <div id={id} role="group" aria-labelledby={labelledBy} className="space-y-2">
       {value.map((row, index) => (
-        <div key={keys[index] ?? index} className="flex items-center gap-2">
-          <Input
-            placeholder="Condition"
-            value={row.trigger}
-            onChange={(e) => updateRow(index, { trigger: e.target.value })}
-          />
-          <Input
-            placeholder="Action"
-            value={row.target}
-            onChange={(e) => updateRow(index, { target: e.target.value })}
-          />
+        // Sous 640px les deux champs s'empilent : côte à côte, "Condition" et
+        // "Action" tombent à ~90px de large chacun dans un Dialog mobile.
+        <div
+          key={keys[index] ?? index}
+          className="flex flex-col gap-2 sm:flex-row sm:items-center"
+        >
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+            <Input
+              placeholder="Condition"
+              aria-label={`Condition de la règle ${index + 1}`}
+              value={row.trigger}
+              onChange={(e) => updateRow(index, { trigger: e.target.value })}
+            />
+            <Input
+              placeholder="Action"
+              aria-label={`Action de la règle ${index + 1}`}
+              value={row.target}
+              onChange={(e) => updateRow(index, { target: e.target.value })}
+            />
+          </div>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label="Supprimer la règle"
+            aria-label={`Supprimer la règle ${index + 1}`}
+            className="self-end sm:self-auto"
             onClick={() => removeRow(index)}
           >
             <X aria-hidden="true" />
