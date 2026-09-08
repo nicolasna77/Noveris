@@ -27,6 +27,12 @@ model User {
   // existantes continuent d'être envoyées aux comptes créés avant l'ajout
   // d'un nouveau type.
   notificationPreferences Json            @default("{}")
+  // Dernière ouverture du centre de notifications (icône cloche de
+  // l'en-tête) : tout ce qui est arrivé après est considéré comme non lu.
+  // Un seul horodatage plutôt qu'une table de notifications — celles-ci
+  // sont déduites des événements existants (voir src/lib/notifications.ts),
+  // pas dupliquées à l'écriture.
+  notificationsSeenAt     DateTime?
   sessions                Session[]
   accounts                Account[]
   clientServices          ClientService[]

@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { NotificationsMenu } from "@/components/notifications-menu";
+import type { NotificationDTO } from "@/lib/notifications";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 
@@ -18,11 +20,15 @@ export async function WorkspaceLayout({
   sidebar,
   name,
   email,
+  notifications,
   children,
 }: {
   sidebar: React.ReactNode;
   name: string;
   email: string;
+  // Calculées par chaque layout : le client voit ce qui touche ses
+  // solutions, l'équipe ce qui appelle une réponse de sa part.
+  notifications: NotificationDTO[];
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
@@ -43,6 +49,7 @@ export async function WorkspaceLayout({
             <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur">
               <SidebarTrigger />
               <div className="flex items-center gap-2">
+                <NotificationsMenu notifications={notifications} />
                 <ThemeToggle />
                 <UserMenu name={name} email={email} />
               </div>
