@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import type { ServiceDTO } from "@/lib/catalog";
 import { HeroNetworkVisual } from "./hero-network-visual";
 
-// Les quatre prestations de communication les mieux classées alimentent
-// l'illustration : leurs noms viennent du catalogue, pas d'une liste écrite
+// Les prestations de communication alimentent l'illustration, dans l'ordre
+// du catalogue : leurs noms en viennent directement, pas d'une liste écrite
 // dans le composant — celle-ci annonçait encore une prestation supprimée.
-const VISUAL_NODE_COUNT = 4;
+// Six emplacements disponibles, les suivantes ne seraient pas dessinées.
+const VISUAL_NODE_COUNT = 6;
 
 export function HeroSection({ services }: { services: ServiceDTO[] }) {
   const labels = services

@@ -7,12 +7,22 @@
 // écrite ici : la version précédente affichait encore « Assistant Messenger
 // / Instagram » des mois après que cette prestation ait été scindée en deux.
 
+// Ordre de remplissage, pas de lecture : les quatre coins d'abord, puis les
+// deux flancs. Un catalogue de cinq prestations remplit ainsi les coins et
+// un seul flanc, plutôt que de laisser un coin vide.
 const SLOTS = [
-  { id: "top-left", cx: 155, cy: 70 },
-  { id: "top-right", cx: 465, cy: 70 },
-  { id: "bottom-left", cx: 155, cy: 460 },
-  { id: "bottom-right", cx: 465, cy: 460 },
+  { id: "top-left", cx: 155, cy: 70, side: "top" },
+  { id: "top-right", cx: 465, cy: 70, side: "top" },
+  { id: "bottom-left", cx: 155, cy: 460, side: "bottom" },
+  { id: "bottom-right", cx: 465, cy: 460, side: "bottom" },
+  { id: "mid-left", cx: 115, cy: 265, side: "left" },
+  { id: "mid-right", cx: 505, cy: 265, side: "right" },
 ] as const;
+
+// Écart laissé entre une pastille de flanc et le nœud central. Ces deux-là
+// sont ancrées par leur bord intérieur et non par leur centre : à centre
+// fixe, un nom un peu long viendrait toucher le nœud central.
+const SIDE_GAP = 26;
 
 const FONT_SIZE = 12.5;
 // Largeur moyenne d'un caractère à cette taille et cette graisse — sert à
@@ -50,12 +60,24 @@ function wrapLabel(label: string): string[] {
 function toNode(label: string, slot: (typeof SLOTS)[number]) {
   const lines = wrapLabel(label);
   const longest = Math.max(...lines.map((line) => line.length));
+  const w = Math.round(longest * CHAR_WIDTH) + BADGE_PADDING;
+
+  // Les flancs s'écartent du centre à mesure qu'ils s'élargissent ; les
+  // coins gardent leur position, ils ont la place.
+  const cx =
+    slot.side === "left"
+      ? CENTER.cx - CENTER.w / 2 - SIDE_GAP - w / 2
+      : slot.side === "right"
+        ? CENTER.cx + CENTER.w / 2 + SIDE_GAP + w / 2
+        : slot.cx;
+
   return {
     id: slot.id,
+    side: slot.side,
     lines,
-    cx: slot.cx,
+    cx,
     cy: slot.cy,
-    w: Math.round(longest * CHAR_WIDTH) + BADGE_PADDING,
+    w,
     h: lines.length > 1 ? 48 : 34,
   };
 }
@@ -70,19 +92,30 @@ const CENTER = { cx: 310, cy: 265, w: 176, h: 40 };
 // laisserait un trait flottant ou masqué selon le nom de la prestation.
 // Le palier horizontal est décalé d'un côté à l'autre pour que les quatre
 // tracés ne se superposent pas en arrivant au centre.
-const ELBOWS: Record<SlotId, { y: number; toward: "top" | "bottom" }> = {
-  "top-left": { y: 150, toward: "bottom" },
-  "top-right": { y: 160, toward: "bottom" },
-  "bottom-left": { y: 380, toward: "top" },
-  "bottom-right": { y: 370, toward: "top" },
+// Hauteur du palier horizontal des tracés en équerre, décalée d'un côté à
+// l'autre pour que les quatre tracés ne se superposent pas en arrivant au
+// centre. Les flancs rejoignent le centre à l'horizontale, sans équerre.
+const ELBOW_Y: Record<"top-left" | "top-right" | "bottom-left" | "bottom-right", number> = {
+  "top-left": 150,
+  "top-right": 160,
+  "bottom-left": 380,
+  "bottom-right": 370,
 };
 
 function connectorPath(node: Node): string {
-  const elbow = ELBOWS[node.id];
+  if (node.side === "left" || node.side === "right") {
+    const fromX =
+      node.side === "left" ? node.cx + node.w / 2 : node.cx - node.w / 2;
+    const toX =
+      node.side === "left" ? CENTER.cx - CENTER.w / 2 : CENTER.cx + CENTER.w / 2;
+    return `M${fromX},${node.cy} L${toX},${node.cy}`;
+  }
+
+  const elbowY = ELBOW_Y[node.id as keyof typeof ELBOW_Y];
   const fromY =
-    elbow.toward === "bottom" ? node.cy + node.h / 2 : node.cy - node.h / 2;
-  const toY = elbow.toward === "bottom" ? CENTER.cy - 20 : CENTER.cy + 20;
-  return `M${node.cx},${fromY} L${node.cx},${elbow.y} L${CENTER.cx},${elbow.y} L${CENTER.cx},${toY}`;
+    node.side === "top" ? node.cy + node.h / 2 : node.cy - node.h / 2;
+  const toY = node.side === "top" ? CENTER.cy - 20 : CENTER.cy + 20;
+  return `M${node.cx},${fromY} L${node.cx},${elbowY} L${CENTER.cx},${elbowY} L${CENTER.cx},${toY}`;
 }
 
 // Vitesses volontairement différentes d'un connecteur à l'autre : synchrones,
@@ -92,6 +125,8 @@ const DURATIONS: Record<SlotId, number> = {
   "top-right": 3,
   "bottom-left": 2.8,
   "bottom-right": 3.4,
+  "mid-left": 2.2,
+  "mid-right": 3.2,
 };
 
 type SlotId = (typeof SLOTS)[number]["id"];
