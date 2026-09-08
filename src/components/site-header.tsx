@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { NoverisLogo } from "@/components/brand";
 import { PrestationsMenu } from "@/components/prestations-menu";
 import { SiteMobileNav } from "@/components/site-mobile-nav";
@@ -69,12 +69,12 @@ export async function SiteHeader() {
             <UserMenu name={user.name} email={user.email} />
           ) : (
             <div className="hidden items-center gap-2 md:flex">
-              <Button variant="ghost" nativeButton={false} render={<Link href="/login" />}>
+              <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
                 Connexion
-              </Button>
-              <Button nativeButton={false} render={<Link href="/signup" />}>
-                Créer un compte
-              </Button>
+              </Link>
+              <Link href="/signup" className={buttonVariants()}>
+                Créer mon compte
+              </Link>
             </div>
           )}
         </div>

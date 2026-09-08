@@ -109,7 +109,7 @@ export function SiteMobileNav({
                     <MobileNavLink href="/login">Connexion</MobileNavLink>
                   </li>
                   <li>
-                    <MobileNavLink href="/signup">Créer un compte</MobileNavLink>
+                    <MobileNavLink href="/signup">Créer mon compte</MobileNavLink>
                   </li>
                 </>
               )}

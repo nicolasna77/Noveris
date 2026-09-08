@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Bot } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { Seam } from "@/components/seam";
 import { SiteHeader } from "@/components/site-header";
@@ -113,24 +113,22 @@ export default async function PrestationDetailPage({
 
             <div className="mt-8 flex flex-wrap gap-3">
               {session ? (
-                <Button size="lg" nativeButton={false} render={<Link href="/dashboard" />}>
+                <Link href="/dashboard" className={buttonVariants({ size: "lg" })}>
                   Aller à mon tableau de bord
                   <ArrowRight data-icon="inline-end" />
-                </Button>
+                </Link>
               ) : (
                 <>
-                  <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
-                    Créer un compte
+                  <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+                    Créer mon compte
                     <ArrowRight data-icon="inline-end" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    nativeButton={false}
-                    render={<Link href="/login" />}
+                  </Link>
+                  <Link
+                    href="/login"
+                    className={buttonVariants({ size: "lg", variant: "outline" })}
                   >
                     Se connecter
-                  </Button>
+                  </Link>
                 </>
               )}
             </div>
@@ -327,22 +325,19 @@ export default async function PrestationDetailPage({
               surveille chaque mois.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button
-                size="lg"
-                nativeButton={false}
-                render={<Link href={session ? "/dashboard/prestations" : "/signup"} />}
+              <Link
+                href={session ? "/dashboard/prestations" : "/signup"}
+                className={buttonVariants({ size: "lg" })}
               >
                 {session ? "Choisir cette solution" : "Créer mon compte"}
                 <ArrowRight data-icon="inline-end" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                nativeButton={false}
-                render={<Link href="/contact" />}
+              </Link>
+              <Link
+                href="/contact"
+                className={buttonVariants({ size: "lg", variant: "outline" })}
               >
                 Poser une question
-              </Button>
+              </Link>
             </div>
           </div>
         </section>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 export function CtaSection() {
   return (
@@ -15,18 +15,16 @@ export function CtaSection() {
         </p>
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
+            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
               Créer mon compte
               <ArrowRight data-icon="inline-end" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/contact" />}
+            </Link>
+            <Link
+              href="/contact"
+              className={buttonVariants({ size: "lg", variant: "outline" })}
             >
               Parler à un conseiller
-            </Button>
+            </Link>
           </div>
           <p className="text-sm text-muted-foreground">
             Garantie 30 jours, sans engagement.

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { NoverisLogo } from "@/components/brand";
 
 // Error boundaries doivent rester un composant client simple (pas de
@@ -33,9 +33,9 @@ export default function GlobalError({
           <Button variant="outline" onClick={() => reset()}>
             Réessayer
           </Button>
-          <Button nativeButton={false} render={<Link href="/" />}>
+          <Link href="/" className={buttonVariants()}>
             Retour à l&apos;accueil
-          </Button>
+          </Link>
         </div>
       </main>
     </div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Banknote, FileClock, PhoneMissed } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const PROBLEMS = [
   {
@@ -58,14 +59,13 @@ export function ProblemSection() {
             Ces trois-là, une automatisation s&apos;en charge sans que vous y
             pensiez.
           </p>
-          <Button
-            nativeButton={false}
-            render={<Link href="#prestations" />}
-            className="shrink-0"
+          <Link
+            href="#prestations"
+            className={cn(buttonVariants(), "shrink-0")}
           >
             Voir les solutions
             <ArrowRight data-icon="inline-end" />
-          </Button>
+          </Link>
         </div>
       </div>
     </section>

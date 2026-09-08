@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Page introuvable" };
 
@@ -22,10 +23,10 @@ export default function NotFound() {
         <p className="mt-4 max-w-md text-muted-foreground">
           Le lien est peut-être obsolète, ou l&apos;adresse mal orthographiée.
         </p>
-        <Button className="mt-8" nativeButton={false} render={<Link href="/" />}>
+        <Link href="/" className={cn(buttonVariants(), "mt-8")}>
           <ArrowLeft data-icon="inline-start" />
           Retour à l&apos;accueil
-        </Button>
+        </Link>
       </main>
       <SiteFooter />
     </div>

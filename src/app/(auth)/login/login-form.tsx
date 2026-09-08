@@ -110,7 +110,7 @@ export function LoginForm() {
           <p className="text-sm text-muted-foreground">
             Pas encore de compte ?{" "}
             <Link href="/signup" className="text-foreground underline underline-offset-4">
-              Créer un compte
+              Créer mon compte
             </Link>
           </p>
         </CardFooter>

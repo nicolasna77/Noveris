@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import type { ServiceDTO } from "@/lib/catalog";
 import { HeroNetworkVisual } from "./hero-network-visual";
 
@@ -49,22 +49,16 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
             n&apos;ouvrez aucun logiciel technique.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/signup" />}
-            >
+            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
               Créer mon compte
               <ArrowRight data-icon="inline-end" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="#prestations" />}
+            </Link>
+            <Link
+              href="#prestations"
+              className={buttonVariants({ size: "lg", variant: "outline" })}
             >
               Voir les solutions
-            </Button>
+            </Link>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
             Sans engagement, et remboursé si ça ne vous convient pas sous 30

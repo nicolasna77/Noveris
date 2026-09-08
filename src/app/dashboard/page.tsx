@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { requireActiveOrganization } from "@/lib/organization";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { formatDate } from "@/lib/catalog";
 import { OverviewStats } from "./overview-stats";
 import { SpendChart } from "./spend-chart";
@@ -47,12 +47,12 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
-          <Button
-            nativeButton={false}
-            render={<Link href="/dashboard/prestations#prestations-disponibles" />}
+          <Link
+            href="/dashboard/prestations#prestations-disponibles"
+            className={buttonVariants()}
           >
             Découvrir les solutions
-          </Button>
+          </Link>
         </div>
       )}
 
