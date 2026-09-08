@@ -8,17 +8,18 @@ import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { Seam } from "@/components/seam";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { CATEGORY_LABELS, TELEPHONY_SERVICE_SLUGS, formatCents } from "@/lib/catalog";
 import { getCatalog, getServiceBySlug } from "@/lib/get-catalog";
 import { SERVICE_ICONS } from "@/lib/service-icons";
 
-export async function generateStaticParams() {
-  const services = await db.service.findMany({ select: { slug: true } });
-  return services.map((service) => ({ slug: service.slug }));
-}
-
+// Pas de generateStaticParams ici : la page lit la session, donc les
+// en-têtes de la requête, et ne peut pas être rendue à l'avance. La déclarer
+// n'accélérait rien et cassait le déploiement sur une base vide — sans
+// paramètre à prérendre, Next ne rend jamais la page au build, ne voit donc
+// pas l'appel dynamique, classe la route en statique, et chaque page de
+// solution répondait alors 500 (« Page changed from static to dynamic at
+// runtime, reason: headers »).
 export async function generateMetadata({
   params,
 }: {

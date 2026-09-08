@@ -81,8 +81,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Les parcours de bout en bout démarrent l'application construite et se
-      # connectent avec le compte de démonstration : la base doit être peuplée.
+      # Le seed vient après le build, et c'est délibéré : construire sur une
+      # base vide reproduit un premier déploiement ou une preview sur une base
+      # neuve. C'est cette configuration qui a révélé qu'une page déclarant
+      # generateStaticParams sans rien à prérendre était classée statique puis
+      # échouait à la première requête. Peupler avant masquerait ce cas.
       - name: Peupler la base de démonstration
         run: npm run db:seed
 
