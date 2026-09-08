@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Bot } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { Seam } from "@/components/seam";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -102,9 +98,10 @@ export default async function PrestationDetailPage({
               <span className="flex size-11 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="size-5" aria-hidden="true" />
               </span>
-              <span className="text-xs tracking-widest text-muted-foreground uppercase">
-                {CATEGORY_LABELS[service.category]}
-              </span>
+              {/* Badge plutôt qu'un libellé en capitales espacées : les
+                  majuscules suppriment la silhouette des mots et se lisent
+                  plus difficilement, pour un gain visuel nul ici. */}
+              <Badge variant="secondary">{CATEGORY_LABELS[service.category]}</Badge>
             </div>
 
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
@@ -142,9 +139,31 @@ export default async function PrestationDetailPage({
 
         <Seam className="bg-primary/25" />
 
-        <section className="bg-background py-16 sm:py-20">
+        <section
+          aria-labelledby="tarif-heading"
+          className="bg-background py-16 sm:py-20"
+        >
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            <dl className="grid gap-4 sm:grid-cols-3">
+            {/* Le tarif n'avait aucun titre : trois montants isolés, ni
+                annoncés dans le sommaire des titres pour un lecteur
+                d'écran, ni résumés pour qui veut juste savoir ce qu'il
+                paie. */}
+            <h2
+              id="tarif-heading"
+              className="text-2xl font-semibold tracking-tight text-foreground"
+            >
+              Tarif
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              {service.setupFeeCents !== null && service.monthlyPriceCents !== null
+                ? `${formatCents(service.setupFeeCents)} à l'installation, puis ${formatCents(service.monthlyPriceCents)} par mois.`
+                : service.monthlyPriceCents !== null
+                  ? `${formatCents(service.monthlyPriceCents)} par mois, sans frais d'installation.`
+                  : `${formatCents(service.setupFeeCents ?? 0)} à l'installation, sans abonnement.`}{" "}
+              Sans engagement.
+            </p>
+
+            <dl className="mt-6 grid gap-4 sm:grid-cols-3">
               {service.setupFeeCents !== null && (
                 <div className="rounded-2xl border border-border bg-card p-4">
                   <dt className="text-xs text-muted-foreground">Mise en place</dt>
@@ -173,10 +192,7 @@ export default async function PrestationDetailPage({
 
             {isTelephony && (
               <div className="mt-14">
-                <span className="text-xs tracking-widest text-primary uppercase">
-                  Numéro de téléphone
-                </span>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance text-foreground">
+                <h2 className="text-2xl font-semibold tracking-tight text-balance text-foreground">
                   Vous gardez votre numéro actuel
                 </h2>
                 <p className="mt-2 max-w-xl text-muted-foreground">
@@ -239,40 +255,97 @@ export default async function PrestationDetailPage({
         </section>
 
         {related.length > 0 && (
-          <section className="border-t border-border bg-muted py-16 sm:py-20">
+          <section
+            aria-labelledby="related-heading"
+            className="border-t border-border bg-muted py-16 sm:py-20"
+          >
             <div className="mx-auto max-w-3xl px-4 sm:px-6">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                Autres solutions — {CATEGORY_LABELS[service.category]}
+              <h2
+                id="related-heading"
+                className="text-2xl font-semibold tracking-tight text-foreground"
+              >
+                Autres solutions en {CATEGORY_LABELS[service.category].toLowerCase()}
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 {related.map((relatedService) => {
                   const RelatedIcon = SERVICE_ICONS[relatedService.slug] ?? Bot;
                   return (
-                    <Link
+                    // Lien "étiré" plutôt qu'un <Link> englobant toute la
+                    // carte : englober l'icône et la description les faisait
+                    // avaler par le nom accessible du lien, qu'un lecteur
+                    // d'écran énonce alors en entier. Même motif que
+                    // MyServiceRow dans le tableau de bord.
+                    <Card
                       key={relatedService.slug}
-                      href={`/prestations/${relatedService.slug}`}
-                      className="block text-inherit no-underline"
+                      className="relative h-full transition-colors has-[a:hover]:bg-card/70 has-[a:focus-visible]:bg-card/70 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/30"
                     >
-                      <Card className="h-full transition-colors hover:bg-card/70">
-                        <CardHeader>
-                          <span className="mb-2 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <RelatedIcon className="size-4" aria-hidden="true" />
-                          </span>
-                          <CardTitle className="text-base">
+                      <CardHeader>
+                        <span className="mb-2 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <RelatedIcon className="size-4" aria-hidden="true" />
+                        </span>
+                        {/* Un vrai <h3> plutôt que CardTitle, qui rend un
+                            <div> : ces cartes n'apparaissaient pas dans le
+                            sommaire des titres. */}
+                        <h3 className="font-heading text-base font-medium">
+                          <Link
+                            href={`/prestations/${relatedService.slug}`}
+                            className="text-inherit no-underline outline-none after:absolute after:inset-0"
+                          >
                             {relatedService.name}
-                          </CardTitle>
-                          <CardDescription className="line-clamp-2">
-                            {relatedService.description}
-                          </CardDescription>
-                        </CardHeader>
-                      </Card>
-                    </Link>
+                          </Link>
+                        </h3>
+                        <CardDescription className="line-clamp-2">
+                          {relatedService.description}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
                   );
                 })}
               </div>
             </div>
           </section>
         )}
+
+        {/* La page s'achevait sur les autres solutions : après avoir lu le
+            tarif et le fonctionnement, un visiteur convaincu n'avait aucun
+            moyen d'agir sans remonter en haut. */}
+        <section
+          aria-labelledby="cta-heading"
+          className="border-t border-border bg-background py-16 sm:py-20"
+        >
+          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+            <h2
+              id="cta-heading"
+              className="text-2xl font-semibold tracking-tight text-balance text-foreground"
+            >
+              {session
+                ? `Activez « ${service.name} » depuis votre tableau de bord`
+                : `Prêt à activer « ${service.name} » ?`}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              Notre équipe l&apos;installe, la connecte à vos outils et la
+              surveille chaque mois.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Button
+                size="lg"
+                nativeButton={false}
+                render={<Link href={session ? "/dashboard/prestations" : "/signup"} />}
+              >
+                {session ? "Choisir cette solution" : "Créer mon compte"}
+                <ArrowRight data-icon="inline-end" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                nativeButton={false}
+                render={<Link href="/contact" />}
+              >
+                Poser une question
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>
