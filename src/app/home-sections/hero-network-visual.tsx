@@ -131,8 +131,11 @@ const DURATIONS: Record<SlotId, number> = {
   "top-right": 3,
   "bottom-left": 2.8,
   "bottom-right": 3.4,
-  "mid-left": 2.2,
-  "mid-right": 3.2,
+  // Plus courtes : le tracé d'un flanc fait 90 unités contre environ 300
+  // pour un angle — à durée égale, le point y avancerait trois fois moins
+  // vite que les autres.
+  "mid-left": 1.6,
+  "mid-right": 1.8,
 };
 
 type SlotId = (typeof SLOTS)[number]["id"];
@@ -197,12 +200,18 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
             <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.55" />
             <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </radialGradient>
+          {/* Zone de filtre en unités absolues, pas en pourcentage de la
+              boîte englobante : le connecteur d'un flanc est une ligne
+              parfaitement horizontale, donc de hauteur nulle — « 200 % » de
+              zéro vaut zéro, et le segment lumineux flouté n'était tout
+              simplement pas dessiné sur ce tracé-là. */}
           <filter
             id="hero-net-blur"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
+            filterUnits="userSpaceOnUse"
+            x="0"
+            y="0"
+            width="620"
+            height="560"
           >
             <feGaussianBlur stdDeviation="2.2" />
           </filter>
