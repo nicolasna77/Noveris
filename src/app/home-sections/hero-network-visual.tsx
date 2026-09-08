@@ -15,14 +15,16 @@ const SLOTS = [
   { id: "top-right", cx: 465, cy: 70, side: "top" },
   { id: "bottom-left", cx: 155, cy: 460, side: "bottom" },
   { id: "bottom-right", cx: 465, cy: 460, side: "bottom" },
-  { id: "mid-left", cx: 115, cy: 265, side: "left" },
   { id: "mid-right", cx: 505, cy: 265, side: "right" },
+  { id: "mid-left", cx: 115, cy: 265, side: "left" },
 ] as const;
 
-// Écart laissé entre une pastille de flanc et le nœud central. Ces deux-là
-// sont ancrées par leur bord intérieur et non par leur centre : à centre
-// fixe, un nom un peu long viendrait toucher le nœud central.
-const SIDE_GAP = 26;
+// Écart entre une pastille de flanc et le nœud central. Ces deux-là sont
+// ancrées par leur bord intérieur et non par leur centre : à centre fixe, un
+// nom un peu long viendrait toucher le nœud central. L'écart est large à
+// dessein — le segment lumineux qui parcourt le connecteur a besoin de
+// longueur pour se voir, un trait de quelques pixels ne montre rien.
+const SIDE_GAP = 90;
 
 const FONT_SIZE = 12.5;
 // Largeur moyenne d'un caractère à cette taille et cette graisse — sert à
@@ -33,18 +35,21 @@ const CHAR_WIDTH = 7.3;
 const BADGE_PADDING = 36;
 const LINE_HEIGHT = 14;
 const MAX_LINE_CHARS = 24;
+// Les flancs coupent plus court : ils partagent la largeur du schéma avec le
+// nœud central, là où les coins ont toute la leur.
+const MAX_LINE_CHARS_SIDE = 12;
 
 // Coupe un nom trop long en deux lignes, sur un espace — « Prise de
 // rendez-vous / commande par téléphone » ne tient pas sur une ligne dans une
 // pastille de cette taille.
-function wrapLabel(label: string): string[] {
-  if (label.length <= MAX_LINE_CHARS) return [label];
+function wrapLabel(label: string, maxChars: number): string[] {
+  if (label.length <= maxChars) return [label];
   const words = label.split(" ");
   const lines: string[] = [];
   let current = "";
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word;
-    if (candidate.length > MAX_LINE_CHARS && current) {
+    if (candidate.length > maxChars && current) {
       lines.push(current);
       current = word;
     } else {
@@ -58,7 +63,8 @@ function wrapLabel(label: string): string[] {
 }
 
 function toNode(label: string, slot: (typeof SLOTS)[number]) {
-  const lines = wrapLabel(label);
+  const isSide = slot.side === "left" || slot.side === "right";
+  const lines = wrapLabel(label, isSide ? MAX_LINE_CHARS_SIDE : MAX_LINE_CHARS);
   const longest = Math.max(...lines.map((line) => line.length));
   const w = Math.round(longest * CHAR_WIDTH) + BADGE_PADDING;
 
