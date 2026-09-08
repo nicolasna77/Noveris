@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, LifeBuoy, Receipt, ShieldCheck, UserRound } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Layers, LifeBuoy, Receipt, ShieldCheck, UserRound } from "lucide-react";
 import { NoverisLogo } from "@/components/brand";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import {
@@ -21,6 +21,7 @@ import type { OrganizationSummary } from "@/lib/organization";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/dashboard/prestations", label: "Solutions", icon: Layers },
+  { href: "/dashboard/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/dashboard/paiements", label: "Paiements", icon: Receipt },
   { href: "/dashboard/profile", label: "Profil", icon: UserRound },
   { href: "/dashboard/aide", label: "Aide", icon: LifeBuoy },

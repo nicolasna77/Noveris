@@ -14,7 +14,8 @@ import {
 } from "@/lib/catalog";
 import { StatusBadge } from "@/components/status-badge";
 import { SERVICE_ICONS } from "@/lib/service-icons";
-import { BookingsList } from "@/app/dashboard/bookings-list";
+import { BookingsCalendar } from "@/components/bookings-calendar";
+import { toCalendarBookings } from "@/lib/bookings";
 import { ServiceProgress } from "@/app/dashboard/service-progress";
 import { ServiceTimeline } from "@/app/dashboard/service-timeline";
 import { ServiceDetailTable } from "@/app/dashboard/service-detail-table";
@@ -45,6 +46,15 @@ export default async function ServiceDetailPage({
   const objectives = asStringArray(item.configuration.objectives);
   const showBookings =
     isLive && (objectives.includes("appointment") || objectives.includes("order"));
+
+  // Le badge "non synchronisé" ne veut rien dire si aucun agenda n'est
+  // connecté — on ne le lève que si l'agenda l'est vraiment mais que cette
+  // réservation précise a échoué.
+  const { scheduled: scheduledBookings, unscheduled: unscheduledBookings } =
+    toCalendarBookings(item.bookings, {
+      subtitle: (b) => b.customerPhone,
+      isSynced: (b) => !item.calendarConnected || Boolean(b.googleEventId),
+    });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -102,7 +112,7 @@ export default async function ServiceDetailPage({
         </div>
       </div>
 
-      <div className={showBookings ? "mt-8 grid gap-6 lg:grid-cols-3" : "mt-8"}>
+      <div className={showBookings ? "mt-8 grid gap-6 lg:grid-cols-5" : "mt-8"}>
         <div className={showBookings ? "space-y-6 lg:col-span-2" : "space-y-6"}>
           <ServiceSetupCard item={item} />
           <ServiceDetailTable item={item} />
@@ -110,14 +120,20 @@ export default async function ServiceDetailPage({
         </div>
 
         {showBookings && (
-          <Card className="h-fit">
+          <Card className="h-fit lg:col-span-3">
             <CardHeader>
               <CardTitle className="text-base">
                 Rendez-vous et commandes reçus
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <BookingsList bookings={item.bookings} />
+            {/* Hauteur fixe ici : encarté dans une carte, le calendrier ne
+                peut pas prendre la hauteur de la fenêtre comme sur la page
+                /dashboard/calendrier. */}
+            <CardContent className="h-[30rem] sm:h-[34rem]">
+              <BookingsCalendar
+                scheduled={scheduledBookings}
+                unscheduled={unscheduledBookings}
+              />
             </CardContent>
           </Card>
         )}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, LayoutDashboard, LifeBuoy, Package, Users } from "lucide-react";
+import { ArrowLeftRight, CalendarDays, LayoutDashboard, LifeBuoy, Package, Users } from "lucide-react";
 import { NoverisLogo } from "@/components/brand";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/services", label: "Solutions", icon: Package },
+  { href: "/admin/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/admin/aide", label: "Centre d'aide", icon: LifeBuoy },
 ];
 

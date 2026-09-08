@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookingsCalendar } from "@/components/bookings-calendar";
+import { toCalendarBookings } from "@/lib/bookings";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { UserAccessCards } from "./user-access-cards";
 import { UserSessionsTable } from "./user-sessions-table";
 import { UserServicesTable } from "./user-services-table";
-import { UserBookingsTable } from "./user-bookings-table";
 
 export const metadata: Metadata = { title: "Détail utilisateur" };
 
@@ -40,12 +42,21 @@ export default async function AdminUserDetailPage({
       where: { clientService: { userId } },
       include: { clientService: { include: { service: true } } },
       orderBy: { createdAt: "desc" },
-      take: 10,
     }),
   ]);
   if (!user) notFound();
 
   const isSelf = user.id === currentSession.user.id;
+
+  // Un même utilisateur peut avoir plusieurs organisations/solutions : le
+  // nom de la solution complète le nom du client dans le sous-titre, à la
+  // différence du calendrier client (une seule solution, pas besoin de le
+  // répéter).
+  const { scheduled: scheduledBookings, unscheduled: unscheduledBookings } =
+    toCalendarBookings(bookings, {
+      subtitle: (b) => `${b.clientService.service.name} · ${b.customerPhone}`,
+      isSynced: (b) => Boolean(b.googleEventId),
+    });
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
@@ -84,7 +95,23 @@ export default async function AdminUserDetailPage({
         userEmail={user.email}
         clientServices={clientServices}
       />
-      <UserBookingsTable userName={user.name} bookings={bookings} />
+      {bookings.length > 0 && (
+        <Card className="mt-10">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Rendez-vous et commandes
+            </CardTitle>
+          </CardHeader>
+          {/* Hauteur fixe : encarté, le calendrier ne peut pas prendre la
+              hauteur de la fenêtre comme sur /admin/calendrier. */}
+          <CardContent className="h-[30rem] sm:h-[34rem]">
+            <BookingsCalendar
+              scheduled={scheduledBookings}
+              unscheduled={unscheduledBookings}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
