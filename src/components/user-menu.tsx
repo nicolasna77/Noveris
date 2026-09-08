@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogOut, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 
 export function UserMenu({ name, email }: { name: string; email: string }) {
+  const router = useRouter();
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -54,7 +56,13 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
             authClient.signOut({
               fetchOptions: {
                 onSuccess: () => {
-                  window.location.href = "/";
+                  // refresh() avant push() : le cookie de session vient de
+                  // disparaître, mais le cache de routeur contient encore
+                  // les pages rendues pour la session précédente. Sans
+                  // l'invalider, l'écran d'arrivée peut réafficher un état
+                  // connecté.
+                  router.refresh();
+                  router.push("/");
                 },
               },
             })

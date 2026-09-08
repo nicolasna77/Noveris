@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ import { slugify } from "@/lib/utils";
 import { GoogleSignInButton } from "../google-signin-button";
 
 export function SignupForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +60,12 @@ export function SignupForm() {
       slug: slugify(organizationName),
     });
 
-    window.location.href = "/dashboard";
+    // refresh() avant push() : le compte et son organisation viennent
+    // d'être créés, mais le cache de routeur peut encore contenir des
+    // pages rendues sans session. Sans l'invalider, le tableau de bord
+    // peut s'afficher comme si personne n'était connecté.
+    router.refresh();
+    router.push("/dashboard");
   }
 
   return (

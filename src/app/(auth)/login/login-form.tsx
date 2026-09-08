@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,7 @@ import { authClient } from "@/lib/auth-client";
 import { GoogleSignInButton } from "../google-signin-button";
 
 export function LoginForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +46,12 @@ export function LoginForm() {
     // Redirection selon le rôle stocké en base
     const session = await authClient.getSession();
     const role = session.data?.user.role;
-    window.location.href = role === "ADMIN" ? "/admin" : "/dashboard";
+    // Même raison que pour l'inscription et la déconnexion : refresh()
+    // invalide les pages mises en cache pour l'état déconnecté avant de
+    // naviguer. La règle de lint ne repérait pas ce cas, la destination
+    // n'étant pas une chaîne littérale.
+    router.refresh();
+    router.push(role === "ADMIN" ? "/admin" : "/dashboard");
   }
 
   return (
