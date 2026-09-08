@@ -2,9 +2,20 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { ServiceDTO } from "@/lib/catalog";
 import { HeroNetworkVisual } from "./hero-network-visual";
 
-export function HeroSection() {
+// Les quatre prestations de communication les mieux classées alimentent
+// l'illustration : leurs noms viennent du catalogue, pas d'une liste écrite
+// dans le composant — celle-ci annonçait encore une prestation supprimée.
+const VISUAL_NODE_COUNT = 4;
+
+export function HeroSection({ services }: { services: ServiceDTO[] }) {
+  const labels = services
+    .filter((service) => service.category === "COMMUNICATION")
+    .slice(0, VISUAL_NODE_COUNT)
+    .map((service) => service.name);
+
   return (
     <section className="relative overflow-hidden bg-muted">
       <div
@@ -59,7 +70,7 @@ export function HeroSection() {
             jours.
           </p>
         </div>
-        <HeroNetworkVisual />
+        <HeroNetworkVisual labels={labels} />
       </div>
     </section>
   );

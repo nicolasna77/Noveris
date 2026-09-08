@@ -2,63 +2,103 @@
 // automatisations réellement vendues par Noveris. Purement décoratif —
 // `aria-hidden`, le contenu utile est déjà dans le titre/paragraphe du hero
 // — donc entièrement en SVG/CSS, sans JS (pas de "use client").
-const NODES = [
-  {
-    id: "standard",
-    lines: ["Standard téléphonique automatisé"],
-    cx: 155,
-    cy: 70,
-    w: 295,
-    h: 34,
-  },
-  {
-    id: "messenger",
-    lines: ["Assistant Messenger / Instagram"],
-    cx: 465,
-    cy: 70,
-    w: 285,
-    h: 34,
-  },
-  {
-    id: "rdv",
-    lines: ["Prise de rendez-vous /", "commande par téléphone"],
-    cx: 155,
-    cy: 460,
-    w: 270,
-    h: 48,
-  },
-  {
-    id: "whatsapp",
-    lines: ["Assistant WhatsApp"],
-    cx: 465,
-    cy: 460,
-    w: 200,
-    h: 48,
-  },
+//
+// Les noms viennent du catalogue (voir HeroSection) et non d'une liste
+// écrite ici : la version précédente affichait encore « Assistant Messenger
+// / Instagram » des mois après que cette prestation ait été scindée en deux.
+
+const SLOTS = [
+  { id: "top-left", cx: 155, cy: 70 },
+  { id: "top-right", cx: 465, cy: 70 },
+  { id: "bottom-left", cx: 155, cy: 460 },
+  { id: "bottom-right", cx: 465, cy: 460 },
 ] as const;
+
+const FONT_SIZE = 12.5;
+// Largeur moyenne d'un caractère à cette taille et cette graisse — sert à
+// dimensionner la pastille d'après son texte, faute de pouvoir mesurer le
+// rendu côté serveur. Volontairement majorée : une pastille un peu large ne
+// se voit pas, un texte qui déborde de son cadre se voit tout de suite.
+const CHAR_WIDTH = 7.3;
+const BADGE_PADDING = 36;
+const LINE_HEIGHT = 14;
+const MAX_LINE_CHARS = 24;
+
+// Coupe un nom trop long en deux lignes, sur un espace — « Prise de
+// rendez-vous / commande par téléphone » ne tient pas sur une ligne dans une
+// pastille de cette taille.
+function wrapLabel(label: string): string[] {
+  if (label.length <= MAX_LINE_CHARS) return [label];
+  const words = label.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length > MAX_LINE_CHARS && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current);
+  // Au-delà de deux lignes, la pastille déborderait sur les connecteurs :
+  // le reste est tronqué plutôt que d'écraser la mise en page.
+  return lines.slice(0, 2);
+}
+
+function toNode(label: string, slot: (typeof SLOTS)[number]) {
+  const lines = wrapLabel(label);
+  const longest = Math.max(...lines.map((line) => line.length));
+  return {
+    id: slot.id,
+    lines,
+    cx: slot.cx,
+    cy: slot.cy,
+    w: Math.round(longest * CHAR_WIDTH) + BADGE_PADDING,
+    h: lines.length > 1 ? 48 : 34,
+  };
+}
 
 const CENTER = { cx: 310, cy: 265, w: 176, h: 40 };
 
-// Tracés en équerre reliant chaque pastille au centre — un seul et même `d`
-// sert à la fois au trait visible et au point lumineux qui voyage dessus
-// (`animateMotion path=...`).
-const CONNECTORS: Record<(typeof NODES)[number]["id"], string> = {
-  standard: "M155,87 L155,150 L310,150 L310,245",
-  messenger: "M465,87 L465,160 L310,160 L310,245",
-  rdv: "M155,436 L155,380 L310,380 L310,285",
-  whatsapp: "M465,436 L465,370 L310,370 L310,285",
+// Tracés en équerre reliant chaque pastille au centre — le même `d` sert au
+// trait visible et au segment lumineux qui le parcourt (stroke-dashoffset
+// animé).
+// Le trait part du bord de la pastille, calculé d'après sa hauteur réelle :
+// celle-ci dépend du texte (une ou deux lignes), un tracé écrit en dur
+// laisserait un trait flottant ou masqué selon le nom de la prestation.
+// Le palier horizontal est décalé d'un côté à l'autre pour que les quatre
+// tracés ne se superposent pas en arrivant au centre.
+const ELBOWS: Record<SlotId, { y: number; toward: "top" | "bottom" }> = {
+  "top-left": { y: 150, toward: "bottom" },
+  "top-right": { y: 160, toward: "bottom" },
+  "bottom-left": { y: 380, toward: "top" },
+  "bottom-right": { y: 370, toward: "top" },
 };
 
-const DURATIONS: Record<(typeof NODES)[number]["id"], number> = {
-  standard: 2.4,
-  messenger: 3,
-  rdv: 2.8,
-  whatsapp: 3.4,
+function connectorPath(node: Node): string {
+  const elbow = ELBOWS[node.id];
+  const fromY =
+    elbow.toward === "bottom" ? node.cy + node.h / 2 : node.cy - node.h / 2;
+  const toY = elbow.toward === "bottom" ? CENTER.cy - 20 : CENTER.cy + 20;
+  return `M${node.cx},${fromY} L${node.cx},${elbow.y} L${CENTER.cx},${elbow.y} L${CENTER.cx},${toY}`;
+}
+
+// Vitesses volontairement différentes d'un connecteur à l'autre : synchrones,
+// les quatre points lumineux se lisaient comme un seul clignotement.
+const DURATIONS: Record<SlotId, number> = {
+  "top-left": 2.4,
+  "top-right": 3,
+  "bottom-left": 2.8,
+  "bottom-right": 3.4,
 };
 
-function NodeBadge({ node }: { node: (typeof NODES)[number] }) {
-  const lineHeight = 14;
-  const startY = node.cy - ((node.lines.length - 1) * lineHeight) / 2 + 1;
+type SlotId = (typeof SLOTS)[number]["id"];
+type Node = ReturnType<typeof toNode>;
+
+function NodeBadge({ node }: { node: Node }) {
+  const startY = node.cy - ((node.lines.length - 1) * LINE_HEIGHT) / 2 + 1;
   return (
     <g>
       <rect
@@ -67,19 +107,19 @@ function NodeBadge({ node }: { node: (typeof NODES)[number] }) {
         width={node.w}
         height={node.h}
         rx={8}
-        fill="#16151f"
-        stroke="#2e2c3d"
+        fill="var(--card)"
+        stroke="var(--border)"
       />
       <text
         x={node.cx}
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={12.5}
+        fontSize={FONT_SIZE}
         fontWeight={600}
-        fill="#e4e2f1"
+        fill="var(--card-foreground)"
       >
         {node.lines.map((line, i) => (
-          <tspan key={line} x={node.cx} y={startY + i * lineHeight}>
+          <tspan key={line} x={node.cx} y={startY + i * LINE_HEIGHT}>
             {line}
           </tspan>
         ))}
@@ -88,7 +128,13 @@ function NodeBadge({ node }: { node: (typeof NODES)[number] }) {
   );
 }
 
-export function HeroNetworkVisual() {
+export function HeroNetworkVisual({ labels }: { labels: string[] }) {
+  // Moins de quatre prestations au catalogue : on ne dessine que les
+  // emplacements réellement remplis plutôt que des pastilles vides.
+  const nodes = SLOTS.slice(0, labels.length).map((slot, i) =>
+    toNode(labels[i], slot)
+  );
+
   return (
     <div aria-hidden="true" className="relative w-full">
       <svg viewBox="0 0 620 560" className="relative h-auto w-full" role="img">
@@ -131,17 +177,17 @@ export function HeroNetworkVisual() {
         />
 
         {/* Connecteurs + segment lumineux qui défile vers le centre */}
-        {NODES.map((node) => (
+        {nodes.map((node) => (
           <g key={node.id}>
             <path
-              d={CONNECTORS[node.id]}
+              d={connectorPath(node)}
               fill="none"
               stroke="var(--primary)"
               strokeOpacity={0.35}
               strokeWidth={1.5}
             />
             <path
-              d={CONNECTORS[node.id]}
+              d={connectorPath(node)}
               pathLength={100}
               fill="none"
               stroke="var(--primary)"
@@ -164,7 +210,7 @@ export function HeroNetworkVisual() {
         ))}
 
         {/* Pastilles */}
-        {NODES.map((node) => (
+        {nodes.map((node) => (
           <NodeBadge key={node.id} node={node} />
         ))}
 
@@ -176,7 +222,7 @@ export function HeroNetworkVisual() {
             width={CENTER.w}
             height={CENTER.h}
             rx={10}
-            fill="#16151f"
+            fill="var(--card)"
             stroke="var(--primary)"
             strokeOpacity={0.6}
           />
@@ -193,7 +239,7 @@ export function HeroNetworkVisual() {
             dominantBaseline="central"
             fontSize={14}
             fontWeight={700}
-            fill="#ffffff"
+            fill="var(--card-foreground)"
           >
             Votre entreprise
           </text>
