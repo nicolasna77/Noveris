@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, CalendarDays, LayoutDashboard, LifeBuoy, Package, Users } from "lucide-react";
+import {
+  ArrowLeftRight,
+  CalendarDays,
+  LayoutDashboard,
+  LifeBuoy,
+  Package,
+  ScrollText,
+  Users,
+} from "lucide-react";
 import { NoverisLogo } from "@/components/brand";
 import {
   Sidebar,
@@ -23,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin/services", label: "Solutions", icon: Package },
   { href: "/admin/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/admin/aide", label: "Centre d'aide", icon: LifeBuoy },
+  { href: "/admin/journal", label: "Journal", icon: ScrollText },
 ];
 
 // Lien symétrique à "Administration" dans DashboardSidebar : un admin est

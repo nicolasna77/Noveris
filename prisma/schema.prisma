@@ -32,6 +32,7 @@ model User {
   clientServices          ClientService[]
   helpRequests            HelpRequest[]
   helpRequestMessages     HelpRequestMessage[]
+  auditLogs               AuditLog[]
 
   members     Member[]
   invitations Invitation[]
@@ -482,4 +483,48 @@ model Invitation {
   @@index([organizationId])
   @@index([email])
   @@map("invitation")
+}
+
+enum AuditAction {
+  USER_ROLE_CHANGED
+  USER_BANNED
+  USER_UNBANNED
+  USER_PASSWORD_RESET
+  USER_SESSION_REVOKED
+  SERVICE_UPDATED
+  SERVICE_ACTIVATED
+  SERVICE_DEACTIVATED
+}
+
+// Journal des actions d'administration sensibles — qui a fait quoi, à qui,
+// et quand. Distinct de ServiceEvent, qui raconte la vie d'une prestation au
+// client concerné : ce journal-ci n'est jamais montré aux clients et retient
+// l'auteur de l'action, ce que ServiceEvent ne fait pas.
+//
+// Aucune écriture n'est jamais modifiée ni supprimée par l'application : une
+// ligne fausse ou effaçable ne vaudrait rien comme trace.
+model AuditLog {
+  id      String      @id @default(cuid())
+  actorId String
+  // Restrict plutôt que Cascade : supprimer un compte admin ne doit pas
+  // effacer discrètement la trace de ce qu'il a fait. Le jour où une
+  // suppression de compte existera, il faudra trancher explicitement le sort
+  // de ces lignes plutôt que de les perdre par défaut.
+  actor   User        @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action  AuditAction
+  // Libellés figés à l'écriture (nom de l'admin, e-mail du client visé, nom
+  // de la prestation) : un renommage ultérieur ne doit pas réécrire
+  // l'histoire, et la ligne reste lisible même si la cible disparaît.
+  actorLabel  String
+  targetType  String
+  targetId    String
+  targetLabel String
+  // Précision libre et déjà mise en forme pour l'affichage (motif d'un
+  // bannissement, « 79,00 € → 89,00 € »…).
+  detail      String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_log")
 }
