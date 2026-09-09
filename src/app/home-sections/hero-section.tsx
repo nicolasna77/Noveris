@@ -23,15 +23,29 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
           <p className="mb-6 text-sm text-muted-foreground">
             Agence d&apos;automatisation pour indépendants et TPE/PME
           </p>
-          {/* Le titre d'un seul tenant : en colorer la moitié coupait la
-              phrase en deux et faisait porter à la couleur un sens
-              qu'elle n'a pas. */}
-          {/* Pas de text-6xl : à cette taille, la phrase tombait sur cinq
-              lignes dont une dernière réduite à deux mots. Un titre long se
-              lit mieux un cran en dessous. */}
-          <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Votre entreprise tourne. Vos automatisations s&apos;occupent du
-            reste.
+          {/* Le titre est en deux temps, et c'est le saut d'échelle qui porte
+              le propos : le constat d'abord, à voix basse, puis la promesse.
+              Colorer la seconde moitié — l'état précédent — coupait la phrase
+              en deux et faisait porter à la couleur un sens qu'elle n'a pas ;
+              le contraste de taille, lui, dit exactement ce qu'on veut dire.
+              Le point final après « tourne » sépare les deux temps pour qui
+              lit à voix haute ou au lecteur d'écran, le titre restant une
+              seule phrase. */}
+          {/* Les deux temps restent dans l'encre du texte : seule l'échelle
+              les distingue. Les mettre en gris aurait fait un troisième
+              niveau de gris sous la ligne de positionnement, et affaibli le
+              constat au lieu de le poser.
+
+              La grande ligne s'arrête à text-5xl : au-dessus, « automatisations »
+              remplit à lui seul la colonne, text-balance n'a plus aucune marge
+              et la phrase tombe sur quatre lignes bancales. */}
+          <h1 className="max-w-2xl tracking-tight text-balance text-foreground">
+            <span className="block text-2xl font-medium leading-snug sm:text-3xl">
+              Votre entreprise tourne.
+            </span>
+            <span className="mt-1.5 block text-4xl font-semibold leading-[1.05] tracking-[-0.02em] sm:text-5xl">
+              Vos automatisations s&apos;occupent du reste.
+            </span>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-balance leading-relaxed text-muted-foreground">
             Notre équipe installe vos automatisations, les connecte à vos outils
