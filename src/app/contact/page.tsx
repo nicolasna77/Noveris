@@ -42,31 +42,27 @@ export default function ContactPage() {
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_18rem]">
             <ContactForm />
             <aside>
-              <h2 className="text-xs tracking-widest text-muted-foreground uppercase">
-                Ensuite
-              </h2>
-              <ol className="mt-4 space-y-6">
+              {/* Plus de capitales espacées : elles suppriment la silhouette
+                  des mots, et c'était le dernier libellé de ce genre sur le
+                  site. Même traitement que le titre du panneau tarifaire
+                  d'une page de solution. */}
+              <h2 className="text-sm font-medium text-muted-foreground">Ensuite</h2>
+              {/* Une vraie séquence, donc numérotée — mais un chiffre suffit.
+                  Les pastilles violettes reliées par un trait faisaient un
+                  ornement là où les filets suffisent, comme dans la méthode
+                  de la page d'accueil. */}
+              <ol className="mt-4">
                 {NEXT_STEPS.map((step, index) => (
-                  <li key={step.label} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
-                        {index + 1}
-                      </span>
-                      {index < NEXT_STEPS.length - 1 && (
-                        <span
-                          aria-hidden="true"
-                          className="mt-1 w-px flex-1 bg-border"
-                        />
-                      )}
-                    </div>
-                    <div className={index < NEXT_STEPS.length - 1 ? "pb-1" : undefined}>
-                      <p className="text-sm font-medium text-foreground">
-                        {step.label}
-                      </p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {step.detail}
-                      </p>
-                    </div>
+                  <li key={step.label} className="border-t border-border py-4">
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {step.label}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                      {step.detail}
+                    </p>
                   </li>
                 ))}
               </ol>
