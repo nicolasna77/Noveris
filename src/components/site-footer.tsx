@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { NoverisLogo } from "@/components/brand";
-import { Seam } from "@/components/seam";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-muted">
-      <Seam className="bg-border" />
+    <footer className="border-t border-border bg-muted">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
           <NoverisLogo />

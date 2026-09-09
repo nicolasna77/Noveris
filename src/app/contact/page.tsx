@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Seam } from "@/components/seam";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = { title: "Contact" };
@@ -26,7 +25,7 @@ export default function ContactPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <section className="bg-muted py-20 sm:py-28">
+        <section className="border-b border-border py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h1 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
               Parlons de votre activité
@@ -39,9 +38,7 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <Seam className="bg-primary/25" />
-
-        <section className="bg-background py-20 sm:py-24">
+        <section className="py-20 sm:py-24">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_18rem]">
             <ContactForm />
             <aside>
