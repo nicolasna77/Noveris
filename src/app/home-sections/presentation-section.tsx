@@ -1,6 +1,6 @@
 export function PresentationSection() {
   return (
-    <section className="bg-muted/40 py-20 sm:py-24">
+    <section className="border-b border-border py-20 sm:py-24">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

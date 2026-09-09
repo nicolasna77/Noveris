@@ -186,20 +186,9 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
           @media (prefers-reduced-motion: reduce) {
             .hero-net-flow { display: none; }
           }
-          @media (prefers-reduced-motion: no-preference) {
-            .hero-net-pulse { animation: hero-net-pulse 3s ease-in-out infinite; transform-origin: 310px 265px; }
-          }
-          @keyframes hero-net-pulse {
-            0%, 100% { opacity: 0.35; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.08); }
-          }
         `}</style>
 
         <defs>
-          <radialGradient id="hero-net-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-          </radialGradient>
           {/* Zone de filtre en unités absolues, pas en pourcentage de la
               boîte englobante : le connecteur d'un flanc est une ligne
               parfaitement horizontale, donc de hauteur nulle — « 200 % » de
@@ -217,15 +206,10 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
           </filter>
         </defs>
 
-        {/* Halo derrière le nœud central */}
-        <circle
-          cx={CENTER.cx}
-          cy={CENTER.cy}
-          r={90}
-          fill="url(#hero-net-glow)"
-          className="hero-net-pulse"
-        />
-
+        {/* Une seule chose bouge ici, et elle dit quelque chose : le flux
+            qui remonte des solutions vers l'entreprise. Le halo pulsant qui
+            l'accompagnait était un second mouvement, décoratif, qui lui
+            disputait l'attention. */}
         {/* Connecteurs + segment lumineux qui défile vers le centre */}
         {nodes.map((node) => (
           <g key={node.id}>

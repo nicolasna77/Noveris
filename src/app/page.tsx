@@ -1,5 +1,4 @@
 import { JsonLd, faqSchema } from "@/components/json-ld";
-import { Seam } from "@/components/seam";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getCatalog } from "@/lib/get-catalog";
@@ -24,13 +23,9 @@ export default async function HomePage() {
         <ProblemSection />
         <PresentationSection />
         <ServicesSection services={services} />
-        <Seam className="bg-muted" />
         <MethodSection />
         {hasSupportPlan && (
-          <>
-            <Seam className="bg-muted" />
-            <MaintenanceSection services={services} />
-          </>
+          <MaintenanceSection services={services} />
         )}
         {/* La FAQ est déjà rédigée et lue par les visiteurs : la baliser
             la rend exploitable telle quelle, sans écrire un mot de plus. */}

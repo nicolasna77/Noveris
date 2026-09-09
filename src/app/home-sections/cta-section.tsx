@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 export function CtaSection() {
   return (
-    <section className="border-t border-border bg-background py-20 sm:py-24">
+    <section className="bg-muted/40 py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
         <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Prêt à reprendre ces heures perdues chaque semaine ?

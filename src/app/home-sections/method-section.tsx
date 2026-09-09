@@ -33,7 +33,7 @@ const METHOD_STEPS = [
 
 export function MethodSection() {
   return (
-    <section id="methode" className="bg-muted py-20 sm:py-24">
+    <section id="methode" className="border-b border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -47,17 +47,11 @@ export function MethodSection() {
         </div>
         <ol className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {METHOD_STEPS.map((step, index) => (
-            <li key={step.step} className="relative">
-              {index < METHOD_STEPS.length - 1 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-4 left-8 hidden h-px w-[calc(100%-2rem)] bg-border lg:block"
-                />
-              )}
-              <span className="relative flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
-                {step.step}
+            <li key={step.step} className="border-t border-border pt-4">
+              <span className="text-sm tabular-nums text-muted-foreground">
+                {index + 1}
               </span>
-              <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
+              <h3 className="mt-2 font-medium text-foreground">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {step.description}
               </p>

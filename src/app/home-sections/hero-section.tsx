@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import type { ServiceDTO } from "@/lib/catalog";
 import { HeroNetworkVisual } from "./hero-network-visual";
@@ -18,30 +17,21 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
     .map((service) => service.name);
 
   return (
-    <section className="relative overflow-hidden bg-muted">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.15]"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, var(--foreground) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-          maskImage:
-            "radial-gradient(ellipse 65% 65% at 50% 50%, black 0%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 65% 65% at 50% 50%, black 0%, transparent 100%)",
-        }}
-      />
-      <div className="relative mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center">
+    <section className="border-b border-border">
+      <div className="mx-auto grid max-w-6xl gap-14 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center">
         <div>
-          <Badge variant="secondary" className="mb-6">
+          <p className="mb-6 text-sm text-muted-foreground">
             Agence d&apos;automatisation pour indépendants et TPE/PME
-          </Badge>
-          <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            Votre entreprise tourne.{" "}
-            <span className="text-primary">
-              Vos automatisations s&apos;occupent du reste.
-            </span>
+          </p>
+          {/* Le titre d'un seul tenant : en colorer la moitié coupait la
+              phrase en deux et faisait porter à la couleur un sens
+              qu'elle n'a pas. */}
+          {/* Pas de text-6xl : à cette taille, la phrase tombait sur cinq
+              lignes dont une dernière réduite à deux mots. Un titre long se
+              lit mieux un cran en dessous. */}
+          <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            Votre entreprise tourne. Vos automatisations s&apos;occupent du
+            reste.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-balance leading-relaxed text-muted-foreground">
             Notre équipe installe vos automatisations, les connecte à vos outils
@@ -55,7 +45,7 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
             </Link>
             <Link
               href="#prestations"
-              className={buttonVariants({ size: "lg", variant: "outline" })}
+              className={buttonVariants({ size: "lg", variant: "secondary" })}
             >
               Voir les solutions
             </Link>

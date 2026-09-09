@@ -29,7 +29,7 @@ function ServiceCard({ service }: { service: ServiceDTO }) {
       id={service.slug}
       className="block scroll-mt-20 text-inherit no-underline outline-none"
     >
-      <Card className="h-full transition-colors hover:bg-muted/40 focus-visible:bg-muted/40">
+      <Card className="flex h-full flex-col transition-colors hover:bg-muted/40 focus-visible:bg-muted/40">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <span className="mb-2 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -40,10 +40,10 @@ function ServiceCard({ service }: { service: ServiceDTO }) {
               aria-hidden="true"
             />
           </div>
-          <CardTitle className="text-primary">{service.name}</CardTitle>
+          <CardTitle>{service.name}</CardTitle>
           <CardDescription>{service.description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="mt-auto">
           <dl className="space-y-1.5 border-t border-border pt-4 text-xs">
             {service.setupFeeCents !== null && (
               <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
     .filter(({ categoryServices }) => categoryServices.length > 0);
 
   return (
-    <section id="prestations" className="bg-background py-20 sm:py-24">
+    <section id="prestations" className="border-b border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -101,11 +101,7 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
 
         {categories.map(({ category, categoryServices }, index) => (
           <div key={category} className={index > 0 ? "mt-14" : "mt-12"}>
-            <div className="mb-5 flex items-start gap-3">
-              <span
-                aria-hidden="true"
-                className="mt-1 h-6 w-1 shrink-0 rounded-full bg-primary"
-              />
+            <div className="mb-5">
               <div className="max-w-2xl">
                 <h3 className="text-xl font-semibold tracking-tight text-foreground">
                   {CATEGORY_LABELS[category]}
