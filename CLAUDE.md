@@ -51,6 +51,46 @@ Trois espaces :
   intégrations tierces, agent vocal)
 - `src/components/ui` — primitives shadcn/Base UI ; `src/components` — composants applicatifs partagés
 
+## Pièges connus
+
+Ceux qui se déguisent en bugs de code alors qu'ils n'en sont pas — chacun a
+déjà coûté du temps, tous sont vérifiés.
+
+- **Client Prisma périmé dans `next dev`.** Après toute modification de
+  `prisma/schema.prisma`, `prisma generate` écrit un nouveau client sur le
+  disque, mais un serveur de développement déjà lancé garde l'ancien en
+  mémoire : Node ne recharge pas `node_modules` à chaud. Symptôme :
+  `Cannot read properties of undefined (reading 'findMany')` sur un modèle
+  qui vient d'être ajouté, alors que le build de production fonctionne.
+  **Il faut redémarrer `next dev`.** Sur Windows, `pkill` échoue sur le
+  processus tenu par l'IDE ; utiliser `taskkill //PID <pid> //F` après
+  `netstat -ano | grep ":3000"`.
+
+- **`generateStaticParams` sur une page qui lit la session.** Une page
+  appelant `getSession()` lit les en-têtes de la requête : elle ne peut pas
+  être rendue à l'avance. Si `generateStaticParams` ne renvoie aucun
+  paramètre — base vide, premier déploiement, preview sur une base neuve —
+  Next ne rend jamais la page au build, n'y voit donc pas l'appel dynamique,
+  classe la route comme statique, et chaque requête répond 500 (« Page
+  changed from static to dynamic at runtime, reason: headers »). Invisible en
+  développement, où la base est peuplée.
+
+- **better-auth refuse une origine inattendue.** Le serveur répond 403
+  « Invalid origin » à toute requête dont l'origine ne correspond pas à sa
+  `baseURL` (`BETTER_AUTH_URL`, sinon `NEXT_PUBLIC_APP_URL`) — d'où la
+  variable passée au serveur de test dans `playwright.config.ts`. Le client
+  (`src/lib/auth-client.ts`) ne fixe volontairement aucune `baseURL` : il
+  vise l'origine de la page, sans quoi les previews Vercel échouent en CORS,
+  silencieusement.
+
+- **`npm ci` en CI, `npm install` sur Vercel.** Un lockfile peut satisfaire
+  `npm ci` et être refusé par `npm install`, qui rejoue la résolution et
+  bloque sur un conflit de peer dependency. La CI vérifie donc aussi
+  `npm install --dry-run`.
+
+- **Dossiers préfixés `_` dans l'App Router.** Ils sont privés : aucune route
+  n'est créée, l'URL renvoie la page 404.
+
 ## Skills recommandées
 
 Skills du plugin officiel (disponibles globalement dans Claude Code) :
@@ -62,7 +102,10 @@ Skills du plugin officiel (disponibles globalement dans Claude Code) :
 - **code-simplifier** — simplifier/refactorer du code existant sans changer son comportement
 - **context7** — documentation à jour des librairies (Next.js, Prisma,
   better-auth, Stripe...) à préférer à la mémoire du modèle pour toute API récente
-- **github** / **pr-review-toolkit** — travail lié aux PR/issues (nécessite un remote GitHub, absent du dépôt pour l'instant)
+- **github** / **pr-review-toolkit** — travail lié aux PR/issues ; le dépôt
+  est sur `nicolasna77/Noveris`, et la CI (`.github/workflows/ci.yml`) y joue
+  types, lint, tests unitaires (Vitest), build et parcours de bout en bout
+  (Playwright)
 - **vercel** — déploiement et observabilité si l'app est hébergée sur Vercel
 
 Skills installées spécifiquement pour ce projet (`.claude/skills/`, orientées
