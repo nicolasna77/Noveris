@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { checkEnvAtBoot, inspectEnv } from "./env";
+import { FEATURES, REQUIRED, checkEnvAtBoot, inspectEnv } from "./env";
 
 // Un environnement minimal valide, dont chaque test ne casse qu'une pièce.
 function validEnv(overrides: Record<string, string | undefined> = {}) {
@@ -103,6 +104,18 @@ describe("groupes par fonctionnalité", () => {
 
   it("n'interrompt jamais le démarrage sur une intégration absente", () => {
     expect(() => checkEnvAtBoot(validEnv())).not.toThrow();
+  });
+});
+
+// Un fichier d'exemple qui se périme est pire que pas de fichier du tout :
+// il fait croire que la liste est à jour. Le schéma étant la source de
+// vérité, c'est lui qui le garde.
+describe(".env.example", () => {
+  const example = readFileSync(new URL("../../.env.example", import.meta.url), "utf-8");
+  const declared = [...REQUIRED.map((r) => r.name), ...FEATURES.flatMap((f) => f.vars)];
+
+  it.each(declared)("déclare %s", (name) => {
+    expect(example).toMatch(new RegExp(`^${name}=`, "m"));
   });
 });
 
