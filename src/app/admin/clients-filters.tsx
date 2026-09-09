@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { Download } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -62,6 +65,18 @@ export function ClientsFilters() {
           ))}
         </SelectContent>
       </Select>
+
+      {/* L'export ne suit pas les filtres affichés, et c'est voulu : on
+          exporte pour sortir de l'outil — comptabilité, réconciliation,
+          demande d'accès aux données — pas pour figer la page en cours. */}
+      <Link
+        href="/admin/export/clients"
+        prefetch={false}
+        className={buttonVariants({ variant: "ghost" })}
+      >
+        <Download data-icon="inline-start" />
+        Exporter en CSV
+      </Link>
     </div>
   );
 }

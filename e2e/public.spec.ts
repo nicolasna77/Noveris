@@ -1,4 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { ANONYMOUS } from "./roles";
+
+// Le site public se juge en visiteur : connecté, l'en-tête change et les
+// appels à l'action disparaissent.
+test.use({ storageState: ANONYMOUS });
 
 test("l'accueil présente l'offre et mène au catalogue", async ({ page }) => {
   await page.goto("/");

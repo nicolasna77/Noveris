@@ -9,20 +9,41 @@ import { toCalendarBookings } from "@/lib/bookings";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { UserAccessCards } from "./user-access-cards";
-import { UserSessionsTable } from "./user-sessions-table";
+import { UserSessionsTable, SESSIONS_PAGE_SIZE } from "./user-sessions-table";
 import { UserServicesTable } from "./user-services-table";
 import { ServiceHistory } from "./service-history";
+import { LiveRefreshToggle } from "../../live-refresh-toggle";
+import { toMyServiceDTO } from "@/app/dashboard/get-my-service";
 
 export const metadata: Metadata = { title: "Détail utilisateur" };
 
+// Hors du corps du composant : l'heure courante est impure, et la comparer
+// pendant le rendu ferait dépendre l'affichage du moment exact où React
+// rend. C'est ici, au chargement, que la question « cette session est-elle
+// encore valable ? » a un sens.
+async function loadSessionsPage(userId: string, page: number) {
+  const rows = await db.session.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * SESSIONS_PAGE_SIZE,
+    take: SESSIONS_PAGE_SIZE,
+  });
+  const now = Date.now();
+  return rows.map((s) => ({ ...s, expired: s.expiresAt.getTime() <= now }));
+}
+
 export default async function AdminUserDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ userId: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const { userId } = await params;
+  const [{ userId }, { page: pageParam }] = await Promise.all([params, searchParams]);
+  const sessionsPage = Math.max(1, Number(pageParam) || 1);
 
-  const [currentSession, user, memberships, sessions, clientServices, bookings] = await Promise.all([
+  const [currentSession, user, memberships, sessions, sessionsCount, clientServices, bookings] =
+    await Promise.all([
     requireAdmin(),
     db.user.findUnique({ where: { id: userId } }),
     db.member.findMany({
@@ -30,10 +51,8 @@ export default async function AdminUserDetailPage({
       include: { organization: true },
       orderBy: { createdAt: "asc" },
     }),
-    db.session.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    }),
+    loadSessionsPage(userId, sessionsPage),
+    db.session.count({ where: { userId } }),
     db.clientService.findMany({
       where: { userId },
       include: {
@@ -90,19 +109,31 @@ export default async function AdminUserDetailPage({
             )}
           </p>
         </div>
-        <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
-          {user.role ?? "CLIENT"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
+            {user.role ?? "CLIENT"}
+          </Badge>
+          {/* Suivre ce compte pendant qu'il se passe quelque chose : un
+              paiement qui aboutit, une connexion de compte, un appel en
+              cours. Rien de tout cela n'apparaissait sans recharger. */}
+          <LiveRefreshToggle />
+        </div>
       </div>
 
       <UserAccessCards user={user} isSelf={isSelf} />
-      <UserSessionsTable userId={user.id} userName={user.name} sessions={sessions} />
+      <UserSessionsTable
+        userId={user.id}
+        userName={user.name}
+        sessions={sessions}
+        page={sessionsPage}
+        totalPages={Math.max(1, Math.ceil(sessionsCount / SESSIONS_PAGE_SIZE))}
+      />
       <UserServicesTable
         userName={user.name}
         userEmail={user.email}
         clientServices={clientServices}
       />
-      <ServiceHistory clientServices={clientServices} />
+      <ServiceHistory items={clientServices.map(toMyServiceDTO)} />
       {bookings.length > 0 && (
         <Card className="mt-10">
           <CardHeader>

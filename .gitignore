@@ -57,3 +57,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# Sessions Playwright mises de côté par auth.setup.ts
+/e2e/.auth/

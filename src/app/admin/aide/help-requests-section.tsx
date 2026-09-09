@@ -16,6 +16,7 @@ import { HELP_REQUEST_STATUS_LABELS, toHelpRequestMessageDTOs } from "@/lib/help
 import { HelpRequestThread } from "@/components/help-request-thread";
 import { HelpRequestReplyForm } from "./help-request-reply-form";
 import { HelpRequestStatusButton } from "./help-request-status-button";
+import { BulkResolveBar, BULK_FORM_ID } from "./bulk-resolve-bar";
 
 const PAGE_SIZE = 20;
 
@@ -59,8 +60,12 @@ export async function HelpRequestsSection({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const openCount = requests.filter((r) => r.status === "OPEN").length;
+
   return (
     <div>
+      <BulkResolveBar hasOpenRequests={openCount > 0} />
+
       <div className="space-y-4">
         {requests.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -71,7 +76,18 @@ export async function HelpRequestsSection({
           <Card key={r.id}>
             <CardHeader>
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
+                <div className="flex min-w-0 items-start gap-3">
+                  {r.status === "OPEN" && (
+                    <input
+                      type="checkbox"
+                      name="helpRequestIds"
+                      value={r.id}
+                      form={BULK_FORM_ID}
+                      aria-label={`Sélectionner « ${r.subject} »`}
+                      className="mt-1.5 size-4 shrink-0 accent-primary"
+                    />
+                  )}
+                  <div className="min-w-0">
                   <CardTitle>{r.subject}</CardTitle>
                   <CardDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <Link
@@ -86,6 +102,7 @@ export async function HelpRequestsSection({
                       {r.organization.name}
                     </span>
                   </CardDescription>
+                  </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge variant="outline">

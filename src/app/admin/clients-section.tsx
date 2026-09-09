@@ -19,25 +19,14 @@ import {
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import {
-  FACEBOOK_SERVICE_SLUG,
-  formatConfigValue,
   formatPrice,
-  INSTAGRAM_SERVICE_SLUG,
-  TELEPHONY_SERVICE_SLUGS,
-  WHATSAPP_SERVICE_SLUG,
   type ClientServiceStatus,
-  type ConfigValue,
 } from "@/lib/catalog";
 import { StatusBadge } from "@/components/status-badge";
 import { PaginationNav } from "@/components/pagination-nav";
-import {
-  FacebookPageIdEditor,
-  InstagramAccountIdEditor,
-  NoteEditor,
-  MarkActiveButton,
-  PhoneNumberEditor,
-  WhatsAppPhoneNumberEditor,
-} from "./client-service-actions";
+import { MarkActiveButton } from "./client-service-actions";
+import { ClientServiceCard } from "./client-service-card";
+import { ConnectionCell, NoteCell, configSummary } from "./client-service-cells";
 
 const PAGE_SIZE = 20;
 
@@ -132,32 +121,28 @@ export async function ClientsSection({
             </CardHeader>
             {client.clientServices.length > 0 && (
               <CardContent>
-                <Table>
-                  <TableCaption className="sr-only">
-                    Solutions de {client.name}
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Solution</TableHead>
-                      <TableHead>Organisation</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Configuration</TableHead>
-                      <TableHead>Note pour le client</TableHead>
-                      <TableHead>Connexion externe</TableHead>
-                      <TableHead className="text-right">Prix</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {client.clientServices.map((cs) => {
-                      const config = (cs.configuration ?? {}) as Record<
-                        string,
-                        ConfigValue
-                      >;
-                      const configEntries = Object.entries(config).filter(
-                        ([, v]) => v
-                      );
-                      return (
+                {/* Deux mises en page pour la même donnée : la table garde
+                    sa densité là où l'écran la permet, les cartes empilées
+                    prennent le relais en dessous de `md`. */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableCaption className="sr-only">
+                      Solutions de {client.name}
+                    </TableCaption>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Solution</TableHead>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Configuration</TableHead>
+                        <TableHead>Note pour le client</TableHead>
+                        <TableHead>Connexion externe</TableHead>
+                        <TableHead className="text-right">Prix</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {client.clientServices.map((cs) => (
                         <TableRow key={cs.id}>
                           <TableCell className="font-medium">
                             {cs.name}
@@ -174,54 +159,13 @@ export async function ClientsSection({
                             <StatusBadge status={cs.status} />
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {configEntries.length > 0
-                              ? configEntries
-                                  .map(([k, v]) => `${k}: ${formatConfigValue(v)}`)
-                                  .join(" · ")
-                              : "—"}
+                            {configSummary(cs)}
                           </TableCell>
                           <TableCell>
-                            {cs.status === "CANCELED" ? (
-                              <span className="text-sm text-muted-foreground">
-                                —
-                              </span>
-                            ) : (
-                              <NoteEditor
-                                clientServiceId={cs.id}
-                                initialNote={cs.adminNote ?? ""}
-                              />
-                            )}
+                            <NoteCell cs={cs} />
                           </TableCell>
                           <TableCell>
-                            {cs.status === "CANCELED" ? (
-                              <span className="text-sm text-muted-foreground">
-                                —
-                              </span>
-                            ) : TELEPHONY_SERVICE_SLUGS.has(cs.service.slug) ? (
-                              <PhoneNumberEditor
-                                clientServiceId={cs.id}
-                                initialPhoneNumber={cs.externalPhoneNumber ?? ""}
-                              />
-                            ) : cs.service.slug === WHATSAPP_SERVICE_SLUG ? (
-                              <WhatsAppPhoneNumberEditor
-                                clientServiceId={cs.id}
-                                initialPhoneNumberId={cs.whatsappPhoneNumberId ?? ""}
-                              />
-                            ) : cs.service.slug === FACEBOOK_SERVICE_SLUG ? (
-                              <FacebookPageIdEditor
-                                clientServiceId={cs.id}
-                                initialPageId={cs.facebookPageId ?? ""}
-                              />
-                            ) : cs.service.slug === INSTAGRAM_SERVICE_SLUG ? (
-                              <InstagramAccountIdEditor
-                                clientServiceId={cs.id}
-                                initialAccountId={cs.instagramAccountId ?? ""}
-                              />
-                            ) : (
-                              <span className="text-sm text-muted-foreground">
-                                —
-                              </span>
-                            )}
+                            <ConnectionCell cs={cs} />
                           </TableCell>
                           <TableCell className="text-right">
                             {formatPrice(
@@ -235,10 +179,16 @@ export async function ClientsSection({
                             )}
                           </TableCell>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <ul className="space-y-3 md:hidden">
+                  {client.clientServices.map((cs) => (
+                    <ClientServiceCard key={cs.id} cs={cs} />
+                  ))}
+                </ul>
               </CardContent>
             )}
           </Card>

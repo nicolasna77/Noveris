@@ -2,12 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   asStringArray,
   FACEBOOK_SERVICE_SLUG,
-  formatConfigValue,
   INSTAGRAM_SERVICE_SLUG,
   TELEPHONY_SERVICE_SLUGS,
   WHATSAPP_SERVICE_SLUG,
   type MyServiceDTO,
 } from "@/lib/catalog";
+import { ServiceFacts, hasServiceFacts } from "@/components/service-facts";
 import { CalendarConnection } from "./calendar-connection";
 import { CallActivity } from "./call-activity";
 import { CallForwardingGuide } from "./call-forwarding-guide";
@@ -17,26 +17,10 @@ import { MessengerConnection } from "./messenger-connection";
 import { UsageCounter } from "./usage-counter";
 import { WhatsAppConnection } from "./whatsapp-connection";
 
-// Libellé à gauche, valeur à gauche juste en dessous (ou en colonne sur
-// écran large) : une valeur longue — des horaires sur sept jours, un menu de
-// produits — reste lisible, là où un alignement à droite la faisait revenir
-// à la ligne en escalier.
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid gap-0.5 border-b border-border py-3 text-sm last:border-b-0 sm:grid-cols-[minmax(0,11rem)_1fr] sm:gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-foreground">{children}</dd>
-    </div>
-  );
-}
-
 // Ordonné par urgence : ce qui se passe maintenant (appels en direct) avant
 // ce qui est fixé une fois pour toutes (configuration). Ce qui reste à faire
 // pour que la solution fonctionne vit dans ServiceSetupCard, au-dessus.
 export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
-  const configEntries = Object.entries(item.configuration).filter(
-    ([, value]) => value
-  );
   const isTelephony = TELEPHONY_SERVICE_SLUGS.has(item.service.slug);
   const isLive =
     isTelephony && (item.status === "ACTIVE" || item.status === "CONFIGURING");
@@ -54,10 +38,7 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
   const showFacebookRow = isFacebook && isDeployedStatus && item.facebookConnected;
   const isInstagram = item.service.slug === INSTAGRAM_SERVICE_SLUG;
   const showInstagramRow = isInstagram && isDeployedStatus && item.instagramConnected;
-  const hasFacts =
-    item.service.usageCapLabel ||
-    (item.externalPhoneNumber && !isLive) ||
-    configEntries.length > 0;
+  const hasFacts = hasServiceFacts(item, !isLive);
 
   return (
     <div className="space-y-6">
@@ -110,37 +91,7 @@ export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
                 Aucun réglage renseigné pour l&apos;instant.
               </p>
             )}
-            {hasFacts && (
-              <dl>
-                {item.service.usageCapLabel && (
-                  <Fact label="Plafond d'usage">
-                    {item.service.usageCapLabel}
-                  </Fact>
-                )}
-                {item.externalPhoneNumber && !isLive && (
-                  <Fact label="Numéro de téléphone">
-                    <span className="tabular-nums">
-                      {item.externalPhoneNumber}
-                    </span>
-                  </Fact>
-                )}
-                {configEntries.map(([key, value]) => {
-                  const field = item.service.configFields.find(
-                    (f) => f.key === key
-                  );
-                  const displayValue =
-                    field?.type === "select" && typeof value === "string"
-                      ? (field.options?.find((o) => o.value === value)?.label ??
-                        value)
-                      : formatConfigValue(value);
-                  return (
-                    <Fact key={key} label={field?.label ?? key}>
-                      {displayValue}
-                    </Fact>
-                  );
-                })}
-              </dl>
-            )}
+            {hasFacts && <ServiceFacts item={item} showPhoneNumber={!isLive} />}
 
             {showCalendarRow && (
               <CalendarConnection

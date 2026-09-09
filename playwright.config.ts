@@ -20,7 +20,16 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Se connecte une fois et met les sessions de côté ; tous les autres
+    // projets en dépendent (voir e2e/auth.setup.ts).
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+    },
+  ],
   webServer: {
     // `next start` et non `next dev` : c'est le build de production qu'on
     // veut valider, et le premier rendu n'est pas ralenti par la

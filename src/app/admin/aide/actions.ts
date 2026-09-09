@@ -71,3 +71,47 @@ export async function replyToHelpRequest(helpRequestId: string, body: string) {
   revalidatePath("/admin/aide");
   revalidatePath("/dashboard/aide");
 }
+
+// Clôt plusieurs demandes d'un coup. Reçoit un FormData plutôt que des
+// arguments : les cases à cocher vivent dans les cartes et sont rattachées au
+// formulaire par l'attribut `form` du HTML, ce qui évite d'imbriquer des
+// formulaires (le formulaire de réponse occupe déjà chaque carte) et permet
+// à la sélection de fonctionner sans JavaScript.
+export async function bulkResolveHelpRequests(formData: FormData) {
+  await requireAdmin();
+
+  const ids = formData.getAll("helpRequestIds").filter((v): v is string => typeof v === "string");
+  if (ids.length === 0) return;
+
+  // Seules les demandes encore ouvertes sont concernées : reclôturer une
+  // demande déjà traitée réécrirait sa date de résolution et renverrait un
+  // e-mail au client pour rien.
+  const toResolve = await db.helpRequest.findMany({
+    where: { id: { in: ids }, status: "OPEN" },
+    include: { user: true },
+  });
+  if (toResolve.length === 0) return;
+
+  await db.helpRequest.updateMany({
+    where: { id: { in: toResolve.map((r) => r.id) } },
+    data: { status: "RESOLVED", resolvedAt: new Date() },
+  });
+
+  // Les e-mails sont au mieux : un envoi qui échoue ne doit pas annuler une
+  // clôture déjà enregistrée, ni empêcher les suivants.
+  await Promise.allSettled(
+    toResolve.map((r) =>
+      sendHelpRequestResolvedEmail(
+        {
+          email: r.user.email,
+          name: r.user.name,
+          notificationPreferences: r.user.notificationPreferences,
+        },
+        r.subject
+      )
+    )
+  );
+
+  revalidatePath("/admin/aide");
+  revalidatePath("/dashboard/aide");
+}
