@@ -1,3 +1,4 @@
+import { JsonLd, faqSchema } from "@/components/json-ld";
 import { Seam } from "@/components/seam";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -31,6 +32,9 @@ export default async function HomePage() {
             <MaintenanceSection services={services} />
           </>
         )}
+        {/* La FAQ est déjà rédigée et lue par les visiteurs : la baliser
+            la rend exploitable telle quelle, sans écrire un mot de plus. */}
+        <JsonLd data={faqSchema()} />
         <FaqSection />
         <CtaSection />
       </main>

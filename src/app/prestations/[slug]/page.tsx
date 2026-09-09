@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Bot } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { JsonLd, priceSummary, serviceSchema } from "@/components/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { Seam } from "@/components/seam";
@@ -28,7 +29,18 @@ export async function generateMetadata({
   const { slug } = await params;
   const service = await getServiceBySlug(slug);
   if (!service) return {};
-  return { title: service.name, description: service.description };
+  // Le prix figure dans la description partagée : c'est la première chose
+  // qu'un prospect cherche, et un aperçu qui l'omet le fait cliquer pour
+  // rien.
+  const description = `${service.description} ${priceSummary(service)}`;
+  const url = `/prestations/${service.slug}`;
+  return {
+    title: service.name,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", title: service.name, description, url },
+    twitter: { card: "summary_large_image", title: service.name, description },
+  };
 }
 
 // Champ quasi universel (présent sur presque toutes les prestations) — ne
@@ -79,6 +91,7 @@ export default async function PrestationDetailPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <JsonLd data={serviceSchema(service)} />
       <SiteHeader />
       <main className="flex-1">
         <section className="relative overflow-hidden bg-muted">
@@ -154,12 +167,9 @@ export default async function PrestationDetailPage({
               Tarif
             </h2>
             <p className="mt-2 text-muted-foreground">
-              {service.setupFeeCents !== null && service.monthlyPriceCents !== null
-                ? `${formatCents(service.setupFeeCents)} à l'installation, puis ${formatCents(service.monthlyPriceCents)} par mois.`
-                : service.monthlyPriceCents !== null
-                  ? `${formatCents(service.monthlyPriceCents)} par mois, sans frais d'installation.`
-                  : `${formatCents(service.setupFeeCents ?? 0)} à l'installation, sans abonnement.`}{" "}
-              Sans engagement.
+              {/* La même phrase que dans l'aperçu de partage : le prix
+                  annoncé au clic doit être celui qu'on lit en arrivant. */}
+              {priceSummary(service)} Sans engagement.
             </p>
 
             <dl className="mt-6 grid gap-4 sm:grid-cols-3">

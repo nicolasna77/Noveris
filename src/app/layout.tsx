@@ -4,6 +4,8 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { JsonLd, organizationSchema } from "@/components/json-ld";
+import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 
 const outfit = Outfit({subsets:['latin'],variable:'--font-sans'});
 
@@ -17,13 +19,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const TITLE = "Noveris — Automatisation pour artisans, coachs et TPE/PME";
+
 export const metadata: Metadata = {
-  title: {
-    default: "Noveris — Automatisation pour artisans, coachs et TPE/PME",
-    template: "%s | Noveris",
+  // Sans metadataBase, les URL d'aperçu et les canoniques restent relatives
+  // et ne se résolvent nulle part : aucun aperçu au partage.
+  metadataBase: new URL(siteUrl()),
+  title: { default: TITLE, template: "%s | Noveris" },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: SITE_NAME,
+    title: TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
   },
-  description:
-    "Noveris installe des automatisations pour artisans, coachs, indépendants et TPE/PME : standard téléphonique, assistants de messagerie, documents administratifs, traitement de l'information — sans compétence technique requise.",
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
@@ -38,6 +55,7 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", outfit.variable)}
     >
       <body className="min-h-full flex flex-col">
+        <JsonLd data={organizationSchema()} />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <Toaster />

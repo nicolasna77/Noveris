@@ -1,33 +1,7 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { FAQS } from "@/lib/site";
 
-const FAQS = [
-  {
-    question: "Dois-je savoir configurer un outil ou une API ?",
-    answer:
-      "Non. Notre équipe installe, connecte et vérifie chaque automatisation à votre place. Vous n'ouvrez aucun logiciel technique.",
-  },
-  {
-    question: "Combien de temps avant que ce soit actif ?",
-    answer:
-      "La plupart des solutions sont déployées et vérifiées en quelques jours après l'audit initial.",
-  },
-  {
-    question: "Je peux arrêter quand je veux ?",
-    answer:
-      "Oui, aucun engagement de durée. Et vous êtes remboursé si vous n'êtes pas satisfait dans les 30 premiers jours.",
-  },
-  {
-    question: "Et si j'ai déjà un agenda ou un outil de facturation ?",
-    answer:
-      "Nous connectons vos automatisations à vos outils existants plutôt que de vous en imposer de nouveaux.",
-  },
-  {
-    question: "Mes données sont-elles en sécurité ?",
-    answer:
-      "Vos données restent liées à vos outils existants. Nous ne les revendons ni ne les partageons avec des tiers.",
-  },
-];
 
 export function FaqSection() {
   return (
