@@ -157,6 +157,7 @@ model Service {
   // bloquées). Réactivable à tout moment.
   isActive          Boolean         @default(true)
   clientServices    ClientService[]
+  marketingPosts    MarketingPost[]
 
   @@map("service")
 }
@@ -533,4 +534,63 @@ model AuditLog {
   @@index([createdAt])
   @@index([targetType, targetId])
   @@map("audit_log")
+}
+
+// ---------------------------------------------------------------------------
+// Studio marketing — les comptes sociaux de Noveris, pas ceux des clients.
+// Rien ici n'est vendable ni visible d'un client : c'est l'outil interne qui
+// alimente la présence de l'agence (voir src/app/admin/marketing).
+// ---------------------------------------------------------------------------
+
+enum MarketingChannel {
+  LINKEDIN
+  FACEBOOK
+  INSTAGRAM
+}
+
+enum MarketingPostStatus {
+  // Proposé par l'agent, pas encore tranché.
+  DRAFT
+  // Validé par un humain : seul état depuis lequel une publication est permise.
+  APPROVED
+  PUBLISHED
+  // Écarté — conservé plutôt que supprimé, pour ne pas reproposer la même idée.
+  REJECTED
+}
+
+model MarketingPost {
+  id      String              @id @default(cuid())
+  channel MarketingChannel
+  status  MarketingPostStatus @default(DRAFT)
+
+  // L'angle éditorial retenu par l'agent, en une phrase — sert à repérer d'un
+  // coup d'œil que deux propositions ne disent pas la même chose.
+  angle String
+  body  String
+
+  // La solution du catalogue dont le post parle. Nullable : un post peut
+  // porter sur l'offre en général. onDelete: SetNull — supprimer une solution
+  // ne doit pas effacer l'historique éditorial qu'elle a inspiré.
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  // Instagram n'accepte pas de publication sans image : l'agent décrit le
+  // visuel attendu plutôt que d'en inventer un. Renseigné pour ce canal,
+  // laissé vide pour les autres.
+  imageBrief String?
+
+  // Signalements automatiques relevés à la génération (chiffre invérifiable,
+  // témoignage inventé…). Purement consultatif : c'est l'humain qui tranche.
+  warnings String[] @default([])
+
+  scheduledFor DateTime?
+  publishedAt  DateTime?
+  // Identifiant du post chez le réseau, une fois publié.
+  externalId   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@map("marketing_post")
 }

@@ -149,6 +149,18 @@ async function main() {
 
   const serviceIdBySlug = new Map(services.map((s) => [s.slug, s.id]));
 
+  // Un admin de démonstration, sans lequel tout /admin restait hors de portée
+  // des parcours de bout en bout : ils n'avaient aucun moyen de s'y connecter.
+  // Distinct de tout compte réel — développement local uniquement.
+  const adminEmail = "equipe@noveris.test";
+  if (!(await db.user.findUnique({ where: { email: adminEmail } }))) {
+    const result = await auth.api.signUpEmail({
+      body: { name: "Équipe Noveris", email: adminEmail, password: DEMO_PASSWORD },
+    });
+    await db.user.update({ where: { id: result.user.id }, data: { role: "ADMIN" } });
+    console.log(`Admin créé : ${adminEmail} (mot de passe : ${DEMO_PASSWORD})`);
+  }
+
   for (const client of FAKE_CLIENTS) {
     let user = await db.user.findUnique({ where: { email: client.email } });
 

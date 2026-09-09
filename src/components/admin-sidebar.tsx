@@ -7,6 +7,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   LifeBuoy,
+  Megaphone,
   Package,
   ScrollText,
   Users,
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/services", label: "Solutions", icon: Package },
   { href: "/admin/calendrier", label: "Calendrier", icon: CalendarDays },
+  { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/aide", label: "Centre d'aide", icon: LifeBuoy },
   { href: "/admin/journal", label: "Journal", icon: ScrollText },
 ];
