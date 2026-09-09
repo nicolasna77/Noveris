@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+import { requireEnv } from "@/lib/env";
 import { logServiceEvent } from "@/lib/service-events";
 
 // Connexion Instagram par ClientService — "Business Login for Instagram"
@@ -14,16 +15,12 @@ const INSTAGRAM_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
 const INSTAGRAM_GRAPH_URL = "https://graph.instagram.com";
 const INSTAGRAM_SCOPE = "instagram_business_basic,instagram_business_manage_messages";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} manquant`);
-  return value;
-}
+const FEATURE = "la messagerie Instagram";
 
 // Même raison que signState/verifyState dans google-calendar.ts — évite
 // qu'un tiers déclenche le callback avec un clientServiceId arbitraire.
 function signState(clientServiceId: string): string {
-  const secret = requireEnv("INSTAGRAM_OAUTH_STATE_SECRET");
+  const secret = requireEnv("INSTAGRAM_OAUTH_STATE_SECRET", FEATURE);
   const signature = createHmac("sha256", secret).update(clientServiceId).digest("hex");
   return `${clientServiceId}.${signature}`;
 }
@@ -32,7 +29,7 @@ export function verifyInstagramState(state: string): string | null {
   const [clientServiceId, signature] = state.split(".");
   if (!clientServiceId || !signature) return null;
 
-  const secret = requireEnv("INSTAGRAM_OAUTH_STATE_SECRET");
+  const secret = requireEnv("INSTAGRAM_OAUTH_STATE_SECRET", FEATURE);
   const expected = createHmac("sha256", secret).update(clientServiceId).digest("hex");
   const expectedBuf = Buffer.from(expected);
   const signatureBuf = Buffer.from(signature);
@@ -44,8 +41,8 @@ export function verifyInstagramState(state: string): string | null {
 
 export function buildInstagramAuthUrl(clientServiceId: string): string {
   const params = new URLSearchParams({
-    client_id: requireEnv("INSTAGRAM_APP_ID"),
-    redirect_uri: requireEnv("INSTAGRAM_OAUTH_REDIRECT_URI"),
+    client_id: requireEnv("INSTAGRAM_APP_ID", FEATURE),
+    redirect_uri: requireEnv("INSTAGRAM_OAUTH_REDIRECT_URI", FEATURE),
     response_type: "code",
     scope: INSTAGRAM_SCOPE,
     state: signState(clientServiceId),
@@ -61,10 +58,10 @@ async function exchangeShortLivedToken(code: string): Promise<ShortLivedTokenRes
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: requireEnv("INSTAGRAM_APP_ID"),
-      client_secret: requireEnv("INSTAGRAM_APP_SECRET"),
+      client_id: requireEnv("INSTAGRAM_APP_ID", FEATURE),
+      client_secret: requireEnv("INSTAGRAM_APP_SECRET", FEATURE),
       grant_type: "authorization_code",
-      redirect_uri: requireEnv("INSTAGRAM_OAUTH_REDIRECT_URI"),
+      redirect_uri: requireEnv("INSTAGRAM_OAUTH_REDIRECT_URI", FEATURE),
       code,
     }),
   });
@@ -80,7 +77,7 @@ async function exchangeShortLivedToken(code: string): Promise<ShortLivedTokenRes
 async function exchangeForLongLivedToken(shortLivedToken: string): Promise<LongLivedTokenResponse> {
   const params = new URLSearchParams({
     grant_type: "ig_exchange_token",
-    client_secret: requireEnv("INSTAGRAM_APP_SECRET"),
+    client_secret: requireEnv("INSTAGRAM_APP_SECRET", FEATURE),
     access_token: shortLivedToken,
   });
   const res = await fetch(`${INSTAGRAM_GRAPH_URL}/access_token?${params.toString()}`);

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+import { requireEnv } from "@/lib/env";
 import { logServiceEvent } from "@/lib/service-events";
 
 // Connexion agenda Google par ClientService (voir CalendarConnection dans
@@ -11,17 +12,13 @@ const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} manquant`);
-  return value;
-}
+const FEATURE = "l'agenda Google";
 
 // `state` signé (HMAC) plutôt qu'un simple clientServiceId en clair — évite
 // qu'un tiers déclenche le callback OAuth avec un clientServiceId arbitraire
 // pour rattacher sa propre connexion Google au service d'un autre client.
 function signState(clientServiceId: string): string {
-  const secret = requireEnv("GOOGLE_OAUTH_STATE_SECRET");
+  const secret = requireEnv("GOOGLE_OAUTH_STATE_SECRET", FEATURE);
   const signature = createHmac("sha256", secret).update(clientServiceId).digest("hex");
   return `${clientServiceId}.${signature}`;
 }
@@ -30,7 +27,7 @@ export function verifyState(state: string): string | null {
   const [clientServiceId, signature] = state.split(".");
   if (!clientServiceId || !signature) return null;
 
-  const secret = requireEnv("GOOGLE_OAUTH_STATE_SECRET");
+  const secret = requireEnv("GOOGLE_OAUTH_STATE_SECRET", FEATURE);
   const expected = createHmac("sha256", secret).update(clientServiceId).digest("hex");
   const expectedBuf = Buffer.from(expected);
   const signatureBuf = Buffer.from(signature);
@@ -42,8 +39,8 @@ export function verifyState(state: string): string | null {
 
 export function buildGoogleAuthUrl(clientServiceId: string): string {
   const params = new URLSearchParams({
-    client_id: requireEnv("GOOGLE_CLIENT_ID"),
-    redirect_uri: requireEnv("GOOGLE_OAUTH_REDIRECT_URI"),
+    client_id: requireEnv("GOOGLE_CLIENT_ID", FEATURE),
+    redirect_uri: requireEnv("GOOGLE_OAUTH_REDIRECT_URI", FEATURE),
     response_type: "code",
     scope: `${GOOGLE_CALENDAR_SCOPE} openid email`,
     access_type: "offline",
@@ -74,8 +71,8 @@ async function requestGoogleToken(
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: requireEnv("GOOGLE_CLIENT_ID"),
-      client_secret: requireEnv("GOOGLE_CLIENT_SECRET"),
+      client_id: requireEnv("GOOGLE_CLIENT_ID", FEATURE),
+      client_secret: requireEnv("GOOGLE_CLIENT_SECRET", FEATURE),
       ...grantParams,
     }),
   });
@@ -87,7 +84,7 @@ async function requestGoogleToken(
 
 async function exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {
   return requestGoogleToken("Échange du code Google échoué", {
-    redirect_uri: requireEnv("GOOGLE_OAUTH_REDIRECT_URI"),
+    redirect_uri: requireEnv("GOOGLE_OAUTH_REDIRECT_URI", FEATURE),
     grant_type: "authorization_code",
     code,
   });
