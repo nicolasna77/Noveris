@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LayoutGrid, LayoutList, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -170,39 +171,25 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
       )}
 
       {items.length === 0 ? (
-        <div className="flex items-center gap-4 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-5">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="size-4" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="font-medium text-foreground">
-              Vous n&apos;avez encore activé aucune solution
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Parcourez le catalogue ci-dessus pour démarrer votre première
-              automatisation.
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title="Vous n'avez encore activé aucune solution"
+          description="Parcourez le catalogue ci-dessus pour démarrer votre première automatisation."
+        />
       ) : filtered.length === 0 ? (
-        <div className="flex items-center gap-4 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-5">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Search className="size-4" aria-hidden="true" />
-          </span>
-          <div className="flex-1">
-            <p className="font-medium text-foreground">
-              Aucune solution ne correspond à ces filtres
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Essayez un autre nom ou un autre statut.
-            </p>
-          </div>
-          {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={resetFilters}>
-              Réinitialiser
-            </Button>
-          )}
-        </div>
+        <EmptyState
+          icon={Search}
+          tone="neutral"
+          title="Aucune solution ne correspond à ces filtres"
+          description="Essayez un autre nom ou un autre statut."
+          action={
+            hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                Réinitialiser
+              </Button>
+            )
+          }
+        />
       ) : (
         <div
           className={

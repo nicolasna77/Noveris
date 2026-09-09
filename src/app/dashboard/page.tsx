@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { requireActiveOrganization } from "@/lib/organization";
 import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
 import { formatDate } from "@/lib/catalog";
 import { OverviewStats } from "./overview-stats";
 import { SpendChart } from "./spend-chart";
@@ -33,26 +34,20 @@ export default async function DashboardPage() {
       </div>
 
       {!hasEverActivated && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Sparkles className="size-4" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="font-medium text-foreground">
-                Aucune automatisation activée pour l&apos;instant
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Choisissez une solution dans le catalogue pour démarrer.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/dashboard/prestations#prestations-disponibles"
-            className={buttonVariants()}
-          >
-            Découvrir les solutions
-          </Link>
+        <div className="mb-8">
+          <EmptyState
+            icon={Sparkles}
+            title="Aucune automatisation activée pour l'instant"
+            description="Choisissez une solution dans le catalogue pour démarrer."
+            action={
+              <Link
+                href="/dashboard/prestations#prestations-disponibles"
+                className={buttonVariants()}
+              >
+                Découvrir les solutions
+              </Link>
+            }
+          />
         </div>
       )}
 

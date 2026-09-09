@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
 import {
   Table,
   TableBody,
@@ -50,15 +51,11 @@ export default async function PaiementsPage() {
       </div>
 
       {invoices.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-10 text-center">
-          <p className="font-medium text-foreground">
-            Aucun paiement pour l&apos;instant
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Vos factures apparaîtront ici dès l&apos;activation d&apos;une
-            solution.
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Aucun paiement pour l'instant"
+          description="Vos factures apparaîtront ici dès l'activation d'une solution."
+        />
       ) : (
         <div className="rounded-3xl border border-border bg-card">
           <Table>
