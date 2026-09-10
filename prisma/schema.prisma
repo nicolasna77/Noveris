@@ -21,6 +21,9 @@ model User {
   banExpires              DateTime?
   notificationPreferences Json            @default("{}")
   notificationsSeenAt     DateTime?
+  twoFactorEnabled        Boolean?        @default(false)
+  pendingOrganizationName String?
+  twoFactors              TwoFactor[]
   sessions                Session[]
   accounts                Account[]
   clientServices          ClientService[]
@@ -84,6 +87,21 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([secret])
+  @@index([userId])
+  @@map("twoFactor")
 }
 
 model Subscription {
@@ -169,6 +187,7 @@ model ClientService {
   instagramTokenExpiresAt  DateTime?
   instagramUsername        String?
   promoCode                String?
+  paymentFailedAt          DateTime?
   activatedAt             DateTime?
   canceledAt              DateTime?
   createdAt               DateTime            @default(now())
@@ -190,6 +209,7 @@ model ClientService {
 enum ServiceEventType {
   CREATED
   PAYMENT_RECEIVED
+  PAYMENT_FAILED
   ACTIVATED
   NOTE_ADDED
   PHONE_ASSIGNED

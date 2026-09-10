@@ -39,7 +39,7 @@ export function MaintenanceSection({ services }: { services: ServiceDTO[] }) {
               </span>
               {support.monthlyPriceCents !== null && (
                 <Badge>
-                  {formatCents(support.monthlyPriceCents)}/mois
+                  {formatCents(support.monthlyPriceCents)}/mois TTC
                 </Badge>
               )}
             </div>

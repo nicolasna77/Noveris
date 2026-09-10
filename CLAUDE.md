@@ -90,6 +90,14 @@ déjà coûté du temps, tous sont vérifiés.
   vise l'origine de la page, sans quoi les previews Vercel échouent en CORS,
   silencieusement.
 
+- **Une Server Action qui lève une erreur perd son message en production.**
+  React remplace le message par « Minified React error #441 » : en
+  développement tout s'affiche, en production le client ne voit qu'un code.
+  Les actions renvoient donc un résultat (`runAction` dans
+  `src/lib/run-action.ts`, erreurs destinées au client levées en
+  `ActionError`) et le composant appelle `unwrap()` de
+  `src/lib/action-result.ts`, qui relance le message côté client.
+
 - **`npm ci` en CI, `npm install` sur Vercel.** Un lockfile peut satisfaire
   `npm ci` et être refusé par `npm install`, qui rejoue la résolution et
   bloque sur un conflit de peer dependency. La CI vérifie donc aussi

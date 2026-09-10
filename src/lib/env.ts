@@ -28,9 +28,20 @@ export const REQUIRED: Rule[] = [
   },
   {
     name: "STRIPE_SECRET_KEY",
-    validate: (v) => (v.startsWith("sk_") ? null : "doit commencer par sk_"),
+    validate: (v) =>
+      /^(rk|sk)_/.test(v)
+        ? null
+        : "doit commencer par rk_ (clé restreinte, recommandée) ou sk_",
   },
   { name: "STRIPE_WEBHOOK_SECRET" },
+];
+
+export const PRODUCTION_REQUIRED: { name: string; reason: string }[] = [
+  {
+    name: "RESEND_API_KEY",
+    reason:
+      "l'e-mail de vérification ne partirait pas, et plus personne ne pourrait s'inscrire",
+  },
 ];
 
 export type FeatureGroup = {
@@ -96,6 +107,7 @@ export const FEATURES: FeatureGroup[] = [
 
 export type EnvReport = {
   problems: string[];
+  warnings: string[];
   enabled: string[];
   disabled: string[];
   incomplete: { feature: string; missing: string[] }[];
@@ -106,6 +118,10 @@ type Source = Record<string, string | undefined>;
 function read(source: Source, name: string): string | null {
   const value = source[name];
   return value && value.trim() !== "" ? value : null;
+}
+
+export function isProduction(source: Source): boolean {
+  return source.VERCEL_ENV === "production";
 }
 
 export function inspectEnv(source: Source): EnvReport {
@@ -120,6 +136,25 @@ export function inspectEnv(source: Source): EnvReport {
     if (invalid) problems.push(`${rule.name} ${invalid}`);
   }
 
+  const warnings: string[] = [];
+  if (isProduction(source)) {
+    for (const { name, reason } of PRODUCTION_REQUIRED) {
+      if (read(source, name) === null) {
+        problems.push(`${name} est manquante en production : ${reason}`);
+      }
+    }
+    if (read(source, "STRIPE_SECRET_KEY")?.startsWith("sk_")) {
+      warnings.push(
+        "STRIPE_SECRET_KEY est une clé secrète complète : préférez une clé restreinte (rk_) limitée aux ressources utilisées."
+      );
+    }
+    if (read(source, "UPSTASH_REDIS_REST_URL") === null) {
+      warnings.push(
+        "Upstash Redis n'est pas configuré : la limitation de débit ne vaut que par instance de serveur."
+      );
+    }
+  }
+
   const enabled: string[] = [];
   const disabled: string[] = [];
   const incomplete: { feature: string; missing: string[] }[] = [];
@@ -131,7 +166,7 @@ export function inspectEnv(source: Source): EnvReport {
     else incomplete.push({ feature: group.feature, missing });
   }
 
-  return { problems, enabled, disabled, incomplete };
+  return { problems, warnings, enabled, disabled, incomplete };
 }
 
 export function formatProblems(report: EnvReport): string {
@@ -152,6 +187,8 @@ export function checkEnvAtBoot(source: Source = process.env): void {
         `L'intégration se croira active et échouera à l'usage.`
     );
   }
+
+  for (const warning of report.warnings) console.warn(`[env] ${warning}`);
 
   if (report.disabled.length > 0) {
     console.info(`[env] Intégrations non configurées : ${report.disabled.join(" · ")}`);

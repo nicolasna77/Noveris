@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { banUserAction, unbanUserAction } from "./actions";
 
@@ -35,7 +36,7 @@ export function BanControl({
   function handleUnban() {
     startTransition(async () => {
       try {
-        await unbanUserAction(userId);
+        unwrap(await unbanUserAction(userId));
         toast.success("Utilisateur débanni.");
       } catch (err) {
         toast.error(getErrorMessage(err));
@@ -46,7 +47,7 @@ export function BanControl({
   function handleBan() {
     startTransition(async () => {
       try {
-        await banUserAction(userId, reason);
+        unwrap(await banUserAction(userId, reason));
         toast.success("Utilisateur banni.");
         setConfirmOpen(false);
         setReason("");

@@ -1,26 +1,24 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin, organization } from "better-auth/plugins";
+import { admin, organization, twoFactor } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements, adminAc, userAc } from "better-auth/plugins/admin/access";
 import { stripe } from "@better-auth/stripe";
-import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { releasePhoneNumber } from "@/lib/twilio";
-import { logServiceEvent } from "@/lib/service-events";
-import { sendPasswordResetEmail } from "@/lib/email/notifications";
+import { stripeClient } from "@/lib/stripe";
+import { handleStripeEvent } from "@/lib/stripe-webhooks";
+import { prepareAccountDeletion, removeOrphanOrganizations } from "@/lib/account-deletion";
+import { sendEmailVerificationEmail, sendPasswordResetEmail } from "@/lib/email/notifications";
 import { redisRateLimitStorage } from "@/lib/rate-limit";
 
-export const stripeClient = new Stripe(
-  process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder",
-  { apiVersion: "2026-06-24.dahlia" }
-);
+export { stripeClient };
 
 const accessControl = createAccessControl(defaultStatements);
 const adminRole = accessControl.newRole(adminAc.statements);
 const clientRole = accessControl.newRole(userAc.statements);
 
 export const auth = betterAuth({
+  appName: "Noveris",
   baseURL:
     process.env.BETTER_AUTH_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
@@ -35,9 +33,17 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     sendResetPassword: async ({ user, url }) => {
       await sendPasswordResetEmail({ email: user.email, name: user.name }, url);
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmailVerificationEmail({ email: user.email, name: user.name }, url);
     },
   },
   socialProviders: {
@@ -48,7 +54,7 @@ export const auth = betterAuth({
   },
   account: {
     accountLinking: {
-      requireLocalEmailVerified: false,
+      requireLocalEmailVerified: true,
     },
   },
   user: {
@@ -58,6 +64,21 @@ export const auth = betterAuth({
         required: false,
         defaultValue: "CLIENT",
         input: false,
+      },
+      pendingOrganizationName: {
+        type: "string",
+        required: false,
+        input: true,
+        returned: false,
+      },
+    },
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        await prepareAccountDeletion(user.id);
+      },
+      afterDelete: async (user) => {
+        await removeOrphanOrganizations(user.id);
       },
     },
   },
@@ -80,67 +101,15 @@ export const auth = betterAuth({
     organization({
       organizationLimit: 20,
     }),
+    twoFactor({
+      issuer: "Noveris",
+      allowPasswordless: true,
+    }),
     stripe({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
       createCustomerOnSignUp: true,
-      onEvent: async (event) => {
-        switch (event.type) {
-          case "checkout.session.completed": {
-            const session = event.data.object as Stripe.Checkout.Session;
-
-            if (session.metadata?.clientServiceId) {
-              const { count } = await db.clientService.updateMany({
-                where: {
-                  id: session.metadata.clientServiceId,
-                  status: { not: "ACTIVE" },
-                },
-                data: {
-                  status: "CONFIGURING",
-                  stripePaymentIntentId:
-                    typeof session.payment_intent === "string"
-                      ? session.payment_intent
-                      : session.payment_intent?.id,
-                  stripeSubscriptionId:
-                    typeof session.subscription === "string"
-                      ? session.subscription
-                      : session.subscription?.id,
-                },
-              });
-              if (count > 0) {
-                await logServiceEvent(session.metadata.clientServiceId, "PAYMENT_RECEIVED");
-              }
-            }
-            break;
-          }
-
-          case "customer.subscription.deleted": {
-            const subscription = event.data.object as Stripe.Subscription;
-            const affected = await db.clientService.findMany({
-              where: { stripeSubscriptionId: subscription.id },
-              select: { id: true, externalPhoneNumberSid: true },
-            });
-            await Promise.all(
-              affected
-                .filter((cs) => cs.externalPhoneNumberSid)
-                .map((cs) => releasePhoneNumber(cs.externalPhoneNumberSid!))
-            );
-            await db.clientService.updateMany({
-              where: { stripeSubscriptionId: subscription.id },
-              data: {
-                status: "CANCELED",
-                canceledAt: new Date(),
-                externalPhoneNumber: null,
-                externalPhoneNumberSid: null,
-              },
-            });
-            await Promise.all(
-              affected.map((cs) => logServiceEvent(cs.id, "CANCELED"))
-            );
-            break;
-          }
-        }
-      },
+      onEvent: handleStripeEvent,
     }),
   ],
 });

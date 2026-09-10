@@ -53,7 +53,7 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
               <>
                 À partir de{" "}
                 <span className="font-medium tabular-nums text-foreground">
-                  {formatCents(fromPrice)} par mois
+                  {formatCents(fromPrice)} TTC par mois
                 </span>
                 , sans engagement.{" "}
               </>

@@ -8,61 +8,66 @@ import {
   sendHelpRequestReplyEmail,
   sendHelpRequestResolvedEmail,
 } from "@/lib/email/notifications";
+import { ActionError, runAction } from "@/lib/run-action";
 
 export async function setHelpRequestStatus(
   helpRequestId: string,
   status: HelpRequestStatus
 ) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  const updated = await db.helpRequest.update({
-    where: { id: helpRequestId },
-    data: { status, resolvedAt: status === "RESOLVED" ? new Date() : null },
-    include: { user: true },
+    const updated = await db.helpRequest.update({
+      where: { id: helpRequestId },
+      data: { status, resolvedAt: status === "RESOLVED" ? new Date() : null },
+      include: { user: true },
+    });
+
+    if (status === "RESOLVED") {
+      await sendHelpRequestResolvedEmail(
+        {
+          email: updated.user.email,
+          name: updated.user.name,
+          notificationPreferences: updated.user.notificationPreferences,
+        },
+        updated.subject
+      );
+    }
+
+    revalidatePath("/admin/aide");
+    revalidatePath("/dashboard/aide");
   });
-
-  if (status === "RESOLVED") {
-    await sendHelpRequestResolvedEmail(
-      {
-        email: updated.user.email,
-        name: updated.user.name,
-        notificationPreferences: updated.user.notificationPreferences,
-      },
-      updated.subject
-    );
-  }
-
-  revalidatePath("/admin/aide");
-  revalidatePath("/dashboard/aide");
 }
 
 export async function replyToHelpRequest(helpRequestId: string, body: string) {
-  const session = await requireAdmin();
+  return runAction(async () => {
+    const session = await requireAdmin();
 
-  const trimmed = body.trim();
-  if (!trimmed) throw new Error("Le message ne peut pas être vide.");
+    const trimmed = body.trim();
+    if (!trimmed) throw new ActionError("Le message ne peut pas être vide.");
 
-  const helpRequest = await db.helpRequest.findUniqueOrThrow({
-    where: { id: helpRequestId },
-    include: { user: true },
+    const helpRequest = await db.helpRequest.findUniqueOrThrow({
+      where: { id: helpRequestId },
+      include: { user: true },
+    });
+
+    await db.helpRequestMessage.create({
+      data: { helpRequestId, authorId: session.user.id, fromTeam: true, body: trimmed },
+    });
+
+    await sendHelpRequestReplyEmail(
+      {
+        email: helpRequest.user.email,
+        name: helpRequest.user.name,
+        notificationPreferences: helpRequest.user.notificationPreferences,
+      },
+      helpRequest.subject,
+      trimmed
+    );
+
+    revalidatePath("/admin/aide");
+    revalidatePath("/dashboard/aide");
   });
-
-  await db.helpRequestMessage.create({
-    data: { helpRequestId, authorId: session.user.id, fromTeam: true, body: trimmed },
-  });
-
-  await sendHelpRequestReplyEmail(
-    {
-      email: helpRequest.user.email,
-      name: helpRequest.user.name,
-      notificationPreferences: helpRequest.user.notificationPreferences,
-    },
-    helpRequest.subject,
-    trimmed
-  );
-
-  revalidatePath("/admin/aide");
-  revalidatePath("/dashboard/aide");
 }
 
 export async function bulkResolveHelpRequests(formData: FormData) {

@@ -54,6 +54,7 @@ export function toMyServiceDTO(
     createdAt: cs.createdAt,
     activatedAt: cs.activatedAt,
     canceledAt: cs.canceledAt,
+    paymentFailedAt: cs.paymentFailedAt,
     externalPhoneNumber: cs.externalPhoneNumber,
     calendarConnected: !!cs.calendarConnection,
     whatsappConnected: !!cs.whatsappPhoneNumberId,

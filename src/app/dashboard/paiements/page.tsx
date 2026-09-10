@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FileText } from "lucide-react";
+import { FileText, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import {
@@ -11,10 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { requireActiveOrganization } from "@/lib/organization";
 import { formatCents, formatDate } from "@/lib/catalog";
 import { getMyInvoices, type InvoiceDTO } from "../get-invoices";
+import { BillingPortalButton } from "./billing-portal-button";
 
 export const metadata: Metadata = { title: "Paiements" };
 
@@ -37,18 +39,48 @@ export default async function PaiementsPage() {
     requireUser(),
     requireActiveOrganization(),
   ]);
-  const invoices = await getMyInvoices(session.user.id, organization.id);
+  const [invoices, failing, customer] = await Promise.all([
+    getMyInvoices(session.user.id, organization.id),
+    db.clientService.findMany({
+      where: { organizationId: organization.id, paymentFailedAt: { not: null } },
+      select: { id: true, name: true },
+    }),
+    db.user.findUniqueOrThrow({
+      where: { id: session.user.id },
+      select: { stripeCustomerId: true },
+    }),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-          Paiements
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Vos factures, par solution.
-        </p>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+            Paiements
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Vos factures, par solution. Prix TTC, TVA à 20 % incluse.
+          </p>
+        </div>
+        {customer.stripeCustomerId && <BillingPortalButton />}
       </div>
+
+      {failing.length > 0 && (
+        <div
+          role="alert"
+          className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4"
+        >
+          <p className="flex items-start gap-2 text-sm text-foreground">
+            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+            <span>
+              Le dernier paiement de{" "}
+              {failing.map((cs) => `« ${cs.name} »`).join(", ")} a été refusé.
+              Mettez à jour votre moyen de paiement pour éviter une interruption.
+            </span>
+          </p>
+          {customer.stripeCustomerId && <BillingPortalButton variant="default" />}
+        </div>
+      )}
 
       {invoices.length === 0 ? (
         <EmptyState

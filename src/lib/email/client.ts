@@ -13,16 +13,21 @@ export async function sendEmail({
   to,
   subject,
   react,
+  devLink,
 }: {
   to: string;
   subject: string;
   react: ReactElement;
+  devLink?: string;
 }): Promise<void> {
   const resend = getResendClient();
   if (!resend) {
     console.error(
       `RESEND_API_KEY manquant — e-mail "${subject}" à ${to} non envoyé.`
     );
+    if (devLink && process.env.NODE_ENV !== "production") {
+      console.info(`[email] Lien que l'e-mail aurait contenu : ${devLink}`);
+    }
     return;
   }
 

@@ -5,8 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+const MASKED_ERROR = /Minified React error|Server Components render|omitted in production/i
+
 export function getErrorMessage(err: unknown, fallback = "Une erreur est survenue."): string {
-  return err instanceof Error ? err.message : fallback
+  if (!(err instanceof Error) || !err.message || MASKED_ERROR.test(err.message)) return fallback
+  return err.message
 }
 
 export function slugify(name: string): string {

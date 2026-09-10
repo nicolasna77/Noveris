@@ -15,16 +15,20 @@ export function normalizePromoCode(raw: string): string {
 
 export const PROMO_CODE_PATTERN = /^[A-Z0-9][A-Z0-9_-]{2,29}$/;
 
+function toDiscountDuration(duration: string): DiscountDuration {
+  return duration === "repeating" || duration === "forever" ? duration : "once";
+}
+
 export function discountRuleFromCoupon(coupon: {
   percent_off: number | null;
   amount_off: number | null;
-  duration: DiscountDuration;
+  duration: string;
   duration_in_months: number | null;
 }): DiscountRule {
   return {
     percentOff: coupon.percent_off,
     amountOffCents: coupon.amount_off,
-    duration: coupon.duration,
+    duration: toDiscountDuration(coupon.duration),
     durationInMonths: coupon.duration_in_months,
   };
 }

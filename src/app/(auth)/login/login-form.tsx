@@ -16,6 +16,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { GoogleSignInButton } from "../google-signin-button";
+import { redirectAfterSignIn } from "./redirect-after-sign-in";
+
+function describeSignInError(error: { status: number; code?: string }): string {
+  if (error.code === "EMAIL_NOT_VERIFIED") {
+    return "Confirmez d'abord votre adresse e-mail : nous venons de vous renvoyer le lien.";
+  }
+  if (error.code === "BANNED_USER") {
+    return "Ce compte a été suspendu. Contactez l'équipe Noveris.";
+  }
+  if (error.status === 401) return "E-mail ou mot de passe incorrect.";
+  if (error.status === 429) return "Trop de tentatives. Réessayez dans quelques minutes.";
+  return "La connexion a échoué. Réessayez dans un instant.";
+}
 
 export function LoginForm() {
   const router = useRouter();
@@ -28,25 +41,23 @@ export function LoginForm() {
     setLoading(true);
 
     const formData = new FormData(event.currentTarget);
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email: String(formData.get("email")),
       password: String(formData.get("password")),
     });
 
     if (error) {
-      setError(
-        error.status === 401
-          ? "E-mail ou mot de passe incorrect."
-          : (error.message ?? "Une erreur est survenue.")
-      );
+      setError(describeSignInError(error));
       setLoading(false);
       return;
     }
 
-    const session = await authClient.getSession();
-    const role = session.data?.user.role;
-    router.refresh();
-    router.push(role === "ADMIN" ? "/admin" : "/dashboard");
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      router.push("/login/verification");
+      return;
+    }
+
+    await redirectAfterSignIn(router);
   }
 
   return (
@@ -96,7 +107,7 @@ export function LoginForm() {
               required
             />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         </CardContent>
         <CardFooter className="mt-6 flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={loading}>

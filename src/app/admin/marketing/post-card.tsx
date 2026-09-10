@@ -10,6 +10,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea";
 import { CHANNEL_RULES } from "@/lib/marketing/channels";
 import { formatDate } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
+import { getErrorMessage } from "@/lib/utils";
 import {
   approvePostAction,
   markPublishedAction,
@@ -43,15 +45,15 @@ export function PostCard({ post }: { post: PostCardData }) {
       try {
         await action();
         toast.success(success);
-      } catch {
-        toast.error("L'opération a échoué.");
+      } catch (err) {
+        toast.error(getErrorMessage(err, "L'opération a échoué."));
       }
     });
   }
 
   function handleSave() {
     run(async () => {
-      await updatePostAction(post.id, draft);
+      unwrap(await updatePostAction(post.id, draft));
       setEditing(false);
     }, "Texte enregistré.");
   }

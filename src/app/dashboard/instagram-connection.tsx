@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { disconnectInstagram } from "./actions";
 
@@ -34,7 +35,7 @@ export function InstagramConnection({
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectInstagram(clientServiceId);
+        unwrap(await disconnectInstagram(clientServiceId));
         toast.success("Compte Instagram déconnecté.");
       } catch (err) {
         toast.error(getErrorMessage(err));

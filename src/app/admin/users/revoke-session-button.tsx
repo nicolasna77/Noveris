@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { revokeUserSessionAction } from "./actions";
 
@@ -27,7 +28,7 @@ export function RevokeSessionButton({
   function handleRevoke() {
     startTransition(async () => {
       try {
-        await revokeUserSessionAction(userId, sessionToken);
+        unwrap(await revokeUserSessionAction(userId, sessionToken));
         toast.success("Session révoquée.");
       } catch (err) {
         toast.error(getErrorMessage(err));

@@ -5,6 +5,8 @@ import { parsePreferences } from "@/lib/email/preferences";
 import { AccountForm } from "./account-form";
 import { PasswordForm } from "./password-form";
 import { NotificationPreferencesForm } from "./notification-preferences-form";
+import { TwoFactorSection } from "./two-factor-section";
+import { AccountDataSection } from "./account-data-section";
 
 export const metadata: Metadata = { title: "Mon profil" };
 
@@ -17,17 +19,23 @@ export default async function ProfilePage() {
     image: session.user.image ?? "",
   };
 
-  const user = await db.user.findUniqueOrThrow({
-    where: { id: session.user.id },
-    select: { notificationPreferences: true },
-  });
+  const [user, credentialAccounts] = await Promise.all([
+    db.user.findUniqueOrThrow({
+      where: { id: session.user.id },
+      select: { notificationPreferences: true, twoFactorEnabled: true },
+    }),
+    db.account.count({ where: { userId: session.user.id, providerId: "credential" } }),
+  ]);
   const initialPreferences = parsePreferences(user.notificationPreferences);
+  const hasPassword = credentialAccounts > 0;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       <AccountForm initialAccount={initialAccount} />
       <NotificationPreferencesForm initialPreferences={initialPreferences} />
-      <PasswordForm />
+      {hasPassword && <PasswordForm />}
+      <TwoFactorSection enabled={!!user.twoFactorEnabled} requiresPassword={hasPassword} />
+      <AccountDataSection requiresPassword={hasPassword} />
 
       <p className="mt-10 text-sm text-muted-foreground">
         Vos entreprises se gèrent depuis le sélecteur d&apos;organisation, en

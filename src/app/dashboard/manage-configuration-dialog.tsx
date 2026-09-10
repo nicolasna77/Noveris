@@ -16,6 +16,7 @@ import {
   type Configuration,
   type MyServiceDTO,
 } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { updateServiceConfiguration } from "./actions";
 import { ConfigFieldsForm } from "./config-fields";
@@ -64,7 +65,7 @@ function ManageConfigurationForm({
 
     startTransition(async () => {
       try {
-        await updateServiceConfiguration(item.clientServiceId, values);
+        unwrap(await updateServiceConfiguration(item.clientServiceId, values));
         toast.success("Configuration mise à jour.");
         onDone();
       } catch (err) {

@@ -155,6 +155,7 @@ export type BookingDTO = {
 export type ServiceEventType =
   | "CREATED"
   | "PAYMENT_RECEIVED"
+  | "PAYMENT_FAILED"
   | "ACTIVATED"
   | "NOTE_ADDED"
   | "PHONE_ASSIGNED"
@@ -172,6 +173,7 @@ export type ServiceEventType =
 export const SERVICE_EVENT_LABELS: Record<ServiceEventType, string> = {
   CREATED: "Demande d'activation envoyée",
   PAYMENT_RECEIVED: "Paiement reçu",
+  PAYMENT_FAILED: "Paiement refusé",
   ACTIVATED: "Solution vérifiée et activée",
   NOTE_ADDED: "Note de l'équipe Noveris",
   PHONE_ASSIGNED: "Numéro de téléphone attribué",
@@ -203,6 +205,7 @@ export type MyServiceDTO = {
   createdAt: Date;
   activatedAt: Date | null;
   canceledAt: Date | null;
+  paymentFailedAt: Date | null;
   externalPhoneNumber: string | null;
   calendarConnected: boolean;
   whatsappConnected: boolean;

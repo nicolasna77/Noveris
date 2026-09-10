@@ -16,12 +16,12 @@ export function couponOf(promo: Stripe.PromotionCode): Stripe.Coupon | null {
   return coupon && typeof coupon !== "string" ? coupon : null;
 }
 
+const MAX_LISTED_PROMOTION_CODES = 1000;
+
 export async function listPromotionCodes(): Promise<Stripe.PromotionCode[]> {
-  const { data } = await stripeClient.promotionCodes.list({
-    limit: 100,
-    expand: ["data.promotion.coupon"],
-  });
-  return data;
+  return stripeClient.promotionCodes
+    .list({ limit: 100, expand: ["data.promotion.coupon"] })
+    .autoPagingToArray({ limit: MAX_LISTED_PROMOTION_CODES });
 }
 
 export async function createPromotionCode(input: ParsedPromoCode): Promise<Stripe.PromotionCode> {

@@ -74,7 +74,7 @@ export default async function PrestationDetailPage({
     <div className="flex min-h-screen flex-col bg-background">
       <JsonLd data={serviceSchema(service)} />
       <SiteHeader />
-      <main className="flex-1">
+      <main id="contenu" className="flex-1">
         <section className="border-b border-border">
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20">
             <Link
@@ -141,7 +141,7 @@ export default async function PrestationDetailPage({
                         {formatCents(service.setupFeeCents)}
                       </dd>
                       <dt className="mt-0.5 text-sm text-muted-foreground">
-                        &agrave; l&apos;installation
+                        TTC, &agrave; l&apos;installation
                       </dt>
                     </div>
                   )}
@@ -150,7 +150,7 @@ export default async function PrestationDetailPage({
                       <dd className="text-3xl font-semibold tabular-nums text-foreground">
                         {formatCents(service.monthlyPriceCents)}
                       </dd>
-                      <dt className="mt-0.5 text-sm text-muted-foreground">par mois</dt>
+                      <dt className="mt-0.5 text-sm text-muted-foreground">TTC par mois</dt>
                     </div>
                   )}
                   {service.usageCapLabel && (

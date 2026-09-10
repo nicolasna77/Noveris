@@ -139,7 +139,10 @@ async function main() {
     const result = await auth.api.signUpEmail({
       body: { name: "Équipe Noveris", email: adminEmail, password: DEMO_PASSWORD },
     });
-    await db.user.update({ where: { id: result.user.id }, data: { role: "ADMIN" } });
+    await db.user.update({
+      where: { id: result.user.id },
+      data: { role: "ADMIN", emailVerified: true },
+    });
     console.log(`Admin créé : ${adminEmail} (mot de passe : ${DEMO_PASSWORD})`);
   }
 
@@ -154,7 +157,10 @@ async function main() {
           password: DEMO_PASSWORD,
         },
       });
-      user = await db.user.findUniqueOrThrow({ where: { id: result.user.id } });
+      user = await db.user.update({
+        where: { id: result.user.id },
+        data: { emailVerified: true },
+      });
       console.log(`Client créé : ${client.email} (mot de passe : ${DEMO_PASSWORD})`);
     }
 

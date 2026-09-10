@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { deleteOrganizationAction } from "@/app/dashboard/organization-actions";
 import type { OrganizationSummary } from "@/lib/organization";
@@ -69,7 +70,7 @@ export function OrganizationManageDialog({
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      await deleteOrganizationAction(organization.id);
+      unwrap(await deleteOrganizationAction(organization.id));
       toast.success(`« ${organization.name} » a été supprimée.`);
       setConfirmDelete(false);
       onOpenChange(false);

@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { disconnectGoogleCalendar } from "./actions";
 
@@ -32,7 +33,7 @@ export function CalendarConnection({
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectGoogleCalendar(clientServiceId);
+        unwrap(await disconnectGoogleCalendar(clientServiceId));
         toast.success("Agenda déconnecté.");
       } catch (err) {
         toast.error(

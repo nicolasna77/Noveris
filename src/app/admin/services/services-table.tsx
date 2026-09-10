@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CATEGORY_LABELS, formatPrice } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { setServiceActiveAction } from "./actions";
 import { ServiceEditDialog, type EditableService } from "./service-edit-dialog";
@@ -104,7 +105,7 @@ function ServiceActiveToggle({ service }: { service: EditableService }) {
     setIsActive(checked);
     startTransition(async () => {
       try {
-        await setServiceActiveAction(service.id, checked);
+        unwrap(await setServiceActiveAction(service.id, checked));
         toast.success(
           checked
             ? `« ${service.name} » est de nouveau proposée.`

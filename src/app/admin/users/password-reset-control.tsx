@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { setUserPasswordAction } from "./actions";
 
@@ -63,7 +64,7 @@ export function PasswordResetControl({
     }
     startTransition(async () => {
       try {
-        await setUserPasswordAction(userId, password);
+        unwrap(await setUserPasswordAction(userId, password));
         setDone(true);
         toast.success("Mot de passe réinitialisé.");
       } catch (err) {

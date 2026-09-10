@@ -53,7 +53,13 @@ describe("variables requises", () => {
 
   it("refuse une clé Stripe qui n'en est pas une", () => {
     const { problems } = inspectEnv(validEnv({ STRIPE_SECRET_KEY: "pk_test_abc" }));
-    expect(problems).toEqual(["STRIPE_SECRET_KEY doit commencer par sk_"]);
+    expect(problems).toEqual([
+      "STRIPE_SECRET_KEY doit commencer par rk_ (clé restreinte, recommandée) ou sk_",
+    ]);
+  });
+
+  it("accepte une clé Stripe restreinte", () => {
+    expect(inspectEnv(validEnv({ STRIPE_SECRET_KEY: "rk_test_abc" })).problems).toEqual([]);
   });
 
   it("rapporte tous les problèmes d'un coup, pas seulement le premier", () => {
@@ -96,6 +102,32 @@ describe("groupes par fonctionnalité", () => {
 
   it("n'interrompt jamais le démarrage sur une intégration absente", () => {
     expect(() => checkEnvAtBoot(validEnv())).not.toThrow();
+  });
+});
+
+describe("production", () => {
+  const production = (overrides: Record<string, string | undefined> = {}) =>
+    validEnv({ VERCEL_ENV: "production", RESEND_API_KEY: "re_abc", ...overrides });
+
+  it("exige Resend, sans quoi personne ne peut vérifier son e-mail", () => {
+    const { problems } = inspectEnv(production({ RESEND_API_KEY: undefined }));
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("RESEND_API_KEY");
+  });
+
+  it("n'exige pas Resend hors production", () => {
+    expect(inspectEnv(validEnv({ VERCEL_ENV: "preview" })).problems).toEqual([]);
+  });
+
+  it("recommande une clé Stripe restreinte", () => {
+    expect(inspectEnv(production()).warnings.join(" ")).toContain("rk_");
+    expect(
+      inspectEnv(production({ STRIPE_SECRET_KEY: "rk_live_abc" })).warnings.join(" ")
+    ).not.toContain("rk_");
+  });
+
+  it("signale une limitation de débit limitée à une instance sans Upstash", () => {
+    expect(inspectEnv(production()).warnings.join(" ")).toContain("Upstash");
   });
 });
 

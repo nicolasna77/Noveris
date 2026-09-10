@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
-import { stripeClient } from "@/lib/auth";
+import { stripeClient } from "@/lib/stripe";
 
 export type InvoiceDTO = {
   id: string;
@@ -13,6 +13,12 @@ export type InvoiceDTO = {
   invoicePdfUrl: string | null;
   serviceName: string | null;
 };
+
+function subscriptionIdOf(invoice: Stripe.Invoice): string | null {
+  const ref = invoice.parent?.subscription_details?.subscription;
+  if (!ref) return null;
+  return typeof ref === "string" ? ref : ref.id;
+}
 
 export async function getMyInvoices(
   userId: string,
@@ -28,28 +34,27 @@ export async function getMyInvoices(
   const [stripeInvoices, clientServices] = await Promise.all([
     stripeClient.invoices.list({ customer: user.stripeCustomerId, limit: 100 }),
     db.clientService.findMany({
-      where: { organizationId, stripeSubscriptionId: { not: null } },
-      select: {
-        stripeSubscriptionId: true,
-        name: true,
-      },
+      where: { organizationId },
+      select: { id: true, stripeSubscriptionId: true, name: true },
     }),
   ]);
 
-  const serviceNameBySubscriptionId = new Map(
-    clientServices.map((cs) => [cs.stripeSubscriptionId as string, cs.name])
+  const nameBySubscriptionId = new Map(
+    clientServices
+      .filter((cs) => cs.stripeSubscriptionId)
+      .map((cs) => [cs.stripeSubscriptionId as string, cs.name])
   );
+  const nameByClientServiceId = new Map(clientServices.map((cs) => [cs.id, cs.name]));
 
   return stripeInvoices.data
     .map((invoice) => {
-      const ref = invoice.parent?.subscription_details?.subscription;
-      const subscriptionId = typeof ref === "string" ? ref : ref?.id;
+      const subscriptionId = subscriptionIdOf(invoice);
       const serviceName = subscriptionId
-        ? (serviceNameBySubscriptionId.get(subscriptionId) ?? null)
-        : null;
-      return { invoice, serviceName, subscriptionId };
+        ? nameBySubscriptionId.get(subscriptionId)
+        : nameByClientServiceId.get(invoice.metadata?.clientServiceId ?? "");
+      return { invoice, serviceName };
     })
-    .filter(({ subscriptionId }) => subscriptionId && serviceNameBySubscriptionId.has(subscriptionId))
+    .filter(({ serviceName }) => serviceName !== undefined)
     .map(({ invoice, serviceName }) => ({
       id: invoice.id!,
       number: invoice.number,
@@ -59,7 +64,7 @@ export async function getMyInvoices(
       currency: invoice.currency,
       hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
       invoicePdfUrl: invoice.invoice_pdf ?? null,
-      serviceName,
+      serviceName: serviceName ?? null,
     }))
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }

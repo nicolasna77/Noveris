@@ -103,15 +103,20 @@ export function PromoCodeCreateDialog({
       serviceSlugs: slugs,
     };
 
-    const result = await createPromoCodeAction(input);
-    setPending(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    try {
+      const result = await createPromoCodeAction(input);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      toast.success(`Code « ${result.code} » créé.`);
+      reset();
+      setOpen(false);
+    } catch {
+      setError("La création a échoué. Vérifiez votre connexion puis réessayez.");
+    } finally {
+      setPending(false);
     }
-    toast.success(`Code « ${result.code} » créé.`);
-    reset();
-    setOpen(false);
   }
 
   return (

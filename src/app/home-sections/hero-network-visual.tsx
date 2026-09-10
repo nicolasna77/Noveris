@@ -135,6 +135,8 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
     <div aria-hidden="true" className="relative w-full">
       <svg viewBox="0 0 620 560" className="relative h-auto w-full" role="img">
         <style>{`
+          .hero-net-line { stroke-opacity: 0.35; }
+          .dark .hero-net-line { stroke-opacity: 0.7; }
           @media (prefers-reduced-motion: reduce) {
             .hero-net-flow { display: none; }
           }
@@ -159,8 +161,8 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
               d={connectorPath(node)}
               fill="none"
               stroke="var(--primary)"
-              strokeOpacity={0.35}
               strokeWidth={1.5}
+              className="hero-net-line"
             />
             <path
               d={connectorPath(node)}

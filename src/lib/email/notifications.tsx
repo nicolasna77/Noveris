@@ -9,6 +9,8 @@ import { ServiceCanceledEmail } from "./templates/service-canceled";
 import { NewHelpRequestInternalEmail } from "./templates/new-help-request-internal";
 import { NewContactMessageInternalEmail } from "./templates/new-contact-message-internal";
 import { PasswordResetEmail } from "./templates/password-reset";
+import { EmailVerificationEmail } from "./templates/email-verification";
+import { PaymentFailedEmail } from "./templates/payment-failed";
 
 type Recipient = {
   email: string;
@@ -163,5 +165,28 @@ export async function sendPasswordResetEmail(
     to: recipient.email,
     subject: "Réinitialisez votre mot de passe Noveris",
     react: <PasswordResetEmail recipientName={recipient.name} url={url} />,
+  });
+}
+
+export async function sendEmailVerificationEmail(
+  recipient: { email: string; name: string },
+  url: string
+) {
+  await sendEmail({
+    to: recipient.email,
+    subject: "Confirmez votre adresse e-mail Noveris",
+    react: <EmailVerificationEmail recipientName={recipient.name} url={url} />,
+    devLink: url,
+  });
+}
+
+export async function sendPaymentFailedEmail(
+  recipient: { email: string; name: string },
+  serviceName: string
+) {
+  await sendEmail({
+    to: recipient.email,
+    subject: `Le paiement de « ${serviceName} » a échoué`,
+    react: <PaymentFailedEmail recipientName={recipient.name} serviceName={serviceName} />,
   });
 }

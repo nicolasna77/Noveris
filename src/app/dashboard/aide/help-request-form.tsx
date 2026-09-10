@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import type { HelpRequestServiceOption } from "@/lib/help";
 import { submitHelpRequest } from "./actions";
@@ -38,14 +39,16 @@ export function HelpRequestForm({
     e.preventDefault();
     startTransition(async () => {
       try {
-        await submitHelpRequest({
-          subject: values.subject,
-          message: values.message,
-          clientServiceId:
-            values.clientServiceId === NO_SERVICE_VALUE
-              ? null
-              : values.clientServiceId,
-        });
+        unwrap(
+          await submitHelpRequest({
+            subject: values.subject,
+            message: values.message,
+            clientServiceId:
+              values.clientServiceId === NO_SERVICE_VALUE
+                ? null
+                : values.clientServiceId,
+          })
+        );
         toast.success("Votre demande a été envoyée à l'équipe Noveris.");
         setValues(EMPTY_VALUES);
       } catch (err) {

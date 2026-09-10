@@ -57,7 +57,7 @@ function ServiceCard({ service }: { service: ServiceDTO }) {
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Abonnement</dt>
                 <dd className="tabular-nums text-foreground">
-                  {formatCents(service.monthlyPriceCents)}/mois
+                  {formatCents(service.monthlyPriceCents)}/mois TTC
                 </dd>
               </div>
             )}

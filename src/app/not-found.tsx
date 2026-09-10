@@ -12,7 +12,10 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+      <main
+        id="contenu"
+        className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center"
+      >
         <p className="text-sm tracking-widest text-primary uppercase">
           Erreur 404
         </p>

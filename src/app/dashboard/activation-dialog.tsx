@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Check, PhoneForwarded } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   type Configuration,
   type ServiceDTO,
 } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { activateService, previewPromoCode, type PromoPreview } from "./actions";
 import { ConfigFieldsForm } from "./config-fields";
@@ -47,23 +49,21 @@ export function ActivationDialog({
   const promoFieldId = useId();
   const promoMessageId = useId();
   const [isPending, startTransition] = useTransition();
+  const [shownServiceId, setShownServiceId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [values, setValues] = useState<Configuration>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState<PromoState>({ status: "idle" });
 
-  function handleOpenChange(open: boolean) {
-    if (open && service) {
-      setName(service.name);
-    }
-    if (!open) {
-      setValues({});
-      setSubmitAttempted(false);
-      setPromoInput("");
-      setPromo({ status: "idle" });
-    }
-    onOpenChange(open);
+  const serviceId = service?.id ?? null;
+  if (serviceId !== shownServiceId) {
+    setShownServiceId(serviceId);
+    setName(service?.name ?? "");
+    setValues({});
+    setSubmitAttempted(false);
+    setPromoInput("");
+    setPromo({ status: "idle" });
   }
 
   async function checkPromo(): Promise<PromoPreview | null> {
@@ -116,12 +116,8 @@ export function ActivationDialog({
       }
 
       try {
-        const { checkoutUrl } = await activateService(
-          service.id,
-          organizationId,
-          trimmedName,
-          values,
-          code
+        const { checkoutUrl } = unwrap(
+          await activateService(service.id, organizationId, trimmedName, values, code)
         );
         window.location.href = checkoutUrl;
       } catch (err) {
@@ -131,7 +127,7 @@ export function ActivationDialog({
   }
 
   return (
-    <Dialog open={!!service} onOpenChange={handleOpenChange}>
+    <Dialog open={!!service} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         {service && (
           <>
@@ -247,10 +243,18 @@ export function ActivationDialog({
               </div>
             </div>
 
+            <p className="text-xs text-muted-foreground">
+              Prix TTC. En payant, vous acceptez nos{" "}
+              <Link href="/cgv" target="_blank" className="underline underline-offset-4 hover:text-foreground">
+                conditions générales de vente
+              </Link>
+              .
+            </p>
+
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => handleOpenChange(false)}
+                onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
                 Annuler

@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +14,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import type { MyServiceDTO } from "@/lib/catalog";
-import { cancelService, resumeServiceCheckout } from "./actions";
+import { cancelService } from "./actions";
+import { ResumeCheckoutButton } from "./resume-checkout-button";
 
 export function ServiceDetailActions({ item }: { item: MyServiceDTO }) {
   const router = useRouter();
-  const [isResuming, startResumeTransition] = useTransition();
   const [isCanceling, startCancelTransition] = useTransition();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const { status } = item;
@@ -31,23 +31,10 @@ export function ServiceDetailActions({ item }: { item: MyServiceDTO }) {
 
   if (!canResume && !canUnsubscribe) return null;
 
-  function handleResume() {
-    startResumeTransition(async () => {
-      try {
-        const { checkoutUrl } = await resumeServiceCheckout(
-          item.clientServiceId
-        );
-        window.location.href = checkoutUrl;
-      } catch (err) {
-        toast.error(getErrorMessage(err));
-      }
-    });
-  }
-
   function handleUnsubscribe() {
     startCancelTransition(async () => {
       try {
-        await cancelService(item.clientServiceId);
+        unwrap(await cancelService(item.clientServiceId));
         toast.success(`« ${item.name} » a été résiliée.`);
         setConfirmCancel(false);
         router.refresh();
@@ -61,26 +48,10 @@ export function ServiceDetailActions({ item }: { item: MyServiceDTO }) {
     <>
       <div className="flex flex-wrap gap-2">
         {canResume && (
-          <Button
-            onClick={handleResume}
-            disabled={isResuming}
-            aria-busy={isResuming}
-          >
-            {isResuming ? (
-              <>
-                <Loader2
-                  className="animate-spin"
-                  aria-hidden="true"
-                  data-icon="inline-start"
-                />
-                Redirection…
-              </>
-            ) : status === "CANCELED" ? (
-              "Réactiver"
-            ) : (
-              "Reprendre le paiement"
-            )}
-          </Button>
+          <ResumeCheckoutButton
+            clientServiceId={item.clientServiceId}
+            status={status}
+          />
         )}
         {canUnsubscribe && (
           <Button variant="ghost" onClick={() => setConfirmCancel(true)}>
@@ -94,8 +65,9 @@ export function ServiceDetailActions({ item }: { item: MyServiceDTO }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Résilier « {item.name} » ?</AlertDialogTitle>
             <AlertDialogDescription>
-              L&apos;abonnement mensuel sera annulé immédiatement. Les frais de
-              mise en place déjà réglés ne sont pas remboursés.
+              L&apos;abonnement mensuel sera annulé immédiatement. Pour être
+              remboursé dans les 30 jours suivant votre premier paiement,
+              écrivez-nous plutôt depuis la rubrique Aide.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

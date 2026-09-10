@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/session";
 import { logAdminAction } from "@/lib/audit";
+import { ActionError, runAction } from "@/lib/run-action";
 import type { ServiceCategory } from "@/lib/catalog";
 
 function formatCents(cents: number | null): string {
@@ -67,64 +68,68 @@ export async function updateServiceAction(
   serviceId: string,
   input: ServiceUpdateInput
 ) {
-  const session = await requireAdmin();
+  return runAction(async () => {
+    const session = await requireAdmin();
 
-  const name = input.name.trim();
-  const description = input.description.trim();
-  if (!name) throw new Error("Le nom est requis.");
-  if (!description) throw new Error("La description est requise.");
-  if (input.setupFeeEuros === null && input.monthlyPriceEuros === null) {
-    throw new Error(
-      "Au moins un prix (mise en place ou abonnement) est requis."
-    );
-  }
+    const name = input.name.trim();
+    const description = input.description.trim();
+    if (!name) throw new ActionError("Le nom est requis.");
+    if (!description) throw new ActionError("La description est requise.");
+    if (input.setupFeeEuros === null && input.monthlyPriceEuros === null) {
+      throw new ActionError(
+        "Au moins un prix (mise en place ou abonnement) est requis."
+      );
+    }
 
-  const before = await db.service.findUniqueOrThrow({ where: { id: serviceId } });
-  const after = await db.service.update({
-    where: { id: serviceId },
-    data: {
-      name,
-      description,
-      category: input.category,
-      setupFeeCents:
-        input.setupFeeEuros !== null ? Math.round(input.setupFeeEuros * 100) : null,
-      monthlyPriceCents:
-        input.monthlyPriceEuros !== null
-          ? Math.round(input.monthlyPriceEuros * 100)
-          : null,
-      usageCapLabel: input.usageCapLabel?.trim() || null,
-      sortOrder: input.sortOrder,
-    },
-  });
-
-  const changes = describeServiceChanges(before, after);
-  if (changes) {
-    await logAdminAction({
-      actor: session.user,
-      action: "SERVICE_UPDATED",
-      target: { type: "service", id: serviceId, label: before.name },
-      detail: changes,
+    const before = await db.service.findUniqueOrThrow({ where: { id: serviceId } });
+    const after = await db.service.update({
+      where: { id: serviceId },
+      data: {
+        name,
+        description,
+        category: input.category,
+        setupFeeCents:
+          input.setupFeeEuros !== null ? Math.round(input.setupFeeEuros * 100) : null,
+        monthlyPriceCents:
+          input.monthlyPriceEuros !== null
+            ? Math.round(input.monthlyPriceEuros * 100)
+            : null,
+        usageCapLabel: input.usageCapLabel?.trim() || null,
+        sortOrder: input.sortOrder,
+      },
     });
-  }
 
-  revalidatePath("/", "layout");
-  revalidatePath("/dashboard", "layout");
+    const changes = describeServiceChanges(before, after);
+    if (changes) {
+      await logAdminAction({
+        actor: session.user,
+        action: "SERVICE_UPDATED",
+        target: { type: "service", id: serviceId, label: before.name },
+        detail: changes,
+      });
+    }
+
+    revalidatePath("/", "layout");
+    revalidatePath("/dashboard", "layout");
+  });
 }
 
 export async function setServiceActiveAction(serviceId: string, isActive: boolean) {
-  const session = await requireAdmin();
+  return runAction(async () => {
+    const session = await requireAdmin();
 
-  const service = await db.service.update({
-    where: { id: serviceId },
-    data: { isActive },
+    const service = await db.service.update({
+      where: { id: serviceId },
+      data: { isActive },
+    });
+
+    await logAdminAction({
+      actor: session.user,
+      action: isActive ? "SERVICE_ACTIVATED" : "SERVICE_DEACTIVATED",
+      target: { type: "service", id: serviceId, label: service.name },
+    });
+
+    revalidatePath("/", "layout");
+    revalidatePath("/dashboard", "layout");
   });
-
-  await logAdminAction({
-    actor: session.user,
-    action: isActive ? "SERVICE_ACTIVATED" : "SERVICE_DEACTIVATED",
-    target: { type: "service", id: serviceId, label: service.name },
-  });
-
-  revalidatePath("/", "layout");
-  revalidatePath("/dashboard", "layout");
 }

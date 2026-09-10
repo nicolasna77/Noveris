@@ -1,6 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 import { stripeClient } from "@better-auth/stripe/client";
-import { inferAdditionalFields, organizationClient } from "better-auth/client/plugins";
+import {
+  inferAdditionalFields,
+  organizationClient,
+  twoFactorClient,
+} from "better-auth/client/plugins";
 import type { auth } from "@/lib/auth";
 
 export const authClient = createAuthClient({
@@ -8,6 +12,7 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
     stripeClient({ subscription: true }),
     organizationClient(),
+    twoFactorClient(),
   ],
 });
 

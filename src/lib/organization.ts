@@ -28,10 +28,21 @@ export const getActiveOrganizationContext = cache(
     let organizations = await fetchMemberOrganizations(session.user.id);
 
     if (organizations.length === 0) {
-      const name = session.user.name || "Mon entreprise";
+      const { pendingOrganizationName } = await db.user.findUniqueOrThrow({
+        where: { id: session.user.id },
+        select: { pendingOrganizationName: true },
+      });
+      const name =
+        pendingOrganizationName?.trim().slice(0, 80) || session.user.name || "Mon entreprise";
       await auth.api.createOrganization({
         body: { name, slug: slugify(name), userId: session.user.id },
       });
+      if (pendingOrganizationName !== null) {
+        await db.user.update({
+          where: { id: session.user.id },
+          data: { pendingOrganizationName: null },
+        });
+      }
       organizations = await fetchMemberOrganizations(session.user.id);
     }
     if (organizations.length === 0) return null;

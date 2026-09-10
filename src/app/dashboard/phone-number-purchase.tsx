@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { searchPhoneNumbers, purchasePhoneNumberForService } from "./actions";
 
@@ -37,7 +38,7 @@ export function PhoneNumberPurchase({
   function handleSearch() {
     startSearch(async () => {
       try {
-        setResults(await searchPhoneNumbers(clientServiceId));
+        setResults(unwrap(await searchPhoneNumbers(clientServiceId)));
       } catch (err) {
         toast.error(
           getErrorMessage(err)
@@ -50,7 +51,7 @@ export function PhoneNumberPurchase({
     if (!confirmNumber) return;
     startPurchase(async () => {
       try {
-        await purchasePhoneNumberForService(clientServiceId, confirmNumber.phoneNumber);
+        unwrap(await purchasePhoneNumberForService(clientServiceId, confirmNumber.phoneNumber));
         toast.success(`Numéro ${confirmNumber.phoneNumber} activé.`);
         setConfirmNumber(null);
       } catch (err) {

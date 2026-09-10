@@ -25,6 +25,13 @@ export async function SiteHeader() {
     : null;
 
   return (
+    <>
+    <a
+      href="#contenu"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-2xl focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+    >
+      Aller au contenu
+    </a>
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-1">
@@ -80,5 +87,6 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
+    </>
   );
 }

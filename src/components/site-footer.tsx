@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { NoverisLogo } from "@/components/brand";
 
+const LEGAL_LINKS = [
+  { href: "/mentions-legales", label: "Mentions légales" },
+  { href: "/cgv", label: "CGV" },
+  { href: "/confidentialite", label: "Confidentialité" },
+  { href: "/cookies", label: "Cookies" },
+];
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-muted">
@@ -55,8 +62,19 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
-      <div className="mx-auto max-w-6xl border-t border-border px-4 py-6 text-xs text-muted-foreground sm:px-6">
-        © {new Date().getFullYear()} Noveris. Tous droits réservés.
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-border px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p>© {new Date().getFullYear()} Noveris. Tous droits réservés.</p>
+        <nav aria-label="Informations légales">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2">
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="hover:text-foreground">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </footer>
   );

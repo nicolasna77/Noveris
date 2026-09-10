@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORY_LABELS, CATEGORY_ORDER, type ServiceCategory } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { updateServiceAction } from "./actions";
 
@@ -66,15 +67,17 @@ export function ServiceEditDialog({
 
     setIsSubmitting(true);
     try {
-      await updateServiceAction(service.id, {
-        name: String(formData.get("name") ?? ""),
-        description: String(formData.get("description") ?? ""),
-        category: String(formData.get("category") ?? service.category) as ServiceCategory,
-        setupFeeEuros: setupFeeRaw ? Number(setupFeeRaw) : null,
-        monthlyPriceEuros: monthlyPriceRaw ? Number(monthlyPriceRaw) : null,
-        usageCapLabel: usageCapLabel || null,
-        sortOrder: Number(formData.get("sortOrder") ?? service.sortOrder),
-      });
+      unwrap(
+        await updateServiceAction(service.id, {
+          name: String(formData.get("name") ?? ""),
+          description: String(formData.get("description") ?? ""),
+          category: String(formData.get("category") ?? service.category) as ServiceCategory,
+          setupFeeEuros: setupFeeRaw ? Number(setupFeeRaw) : null,
+          monthlyPriceEuros: monthlyPriceRaw ? Number(monthlyPriceRaw) : null,
+          usageCapLabel: usageCapLabel || null,
+          sortOrder: Number(formData.get("sortOrder") ?? service.sortOrder),
+        })
+      );
       toast.success(`« ${service.name} » a été mise à jour.`);
       onOpenChange(false);
       router.refresh();

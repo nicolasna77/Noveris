@@ -8,6 +8,7 @@ import { getCatalog } from "@/lib/get-catalog";
 import { generateMarketingPosts } from "@/lib/marketing/agent";
 import { exceedsChannelLimit } from "@/lib/marketing/channels";
 import { detectUnsupportedClaims } from "@/lib/marketing/claims";
+import { ActionError, runAction } from "@/lib/run-action";
 
 const RECENT_ANGLES_WINDOW = 30;
 
@@ -48,19 +49,21 @@ export async function generatePostsAction(channel: MarketingChannel, count: numb
 }
 
 export async function updatePostAction(id: string, body: string) {
-  await requireAdmin();
+  return runAction(async () => {
+    await requireAdmin();
 
-  const post = await db.marketingPost.findUnique({ where: { id }, select: { channel: true } });
-  if (!post) throw new Error("Publication introuvable.");
-  if (exceedsChannelLimit(post.channel, body)) {
-    throw new Error("Le texte dépasse la limite de ce réseau.");
-  }
+    const post = await db.marketingPost.findUnique({ where: { id }, select: { channel: true } });
+    if (!post) throw new ActionError("Publication introuvable.");
+    if (exceedsChannelLimit(post.channel, body)) {
+      throw new ActionError("Le texte dépasse la limite de ce réseau.");
+    }
 
-  await db.marketingPost.update({
-    where: { id },
-    data: { body, warnings: detectUnsupportedClaims(body) },
+    await db.marketingPost.update({
+      where: { id },
+      data: { body, warnings: detectUnsupportedClaims(body) },
+    });
+    revalidatePath("/admin/marketing");
   });
-  revalidatePath("/admin/marketing");
 }
 
 export async function approvePostAction(id: string, scheduledFor: Date | null) {

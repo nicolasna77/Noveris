@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { MailCheck } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,13 +16,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { slugify } from "@/lib/utils";
 import { GoogleSignInButton } from "../google-signin-button";
 
+const AFTER_VERIFICATION_URL = "/dashboard";
+
 export function SignupForm() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,33 +32,76 @@ export function SignupForm() {
     setLoading(true);
 
     const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name"));
+    const email = String(formData.get("email"));
     const company = String(formData.get("company") ?? "").trim();
 
     const { error } = await authClient.signUp.email({
-      name,
-      email: String(formData.get("email")),
+      name: String(formData.get("name")),
+      email,
       password: String(formData.get("password")),
+      pendingOrganizationName: company || undefined,
+      callbackURL: AFTER_VERIFICATION_URL,
     });
 
+    setLoading(false);
     if (error) {
       setError(
         error.status === 422
           ? "Un compte existe déjà avec cet e-mail."
-          : (error.message ?? "Une erreur est survenue.")
+          : "La création du compte a échoué. Vérifiez vos informations puis réessayez."
       );
-      setLoading(false);
       return;
     }
+    setSentTo(email);
+  }
 
-    const organizationName = company || `Organisation de ${name.split(" ")[0]}`;
-    await authClient.organization.create({
-      name: organizationName,
-      slug: slugify(organizationName),
+  async function handleResend() {
+    if (!sentTo) return;
+    setResending(true);
+    const { error } = await authClient.sendVerificationEmail({
+      email: sentTo,
+      callbackURL: AFTER_VERIFICATION_URL,
     });
+    setResending(false);
+    if (error) {
+      toast.error("L'envoi a échoué. Réessayez dans quelques minutes.");
+      return;
+    }
+    toast.success("Nouveau lien envoyé.");
+  }
 
-    router.refresh();
-    router.push("/dashboard");
+  if (sentTo) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <MailCheck className="size-6 text-primary" aria-hidden="true" />
+          <CardTitle className="mt-2">Vérifiez votre boîte mail</CardTitle>
+          <CardDescription>
+            Nous avons envoyé un lien de confirmation à{" "}
+            <span className="font-medium text-foreground">{sentTo}</span>.
+            Cliquez dessus pour activer votre compte.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Rien reçu après quelques minutes ? Regardez dans les indésirables,
+          ou demandez un nouveau lien.
+        </CardContent>
+        <CardFooter className="mt-2 flex flex-col gap-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleResend}
+            disabled={resending}
+            aria-busy={resending}
+          >
+            {resending ? "Envoi…" : "Renvoyer le lien"}
+          </Button>
+          <Link href="/login" className="text-sm text-muted-foreground underline underline-offset-4">
+            Revenir à la connexion
+          </Link>
+        </CardFooter>
+      </Card>
+    );
   }
 
   return (
@@ -96,6 +142,7 @@ export function SignupForm() {
               name="company"
               autoComplete="organization"
               placeholder="Dupont Coiffure"
+              maxLength={80}
             />
           </div>
           <div className="space-y-2">
@@ -123,12 +170,23 @@ export function SignupForm() {
               8 caractères minimum.
             </p>
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         </CardContent>
         <CardFooter className="mt-6 flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Création du compte…" : "Créer mon compte"}
           </Button>
+          <p className="text-xs text-muted-foreground">
+            En créant un compte, vous acceptez nos{" "}
+            <Link href="/cgv" className="underline underline-offset-4 hover:text-foreground">
+              conditions générales de vente
+            </Link>{" "}
+            et notre{" "}
+            <Link href="/confidentialite" className="underline underline-offset-4 hover:text-foreground">
+              politique de confidentialité
+            </Link>
+            .
+          </p>
           <p className="text-sm text-muted-foreground">
             Déjà un compte ?{" "}
             <Link href="/login" className="text-foreground underline underline-offset-4">

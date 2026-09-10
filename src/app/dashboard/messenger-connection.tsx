@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { completeMessengerConnection, disconnectMessenger } from "./actions";
 import { loadFacebookSdk } from "./facebook-sdk";
@@ -45,7 +46,7 @@ export function MessengerConnection({
         const code = response.authResponse?.code;
         if (!code) return;
 
-        await completeMessengerConnection(clientServiceId, code);
+        unwrap(await completeMessengerConnection(clientServiceId, code));
         toast.success("Page Facebook connectée.");
       } catch (err) {
         toast.error(getErrorMessage(err));
@@ -56,7 +57,7 @@ export function MessengerConnection({
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectMessenger(clientServiceId);
+        unwrap(await disconnectMessenger(clientServiceId));
         toast.success("Page Facebook déconnectée.");
       } catch (err) {
         toast.error(getErrorMessage(err));

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { replyToHelpRequest } from "./actions";
 
@@ -21,7 +22,7 @@ export function HelpRequestReplyForm({
   function handleSubmit() {
     startTransition(async () => {
       try {
-        await replyToHelpRequest(helpRequestId, body);
+        unwrap(await replyToHelpRequest(helpRequestId, body));
         toast.success(
           resolved
             ? "Message envoyé — votre demande est rouverte."

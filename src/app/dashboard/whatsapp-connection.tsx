@@ -4,6 +4,7 @@ import { useEffect, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { completeWhatsAppEmbeddedSignup, disconnectWhatsApp } from "./actions";
 import { loadFacebookSdk } from "./facebook-sdk";
@@ -83,11 +84,13 @@ export function WhatsAppConnection({
         const signupData = signupDataRef.current as EmbeddedSignupData | null;
         if (!code || !signupData) return;
 
-        await completeWhatsAppEmbeddedSignup(
-          clientServiceId,
-          code,
-          signupData.wabaId,
-          signupData.phoneNumberId
+        unwrap(
+          await completeWhatsAppEmbeddedSignup(
+            clientServiceId,
+            code,
+            signupData.wabaId,
+            signupData.phoneNumberId
+          )
         );
         toast.success("Compte WhatsApp connecté.");
       } catch (err) {
@@ -99,7 +102,7 @@ export function WhatsAppConnection({
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectWhatsApp(clientServiceId);
+        unwrap(await disconnectWhatsApp(clientServiceId));
         toast.success("Compte WhatsApp déconnecté.");
       } catch (err) {
         toast.error(getErrorMessage(err));

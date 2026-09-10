@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Bot, ChevronRight, Loader2, Phone, Settings2, TriangleAlert } from "lucide-react";
+import { Bot, ChevronRight, Phone, Settings2, TriangleAlert } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,10 +27,12 @@ import {
   TELEPHONY_SERVICE_SLUGS,
   type MyServiceDTO,
 } from "@/lib/catalog";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { SERVICE_ICONS } from "@/lib/service-icons";
-import { cancelService, resumeServiceCheckout } from "./actions";
+import { cancelService } from "./actions";
+import { ResumeCheckoutButton } from "./resume-checkout-button";
 import { ServiceProgress } from "./service-progress";
 import { UsageCounter } from "./usage-counter";
 
@@ -41,7 +43,6 @@ export function MyServiceRow({
   item: MyServiceDTO;
   onManage: () => void;
 }) {
-  const [isPending, startTransition] = useTransition();
   const [isCanceling, startCancelTransition] = useTransition();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const { service, status } = item;
@@ -62,23 +63,10 @@ export function MyServiceRow({
             ? "Connectez votre agenda pour recevoir les rendez-vous"
             : null;
 
-  function handleResume() {
-    startTransition(async () => {
-      try {
-        const { checkoutUrl } = await resumeServiceCheckout(
-          item.clientServiceId
-        );
-        window.location.href = checkoutUrl;
-      } catch (err) {
-        toast.error(getErrorMessage(err));
-      }
-    });
-  }
-
   function handleUnsubscribe() {
     startCancelTransition(async () => {
       try {
-        await cancelService(item.clientServiceId);
+        unwrap(await cancelService(item.clientServiceId));
         toast.success(`« ${item.name} » a été résiliée.`);
         setConfirmCancel(false);
       } catch (err) {
@@ -129,6 +117,22 @@ export function MyServiceRow({
 
               {status !== "ACTIVE" && <ServiceProgress status={status} />}
 
+              {item.paymentFailedAt && (
+                <div className="relative z-10 mt-3 flex items-start gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
+                  <TriangleAlert
+                    className="mt-0.5 size-4 shrink-0 text-destructive"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm text-foreground">
+                    Le dernier paiement a été refusé.{" "}
+                    <Link href="/dashboard/paiements" className="font-medium underline underline-offset-4">
+                      Mettez à jour votre moyen de paiement
+                    </Link>{" "}
+                    pour éviter une interruption.
+                  </p>
+                </div>
+              )}
+
               {setupHint && (
                 <div className="mt-3 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
                   <TriangleAlert
@@ -174,28 +178,11 @@ export function MyServiceRow({
 
         {(status === "PENDING_PAYMENT" || status === "CANCELED") && (
           <CardFooter className="relative z-10 mt-auto">
-            <Button
-              className="w-full"
-              variant={status === "CANCELED" ? "outline" : "default"}
-              onClick={handleResume}
-              disabled={isPending}
-              aria-busy={isPending}
-            >
-              {isPending ? (
-                <>
-                  <Loader2
-                    className="animate-spin"
-                    aria-hidden="true"
-                    data-icon="inline-start"
-                  />
-                  Redirection…
-                </>
-              ) : status === "CANCELED" ? (
-                "Réactiver"
-              ) : (
-                "Reprendre le paiement"
-              )}
-            </Button>
+            <ResumeCheckoutButton
+              clientServiceId={item.clientServiceId}
+              status={status}
+              fullWidth
+            />
           </CardFooter>
         )}
 
@@ -227,8 +214,9 @@ export function MyServiceRow({
               Résilier « {item.name} » ?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              L&apos;abonnement mensuel sera annulé immédiatement. Les frais de
-              mise en place déjà réglés ne sont pas remboursés.
+              L&apos;abonnement mensuel sera annulé immédiatement. Pour être
+              remboursé dans les 30 jours suivant votre premier paiement,
+              écrivez-nous plutôt depuis la rubrique Aide.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

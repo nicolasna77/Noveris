@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import { setUserRoleAction } from "./actions";
 
@@ -37,7 +38,7 @@ export function RoleSelector({
   function applyRole(role: "ADMIN" | "CLIENT") {
     startTransition(async () => {
       try {
-        await setUserRoleAction(userId, role);
+        unwrap(await setUserRoleAction(userId, role));
         toast.success(`Rôle mis à jour : ${role}.`);
       } catch (err) {
         toast.error(getErrorMessage(err));

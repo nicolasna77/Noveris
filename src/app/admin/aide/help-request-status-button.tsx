@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unwrap } from "@/lib/action-result";
 import { getErrorMessage } from "@/lib/utils";
 import type { HelpRequestStatus } from "@prisma/client";
 import { setHelpRequestStatus } from "./actions";
@@ -22,7 +23,7 @@ export function HelpRequestStatusButton({
   function handleClick() {
     startTransition(async () => {
       try {
-        await setHelpRequestStatus(helpRequestId, nextStatus);
+        unwrap(await setHelpRequestStatus(helpRequestId, nextStatus));
         toast.success(
           nextStatus === "RESOLVED"
             ? "Demande marquée comme traitée."
