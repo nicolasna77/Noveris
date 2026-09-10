@@ -10,6 +10,7 @@ import {
   Megaphone,
   Package,
   ScrollText,
+  TicketPercent,
   Users,
 } from "lucide-react";
 import { NoverisLogo } from "@/components/brand";
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/services", label: "Solutions", icon: Package },
+  { href: "/admin/codes-promo", label: "Codes promo", icon: TicketPercent },
   { href: "/admin/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/aide", label: "Centre d'aide", icon: LifeBuoy },

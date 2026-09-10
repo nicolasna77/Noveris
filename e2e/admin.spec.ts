@@ -58,6 +58,14 @@ test("la liste clients bascule en cartes sur mobile", async ({ page }) => {
   }
 });
 
+// Le rendu doit tenir même quand Stripe ne répond pas — c'est le cas en CI,
+// avec une clé factice : la page le dit au lieu de planter.
+test("la page des codes promo s'ouvre", async ({ page }) => {
+  await page.goto("/admin/codes-promo");
+  await expect(page.getByRole("heading", { level: 1, name: "Codes promo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Créer un code" })).toBeVisible();
+});
+
 test.describe("sans session", () => {
   test.use({ storageState: ANONYMOUS });
 

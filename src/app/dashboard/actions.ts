@@ -27,6 +27,9 @@ import {
 import { exchangeMetaEmbeddedSignupCode } from "@/lib/meta";
 import { fetchManagedPage, subscribePageToApp } from "@/lib/messenger";
 import { sendServiceCanceledEmail } from "@/lib/email/notifications";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { validatePromoCodeForService } from "@/lib/stripe-promo-codes";
+import { applyDiscount, describeDiscount, firstPaymentCents } from "@/lib/promo-codes";
 
 // Délègue à src/lib/session.ts (mémoïsé par requête) plutôt que de
 // réappeler auth.api.getSession directement — une seconde implémentation
@@ -75,7 +78,10 @@ async function createCheckoutSession(
     setupFeeCents: number | null;
     monthlyPriceCents: number | null;
   },
-  user: { stripeCustomerId: string | null; email: string }
+  user: { stripeCustomerId: string | null; email: string },
+  // Une remise déjà validée par validatePromoCodeForService, jamais un code
+  // brut venu du navigateur : ce qu'on facture ne se décide pas côté client.
+  promotionCodeId: string | null = null
 ): Promise<string> {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   if (service.setupFeeCents !== null) {
@@ -105,6 +111,7 @@ async function createCheckoutSession(
     customer: user.stripeCustomerId ?? undefined,
     customer_email: user.stripeCustomerId ? undefined : user.email,
     line_items: lineItems,
+    ...(promotionCodeId && { discounts: [{ promotion_code: promotionCodeId }] }),
     metadata: { clientServiceId, serviceId: service.id },
     success_url: `${appUrl()}/dashboard/prestations?checkout=success&clientServiceId=${clientServiceId}`,
     cancel_url: `${appUrl()}/dashboard/prestations?checkout=canceled&clientServiceId=${clientServiceId}`,
@@ -126,7 +133,8 @@ export async function activateService(
   serviceId: string,
   organizationId: string,
   name: string,
-  configuration: Configuration
+  configuration: Configuration,
+  promoCode: string | null = null
 ) {
   const servicePromise = db.service.findUniqueOrThrow({ where: { id: serviceId } });
   const userId = await requireUserId();
@@ -147,6 +155,17 @@ export async function activateService(
     throw new Error(`Le champ « ${missing.label} » est requis.`);
   }
 
+  // Revalidé ici même si le client vient de le vérifier : ce qu'on facture ne
+  // se décide jamais dans le navigateur, et le code a pu expirer ou atteindre
+  // son plafond entre-temps. Avant de créer l'activation, pour ne pas laisser
+  // une ligne en attente de paiement derrière un code refusé.
+  let promotion: { promotionCodeId: string; code: string } | null = null;
+  if (promoCode?.trim()) {
+    const result = await validatePromoCodeForService(promoCode, service.slug);
+    if (!result.ok) throw new Error(result.reason);
+    promotion = { promotionCodeId: result.promotionCodeId, code: result.code };
+  }
+
   let clientService;
   try {
     clientService = await db.clientService.create({
@@ -157,6 +176,7 @@ export async function activateService(
         name: trimmedName,
         status: "PENDING_PAYMENT",
         configuration,
+        promoCode: promotion?.code ?? null,
       },
     });
   } catch (err) {
@@ -169,7 +189,36 @@ export async function activateService(
   }
 
   await logServiceEvent(clientService.id, "CREATED");
-  const checkoutUrl = await createCheckoutSession(clientService.id, service, user);
+
+  let checkoutUrl: string;
+  try {
+    checkoutUrl = await createCheckoutSession(
+      clientService.id,
+      service,
+      user,
+      promotion?.promotionCodeId ?? null
+    );
+  } catch (err) {
+    if (!promotion) throw err;
+    // Stripe peut refuser un code que nous avions accepté : un code réservé
+    // aux nouveaux clients, pour un client qui a déjà payé. Vérifié sur
+    // Stripe : le refus tombe dès la création de la session, avec le code
+    // promotion_code_customer_not_first_time.
+    //
+    // L'activation vient d'être créée et n'a jamais été payée : on la retire
+    // (son historique suit, en cascade), sans quoi retenter sans le code
+    // buterait sur « vous avez déjà une solution nommée… ».
+    await db.clientService.delete({ where: { id: clientService.id } });
+    if ((err as { code?: string }).code === "promotion_code_customer_not_first_time") {
+      throw new Error(
+        "Ce code est réservé aux nouveaux clients. Retirez-le pour payer au tarif normal."
+      );
+    }
+    console.error("[codes-promo] Stripe a refusé la remise :", err);
+    throw new Error(
+      "Ce code ne peut pas être utilisé avec votre compte. Retirez-le pour payer au tarif normal."
+    );
+  }
   revalidateDashboard(clientService.id);
   return { checkoutUrl };
 }
@@ -196,14 +245,84 @@ export async function resumeServiceCheckout(clientServiceId: string) {
 
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
 
+  // Un client qui revient payer une activation abandonnée garde son code s'il
+  // est encore valable ; sinon il paie le tarif normal, plutôt que d'être
+  // bloqué par un code expiré entre-temps — la page Stripe affiche de toute
+  // façon le vrai total avant qu'il paie. Une réactivation après résiliation,
+  // elle, ne réutilise pas le code : la remise a déjà été consommée.
+  let promotionCodeId: string | null = null;
+  let promoCode: string | null = null;
+  if (clientService.status === "PENDING_PAYMENT" && clientService.promoCode) {
+    const result = await validatePromoCodeForService(
+      clientService.promoCode,
+      clientService.service.slug
+    );
+    if (result.ok) {
+      promotionCodeId = result.promotionCodeId;
+      promoCode = result.code;
+    }
+  }
+
   await db.clientService.update({
     where: { id: clientServiceId },
-    data: { status: "PENDING_PAYMENT", canceledAt: null },
+    data: { status: "PENDING_PAYMENT", canceledAt: null, promoCode },
   });
 
-  const checkoutUrl = await createCheckoutSession(clientService.id, clientService.service, user);
+  let checkoutUrl: string;
+  try {
+    checkoutUrl = await createCheckoutSession(
+      clientService.id,
+      clientService.service,
+      user,
+      promotionCodeId
+    );
+  } catch (err) {
+    if (!promotionCodeId) throw err;
+    // Même refus possible qu'à l'activation (code réservé aux nouveaux
+    // clients) : on reprend au tarif normal plutôt que de bloquer la reprise.
+    await db.clientService.update({ where: { id: clientServiceId }, data: { promoCode: null } });
+    checkoutUrl = await createCheckoutSession(clientService.id, clientService.service, user);
+  }
   revalidateDashboard(clientService.id);
   return { checkoutUrl };
+}
+
+export type PromoPreview =
+  | {
+      ok: true;
+      code: string;
+      description: string;
+      firstPaymentCents: number;
+      discountedFirstPaymentCents: number;
+    }
+  | { ok: false; reason: string };
+
+// Vérifie un code avant le paiement, pour que le client voie sa remise avant
+// d'être redirigé chez Stripe. Renvoie un résultat plutôt que de lever une
+// erreur : un code refusé est une réponse attendue, pas une panne.
+export async function previewPromoCode(serviceId: string, code: string): Promise<PromoPreview> {
+  const userId = await requireUserId();
+  // Chaque essai interroge Stripe, et le champ permettrait sinon de deviner
+  // des codes à la chaîne.
+  if (!(await checkRateLimit("promo-code-preview", userId, "10 m", 20))) {
+    return { ok: false, reason: "Trop d'essais. Réessayez dans quelques minutes." };
+  }
+
+  const service = await db.service.findUniqueOrThrow({ where: { id: serviceId } });
+  const result = await validatePromoCodeForService(code, service.slug);
+  if (!result.ok) return result;
+
+  const first = firstPaymentCents(service);
+  return {
+    ok: true,
+    code: result.code,
+    description: describeDiscount(result.rule, {
+      hasSetupFee: service.setupFeeCents !== null,
+      hasSubscription: service.monthlyPriceCents !== null,
+    }),
+    firstPaymentCents: first,
+    discountedFirstPaymentCents: applyDiscount(first, result.rule),
+  };
 }
 
 // Met à jour la configuration d'une prestation déjà souscrite (ex. : contexte

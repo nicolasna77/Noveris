@@ -44,6 +44,7 @@ export async function GET() {
           ? ""
           : formatCents(r.service.monthlyPriceCents),
     },
+    { header: "Code promo", value: (r) => r.promoCode },
     { header: "Numéro attribué", value: (r) => r.externalPhoneNumber },
     { header: "Note pour le client", value: (r) => r.adminNote },
     { header: "Demandée le", value: (r) => r.createdAt },

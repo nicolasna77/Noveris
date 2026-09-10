@@ -9,7 +9,7 @@ import { db } from "@/lib/db";
 export async function logAdminAction(input: {
   actor: { id: string; name: string; email: string };
   action: AuditAction;
-  target: { type: "user" | "service"; id: string; label: string };
+  target: { type: "user" | "service" | "promo_code"; id: string; label: string };
   detail?: string | null;
 }) {
   await db.auditLog.create({
@@ -34,6 +34,8 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   SERVICE_UPDATED: "Solution modifiée",
   SERVICE_ACTIVATED: "Solution réactivée",
   SERVICE_DEACTIVATED: "Solution désactivée",
+  PROMO_CODE_CREATED: "Code promo créé",
+  PROMO_CODE_DEACTIVATED: "Code promo désactivé",
 };
 
 // Les actions qui retirent un accès ou touchent à l'authentification sont

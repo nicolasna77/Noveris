@@ -237,6 +237,11 @@ model ClientService {
   instagramAccessToken     String?
   instagramTokenExpiresAt  DateTime?
   instagramUsername        String?
+  // Code promo saisi à l'activation, tel que le client l'a tapé une fois
+  // normalisé. Le code lui-même vit chez Stripe (voir
+  // src/lib/stripe-promo-codes.ts) ; on ne garde ici que la trace de ce qui a
+  // été appliqué à cette activation, pour que l'équipe la retrouve.
+  promoCode                String?
   activatedAt             DateTime?
   canceledAt              DateTime?
   createdAt               DateTime            @default(now())
@@ -501,6 +506,8 @@ enum AuditAction {
   SERVICE_UPDATED
   SERVICE_ACTIVATED
   SERVICE_DEACTIVATED
+  PROMO_CODE_CREATED
+  PROMO_CODE_DEACTIVATED
 }
 
 // Journal des actions d'administration sensibles — qui a fait quoi, à qui,

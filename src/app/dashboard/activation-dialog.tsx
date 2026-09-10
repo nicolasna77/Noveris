@@ -2,7 +2,7 @@
 
 import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { PhoneForwarded } from "lucide-react";
+import { Check, PhoneForwarded } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,14 +16,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   findMissingRequiredField,
+  formatCents,
   formatPrice,
   TELEPHONY_SERVICE_SLUGS,
   type Configuration,
   type ServiceDTO,
 } from "@/lib/catalog";
 import { getErrorMessage } from "@/lib/utils";
-import { activateService } from "./actions";
+import { activateService, previewPromoCode, type PromoPreview } from "./actions";
 import { ConfigFieldsForm } from "./config-fields";
+
+type AppliedPreview = Extract<PromoPreview, { ok: true }>;
+
+type PromoState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "applied"; preview: AppliedPreview }
+  | { status: "error"; reason: string };
 
 export function ActivationDialog({
   service,
@@ -35,10 +44,14 @@ export function ActivationDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const nameFieldId = useId();
+  const promoFieldId = useId();
+  const promoMessageId = useId();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [values, setValues] = useState<Configuration>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<PromoState>({ status: "idle" });
 
   function handleOpenChange(open: boolean) {
     if (open && service) {
@@ -50,8 +63,34 @@ export function ActivationDialog({
     if (!open) {
       setValues({});
       setSubmitAttempted(false);
+      setPromoInput("");
+      setPromo({ status: "idle" });
     }
     onOpenChange(open);
+  }
+
+  // Interroge le serveur, qui interroge Stripe. Renvoie aussi le résultat :
+  // la validation du formulaire s'en sert pour vérifier un code saisi mais
+  // pas encore appliqué.
+  async function checkPromo(): Promise<PromoPreview | null> {
+    if (!service) return null;
+    const code = promoInput.trim();
+    if (!code) return null;
+
+    setPromo({ status: "checking" });
+    try {
+      const result = await previewPromoCode(service.id, code);
+      setPromo(
+        result.ok
+          ? { status: "applied", preview: result }
+          : { status: "error", reason: result.reason }
+      );
+      return result;
+    } catch {
+      const reason = "La vérification du code a échoué. Réessayez.";
+      setPromo({ status: "error", reason });
+      return { ok: false, reason };
+    }
   }
 
   function handleConfirm() {
@@ -72,12 +111,26 @@ export function ActivationDialog({
     }
 
     startTransition(async () => {
+      let code: string | null = null;
+      if (promoInput.trim()) {
+        // Un code saisi mais pas encore vérifié l'est ici. Payer sans la
+        // remise que le client croyait avoir obtenue serait pire que de
+        // s'arrêter pour lui dire pourquoi le code ne passe pas.
+        const preview = promo.status === "applied" ? promo.preview : await checkPromo();
+        if (!preview?.ok) {
+          document.getElementById(promoFieldId)?.focus();
+          return;
+        }
+        code = preview.code;
+      }
+
       try {
         const { checkoutUrl } = await activateService(
           service.id,
           organizationId,
           trimmedName,
-          values
+          values,
+          code
         );
         window.location.href = checkoutUrl;
       } catch (err) {
@@ -143,6 +196,68 @@ export function ActivationDialog({
                 }
                 submitAttempted={submitAttempted}
               />
+
+              <div className="mt-6 space-y-2 border-t border-border pt-5">
+                <Label htmlFor={promoFieldId}>
+                  Code promo{" "}
+                  <span className="font-normal text-muted-foreground">(facultatif)</span>
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id={promoFieldId}
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value);
+                      // Le code affiché ne correspond plus à celui qui a été
+                      // vérifié : l'aperçu de remise n'est plus vrai.
+                      if (promo.status !== "idle") setPromo({ status: "idle" });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void checkPromo();
+                      }
+                    }}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="uppercase"
+                    aria-invalid={promo.status === "error"}
+                    aria-describedby={promoMessageId}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void checkPromo()}
+                    disabled={!promoInput.trim() || promo.status === "checking" || isPending}
+                  >
+                    {promo.status === "checking" ? "Vérification…" : "Appliquer"}
+                  </Button>
+                </div>
+                {/* aria-live : le résultat arrive après un aller-retour
+                    serveur, un lecteur d'écran doit l'annoncer. */}
+                <div id={promoMessageId} aria-live="polite">
+                  {promo.status === "applied" && (
+                    <p className="flex items-start gap-1.5 text-sm text-foreground">
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                      <span>
+                        {promo.preview.description}. Premier paiement :{" "}
+                        <span className="font-medium tabular-nums">
+                          {formatCents(promo.preview.discountedFirstPaymentCents)}
+                        </span>{" "}
+                        au lieu de{" "}
+                        <span className="tabular-nums text-muted-foreground line-through">
+                          {formatCents(promo.preview.firstPaymentCents)}
+                        </span>
+                        .
+                      </span>
+                    </p>
+                  )}
+                  {promo.status === "error" && (
+                    <p className="text-sm text-destructive">{promo.reason}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <DialogFooter>

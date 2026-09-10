@@ -17,8 +17,11 @@ describe("formatCents", () => {
     expect(formatCents(9000)).toBe("90 €");
   });
 
+  // Deux décimales dès qu'il y a des centimes : « 79,5 € » n'est pas une
+  // façon d'écrire un prix. L'attente précédente protégeait ce défaut, qui ne
+  // se voyait pas tant que tous les tarifs étaient ronds.
   it("garde les centimes quand il y en a", () => {
-    expect(formatCents(7950)).toBe("79,5 €");
+    expect(formatCents(7950)).toBe("79,50 €");
   });
 
   it("gère la gratuité", () => {

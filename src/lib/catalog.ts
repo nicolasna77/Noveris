@@ -144,9 +144,14 @@ export function formatPrice(
   return parts.join(" + ") || "—";
 }
 
+// Sans décimales pour un montant rond (« 450 € »), toujours deux dès qu'il y
+// a des centimes (« 783,20 € », jamais « 783,2 € »). Tant que tous les tarifs
+// étaient ronds la seconde forme ne se voyait pas : les remises produisent
+// les premiers montants avec centimes du site.
 export function formatCents(cents: number): string {
+  const whole = cents % 100 === 0;
   return (cents / 100).toLocaleString("fr-FR", {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: whole ? 0 : 2,
     maximumFractionDigits: 2,
   }) + " €";
 }
