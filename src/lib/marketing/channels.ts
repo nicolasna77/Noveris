@@ -1,20 +1,11 @@
 import type { MarketingChannel } from "@prisma/client";
 
-// Ce qui distingue vraiment un réseau d'un autre, du point de vue de
-// l'écriture. Ces règles sont injectées telles quelles dans le prompt : les
-// garder ici, en données, plutôt que noyées dans une chaîne de caractères,
-// permet de les relire, de les corriger et de les tester une par une.
 export type ChannelRule = {
   label: string;
-  /** À qui l'on parle sur ce réseau — ce n'est pas le même public partout. */
   audience: string;
-  /** Limite dure imposée par la plateforme. */
   maxChars: number;
-  /** Longueur visée, très en deçà de la limite : c'est ce qui se lit. */
   targetChars: number;
-  /** Instagram refuse une publication sans image. */
   needsImage: boolean;
-  /** Consignes d'écriture propres au réseau. */
   guidance: string[];
 };
 
@@ -64,7 +55,6 @@ export function channelRule(channel: MarketingChannel): ChannelRule {
   return CHANNEL_RULES[channel];
 }
 
-/** Dépassement de la limite dure du réseau — bloquant, contrairement aux avertissements. */
 export function exceedsChannelLimit(channel: MarketingChannel, body: string): boolean {
   return body.length > CHANNEL_RULES[channel].maxChars;
 }

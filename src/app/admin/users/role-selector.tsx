@@ -22,12 +22,6 @@ import {
 import { getErrorMessage } from "@/lib/utils";
 import { setUserRoleAction } from "./actions";
 
-// Il n'existe que deux rôles (pas d'intermédiaire, voir prisma/schema.prisma)
-// — promouvoir en ADMIN donne un accès total à tous les clients, paiements
-// et catalogue, plus dangereux qu'un bannissement (BanControl, même
-// dossier) qui a pourtant déjà sa confirmation. Seule la promotion vers
-// ADMIN en demande une ici : rétrograder un ADMIN en CLIENT réduit son
-// accès, pas besoin du même garde-fou.
 export function RoleSelector({
   userId,
   currentRole,

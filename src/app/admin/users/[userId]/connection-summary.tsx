@@ -8,12 +8,6 @@ import {
   type MyServiceDTO,
 } from "@/lib/catalog";
 
-// L'état des comptes tiers, en lecture seule. Côté client, chaque ligne est
-// un bouton pour connecter ou déconnecter ; ici, seulement le constat.
-//
-// C'est souvent la réponse à « pourquoi ça ne marche pas chez moi » : une
-// solution active dont le compte n'est pas connecté ne reçoit rien, et
-// l'équipe n'avait aucun moyen de le vérifier sans le demander au client.
 export function ConnectionSummary({ item }: { item: MyServiceDTO }) {
   const rows: { label: string; connected: boolean; detail: string | null }[] = [];
 
@@ -38,9 +32,6 @@ export function ConnectionSummary({ item }: { item: MyServiceDTO }) {
       detail: item.instagramUsername,
     });
   }
-  // L'agenda ne concerne que les solutions téléphoniques dont le client a
-  // coché la prise de rendez-vous : ailleurs, l'absence de connexion n'est
-  // pas une anomalie et l'afficher serait trompeur.
   if (
     TELEPHONY_SERVICE_SLUGS.has(item.service.slug) &&
     asStringArray(item.configuration.objectives).includes("appointment")

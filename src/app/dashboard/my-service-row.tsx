@@ -50,9 +50,6 @@ export function MyServiceRow({
     (status === "ACTIVE" || status === "CONFIGURING") &&
     service.configFields.length > 0;
   const canUnsubscribe = status === "ACTIVE" || status === "CONFIGURING";
-  // Ce qui empêche encore la solution de fonctionner — signalé ici pour
-  // qu'un client qui parcourt sa liste voie laquelle réclame son attention,
-  // sans avoir à ouvrir chaque page détail une par une.
   const setupHint = needsPhoneNumber(item)
     ? "Choisissez un numéro pour que l'IA puisse décrocher"
     : needsWhatsAppConnection(item)
@@ -92,14 +89,6 @@ export function MyServiceRow({
 
   return (
     <>
-      {/* Toute la carte est cliquable vers le détail via un "stretched
-          link" (l'ancre ne porte que le nom, mais s'étend visuellement à
-          la carte entière via after:inset-0) plutôt qu'un <Link> englobant
-          tout le contenu : englober badge/prix/description dans le lien
-          les aurait rendus muets pour un lecteur d'écran qui tabule
-          directement sur le lien (son nom accessible aurait tout
-          "avalé"). Les boutons du footer restent cliquables au-dessus
-          grâce à `relative z-10`. */}
       <Card className="relative shadow-sm transition-shadow has-[a:hover]:shadow-md has-[a:focus-visible]:shadow-md has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/30">
         <CardHeader>
           <div className="flex items-start gap-3">
@@ -138,8 +127,6 @@ export function MyServiceRow({
                 {describeServiceStatus(item)}
               </CardDescription>
 
-              {/* Une fois la solution active, la barre d'étapes est pleine et
-                  ne dit plus rien que le badge « Actif » ne dise déjà. */}
               {status !== "ACTIVE" && <ServiceProgress status={status} />}
 
               {setupHint && (
@@ -168,9 +155,6 @@ export function MyServiceRow({
           </div>
         </CardHeader>
 
-        {/* Le détail complet des réglages vit sur la page détail, mise en
-            page pour ça. Ici on ne garde que ce qui identifie la solution
-            d'un coup d'œil : son numéro et ce qu'elle coûte. */}
         <CardContent>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border pt-3 text-sm">
             {item.externalPhoneNumber && (

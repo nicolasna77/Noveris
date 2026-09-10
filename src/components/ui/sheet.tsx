@@ -90,9 +90,6 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-// Zone de contenu défilante entre l'en-tête et le pied — sans elle, un
-// Sheet avec beaucoup de contenu (ex. le catalogue de prestations) débordait
-// hors de l'écran au lieu de défiler à l'intérieur du panneau.
 function SheetBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

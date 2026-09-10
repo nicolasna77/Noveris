@@ -75,8 +75,6 @@ export function PostCard({ post }: { post: PostCardData }) {
             {post.body.length} / {rule.maxChars}
           </span>
         </div>
-        {/* L'angle plutôt qu'un titre : c'est ce qui permet de voir d'un coup
-            d'œil que deux propositions ne disent pas la même chose. */}
         <p className="text-sm font-medium text-foreground">{post.angle}</p>
       </CardHeader>
 

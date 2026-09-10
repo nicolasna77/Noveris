@@ -16,8 +16,6 @@ import { Input } from "@/components/ui/input";
 import { getErrorMessage } from "@/lib/utils";
 import { setUserPasswordAction } from "./actions";
 
-// Alphabet sans caractères ambigus (0/O, 1/l/I) pour rester lisible si un
-// admin doit le retranscrire à l'oral ou par écrit au client.
 const PASSWORD_ALPHABET =
   "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
 

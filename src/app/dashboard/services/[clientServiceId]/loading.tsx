@@ -5,7 +5,6 @@ export default function Loading() {
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6" role="status" aria-label="Chargement de la solution…">
       <Skeleton className="h-5 w-40" />
 
-      {/* En-tête : icône, nom, statut, actions. */}
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
           <Skeleton className="size-11 shrink-0 rounded-md" />

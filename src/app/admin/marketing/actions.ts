@@ -9,8 +9,6 @@ import { generateMarketingPosts } from "@/lib/marketing/agent";
 import { exceedsChannelLimit } from "@/lib/marketing/channels";
 import { detectUnsupportedClaims } from "@/lib/marketing/claims";
 
-// Combien d'angles passés on rappelle au modèle pour qu'il ne se répète pas.
-// Au-delà, le prompt s'alourdit sans que la variété y gagne.
 const RECENT_ANGLES_WINDOW = 30;
 
 export async function generatePostsAction(channel: MarketingChannel, count: number) {
@@ -49,9 +47,6 @@ export async function generatePostsAction(channel: MarketingChannel, count: numb
   revalidatePath("/admin/marketing");
 }
 
-// Le texte reste modifiable après coup : l'agent propose, l'humain écrit la
-// version qui part. Les avertissements sont recalculés, sinon ils
-// décriraient un texte qui n'existe plus.
 export async function updatePostAction(id: string, body: string) {
   await requireAdmin();
 
@@ -77,8 +72,6 @@ export async function approvePostAction(id: string, scheduledFor: Date | null) {
   revalidatePath("/admin/marketing");
 }
 
-// Écarté plutôt que supprimé : l'angle reste en base et continue d'être
-// rappelé au modèle, qui ne le represse donc pas.
 export async function rejectPostAction(id: string) {
   await requireAdmin();
   await db.marketingPost.update({ where: { id }, data: { status: "REJECTED" } });
@@ -94,8 +87,6 @@ export async function reopenPostAction(id: string) {
   revalidatePath("/admin/marketing");
 }
 
-// Tant que la publication automatique n'est pas branchée, c'est ici que le
-// parcours se termine : on marque publié après avoir collé le texte soi-même.
 export async function markPublishedAction(id: string) {
   await requireAdmin();
   await db.marketingPost.update({

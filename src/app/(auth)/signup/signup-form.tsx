@@ -32,8 +32,6 @@ export function SignupForm() {
     const name = String(formData.get("name"));
     const company = String(formData.get("company") ?? "").trim();
 
-    // Le rôle n'est jamais transmis : il est fixé côté serveur (CLIENT par
-    // défaut) et ne peut pas être choisi à l'inscription.
     const { error } = await authClient.signUp.email({
       name,
       email: String(formData.get("email")),
@@ -50,20 +48,12 @@ export function SignupForm() {
       return;
     }
 
-    // Une organisation par compte, créée avec le nom d'entreprise donné (ou
-    // un nom par défaut) — devient automatiquement l'organisation active.
-    // Best-effort : en cas d'échec, le tableau de bord s'auto-répare à la
-    // première visite (voir getActiveOrganizationContext).
     const organizationName = company || `Organisation de ${name.split(" ")[0]}`;
     await authClient.organization.create({
       name: organizationName,
       slug: slugify(organizationName),
     });
 
-    // refresh() avant push() : le compte et son organisation viennent
-    // d'être créés, mais le cache de routeur peut encore contenir des
-    // pages rendues sans session. Sans l'invalider, le tableau de bord
-    // peut s'afficher comme si personne n'était connecté.
     router.refresh();
     router.push("/dashboard");
   }

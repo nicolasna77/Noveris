@@ -78,8 +78,6 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
     category,
     categoryServices: services.filter((s) => s.category === category),
   }))
-    // Une catégorie entièrement désactivée (voir /admin/services) ne doit
-    // pas laisser un titre et une description sans aucune prestation dessous.
     .filter(({ categoryServices }) => categoryServices.length > 0);
 
   return (
@@ -89,10 +87,6 @@ export function ServicesSection({ services }: { services: ServiceDTO[] }) {
           <h2 className="text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
             Choisissez ce que vous voulez arrêter de faire vous-même
           </h2>
-          {/* Ce qui est propre à cette section : les prix et la liberté
-              d'activer quand on veut. Que l'équipe installe et connecte tout
-              est déjà dit dans le hero et détaillé plus bas — le répéter ici
-              affaiblissait l'argument au lieu de l'appuyer. */}
           <p className="mt-4 text-lg text-muted-foreground">
             Prix affichés, sans engagement, activation en ligne quand vous êtes
             prêt.

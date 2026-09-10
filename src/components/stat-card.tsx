@@ -1,9 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Utilisé par admin/stats.tsx — le tableau de bord client a son propre
-// format (une seule carte à colonnes, voir dashboard/overview-stats.tsx),
-// plus adapté à son identité visuelle "ledger".
 export function StatCard({
   icon: Icon,
   label,

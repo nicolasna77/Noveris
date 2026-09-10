@@ -3,10 +3,6 @@ import { CLIENT, CLIENT_STATE, ANONYMOUS } from "./roles";
 
 test.use({ storageState: CLIENT_STATE });
 
-// Ce parcours existe pour une raison précise : le panneau de notifications
-// ne se monte qu'au clic, dans un portail. Il a été livré cassé — une
-// erreur de contexte Base UI — sans que le typecheck, le lint ni le rendu
-// serveur puissent le voir.
 test("le panneau de notifications s'ouvre", async ({ page }) => {
   await page.goto("/dashboard");
 
@@ -24,15 +20,10 @@ test("un client se déconnecte et retrouve le site public", async ({ page }) => 
   await page.getByRole("menuitem", { name: "Se déconnecter" }).click();
 
   await page.waitForURL("/");
-  // Le point sensible du passage à une navigation côté client : l'écran
-  // d'arrivée ne doit pas rester sur l'état connecté.
   await expect(page.getByRole("link", { name: "Créer mon compte" }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Menu utilisateur" })).toHaveCount(0);
 });
 
-// La connexion elle-même reste exercée à travers l'interface, en partant
-// d'un visiteur : c'est le seul endroit qui vérifie le formulaire, sa
-// soumission et la redirection selon le rôle.
 test.describe("depuis un visiteur", () => {
   test.use({ storageState: ANONYMOUS });
 

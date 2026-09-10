@@ -1,10 +1,5 @@
 import type { ConfigField, ServiceCategory } from "@/lib/catalog";
 
-// Source unique du catalogue : utilisée par le seed Prisma (prisma/seed.ts)
-// et par la landing page publique. Suit le cahier des charges Noveris v4,
-// section 6 (catalogue détaillé) et section 3.1 (grille tarifaire). Les prix
-// donnés en fourchette dans le document sont fixés au milieu de la fourchette
-// en attendant confirmation.
 export type CatalogService = {
   slug: string;
   name: string;
@@ -25,7 +20,6 @@ const SLOT_DURATION_OPTIONS = [
 ];
 
 export const CATALOG: CatalogService[] = [
-  // --- Communication client automatisée ---
   {
     slug: "standard-telephonique-ia",
     name: "Standard téléphonique automatisé",
@@ -121,12 +115,6 @@ export const CATALOG: CatalogService[] = [
         showIf: { key: "objectives", includes: "order" },
       },
       {
-        // Pas de showIf ici, contrairement à ses voisins : prompt.ts lit ce
-        // champ sans condition pour toute activation de ce service (annoncé
-        // en intro de chaque appel), pas seulement pour la prise de
-        // commande — le showIf "order" masquait le champ à un client
-        // rendez-vous-only tout en laissant l'agent vocal l'annoncer comme
-        // "non précisés" à chaque appel.
         key: "businessHours",
         label: "Horaires",
         type: "weekly-hours",
@@ -280,7 +268,6 @@ export const CATALOG: CatalogService[] = [
     sortOrder: 7,
   },
 
-  // --- Administration automatisée ---
   {
     slug: "devis-factures-bons-commande",
     name: "Devis, factures et bons de commande",
@@ -409,7 +396,6 @@ export const CATALOG: CatalogService[] = [
     sortOrder: 12,
   },
 
-  // --- Traitement de l'information ---
   {
     slug: "resume-pdf",
     name: "Résumé automatique de fichiers PDF",
@@ -494,7 +480,6 @@ export const CATALOG: CatalogService[] = [
     sortOrder: 15,
   },
 
-  // --- Abonnement ---
   {
     slug: "support-prioritaire",
     name: "Support prioritaire",

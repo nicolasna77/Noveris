@@ -29,8 +29,6 @@ import {
 } from "@/lib/promo-codes";
 import { createPromoCodeAction } from "./actions";
 
-// Passés à `items` : sans eux, le Select de Base UI affiche la valeur brute
-// (« percent ») dans son déclencheur au lieu du libellé.
 const KIND_LABELS = { percent: "Pourcentage", amount: "Montant fixe" } as const;
 type Kind = keyof typeof KIND_LABELS;
 
@@ -84,14 +82,11 @@ export function PromoCodeCreateDialog({
 
   const discountFields = {
     kind,
-    // Une virgule décimale est le réflexe en français.
     value: Number(value.replace(",", ".")),
     duration,
     durationInMonths: duration === "repeating" ? Number(months) : null,
   };
 
-  // L'aperçu passe par la même fonction que le serveur : ce que l'admin lit
-  // ici est exactement ce que le client lira en saisissant le code.
   const preview = value.trim() ? parseDiscountRule(discountFields) : null;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -102,8 +97,6 @@ export function PromoCodeCreateDialog({
     const input: PromoCodeFormInput = {
       code,
       ...discountFields,
-      // Fin de la journée choisie, dans le fuseau de l'admin : un code
-      // « valable jusqu'au 30 » l'est toute la journée du 30.
       expiresAtMs: expiresOn ? new Date(`${expiresOn}T23:59:59`).getTime() : null,
       maxRedemptions: maxUses.trim() ? Number(maxUses) : null,
       firstTimeOnly,
@@ -231,10 +224,6 @@ export function PromoCodeCreateDialog({
                 )}
               </div>
 
-              {/* Ce que le client lira, formulé par la fonction qui formulera
-                  réellement son message. Le point à ne pas découvrir après
-                  coup : un pourcentage entame aussi les frais de mise en
-                  place du premier paiement. */}
               <div aria-live="polite" className="rounded-2xl bg-muted/50 p-3 text-sm">
                 {preview === null ? (
                   <span className="text-muted-foreground">

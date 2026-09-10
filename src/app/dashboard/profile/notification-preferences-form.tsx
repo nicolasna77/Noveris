@@ -23,9 +23,6 @@ export function NotificationPreferencesForm({
     <ProfileSection
       title="E-mails que nous vous envoyons"
       description="Les e-mails liés à votre compte et à vos paiements vous parviennent dans tous les cas."
-      // Contrairement aux deux autres sections, chaque interrupteur part
-      // en base au moment où on le bascule — sans cette mention, rien ne
-      // distinguait les deux comportements à l'écran.
       action={
         <p className="pt-1 text-xs text-muted-foreground">
           Enregistré automatiquement

@@ -1,16 +1,6 @@
 import { db } from "@/lib/db";
 import { SERVICE_EVENT_LABELS, type ServiceEventType } from "@/lib/catalog";
 
-// Les notifications ne sont pas stockées : elles sont déduites des
-// événements qui existent déjà (ServiceEvent, messages d'une demande
-// d'aide). Une table dédiée aurait imposé d'écrire une ligne à chaque
-// endroit qui produit un événement — un oubli quelque part et la cloche
-// ment. Ici, un seul horodatage par utilisateur (User.notificationsSeenAt)
-// distingue le lu du non-lu.
-//
-// Contrepartie assumée : on marque tout comme lu d'un coup à l'ouverture du
-// panneau, on ne peut pas marquer une notification isolée.
-
 export type NotificationDTO = {
   id: string;
   title: string;
@@ -21,7 +11,6 @@ export type NotificationDTO = {
 };
 
 const MAX_NOTIFICATIONS = 20;
-// Au-delà, un événement n'a plus rien d'une notification.
 const WINDOW_DAYS = 30;
 
 function windowStart(): Date {
@@ -41,9 +30,6 @@ function sortAndCap(
     }));
 }
 
-// Ce qui concerne le client : ce que l'équipe a fait sur ses solutions, et
-// ses réponses dans ses demandes d'aide. Scopé à l'organisation active,
-// comme le reste du tableau de bord.
 export async function getClientNotifications(
   organizationId: string,
   seenAt: Date | null
@@ -93,10 +79,6 @@ export async function getClientNotifications(
   );
 }
 
-// Ce qui appelle une action de l'équipe : une demande d'aide qui arrive, ou
-// un client qui relance dans un fil. Les événements de solution ne sont pas
-// repris ici — l'équipe en est l'auteur, elle n'a pas à être notifiée de ses
-// propres gestes.
 export async function getAdminNotifications(
   seenAt: Date | null
 ): Promise<NotificationDTO[]> {

@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 
 const REFRESH_INTERVAL_MS = 20_000;
 
-// Rafraîchit silencieusement les données serveur (stats + liste clients) tant
-// que c'est activé — mais toujours pausable : le contenu qui se met à jour
-// tout seul doit pouvoir être arrêté (WCAG 2.2.2).
 export function LiveRefreshToggle() {
   const router = useRouter();
   const [enabled, setEnabled] = useState(true);

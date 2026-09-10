@@ -3,10 +3,6 @@ import { db } from "@/lib/db";
 import { requireEnv } from "@/lib/env";
 import { logServiceEvent } from "@/lib/service-events";
 
-// Connexion agenda Google par ClientService (voir CalendarConnection dans
-// prisma/schema.prisma) — appels REST directs plutôt que le SDK `googleapis`,
-// suffisant pour les 3 opérations dont on a besoin (échange de code,
-// rafraîchissement de token, création d'événement).
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
@@ -14,9 +10,6 @@ const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 
 const FEATURE = "l'agenda Google";
 
-// `state` signé (HMAC) plutôt qu'un simple clientServiceId en clair — évite
-// qu'un tiers déclenche le callback OAuth avec un clientServiceId arbitraire
-// pour rattacher sa propre connexion Google au service d'un autre client.
 function signState(clientServiceId: string): string {
   const secret = requireEnv("GOOGLE_OAUTH_STATE_SECRET", FEATURE);
   const signature = createHmac("sha256", secret).update(clientServiceId).digest("hex");
@@ -44,9 +37,6 @@ export function buildGoogleAuthUrl(clientServiceId: string): string {
     response_type: "code",
     scope: `${GOOGLE_CALENDAR_SCOPE} openid email`,
     access_type: "offline",
-    // Force le renvoi d'un refresh_token même si le client a déjà autorisé
-    // l'app par le passé (Google ne le renvoie sinon qu'à la première
-    // autorisation).
     prompt: "consent",
     state: signState(clientServiceId),
   });
@@ -60,9 +50,6 @@ type GoogleTokenResponse = {
   scope: string;
 };
 
-// Échange de code et rafraîchissement partagent la même requête à l'endpoint
-// token de Google, seuls les paramètres de grant changent — un seul endroit
-// pour le body/en-têtes/vérification d'erreur communs.
 async function requestGoogleToken(
   context: string,
   grantParams: Record<string, string>
@@ -99,18 +86,12 @@ async function fetchGoogleEmail(accessToken: string): Promise<string> {
   return data.email ?? "inconnu";
 }
 
-// Termine le flow OAuth : échange le code, récupère l'e-mail du compte
-// connecté, et upsert la CalendarConnection du ClientService.
 export async function completeGoogleCalendarConnection(
   clientServiceId: string,
   code: string
 ) {
   const tokens = await exchangeCodeForTokens(code);
   if (!tokens.refresh_token) {
-    // Arrive si le client avait déjà autorisé l'app sans passer par
-    // prompt=consent (ne devrait pas se produire vu buildGoogleAuthUrl, mais
-    // on préfère échouer explicitement plutôt que stocker une connexion
-    // qu'on ne pourra jamais rafraîchir).
     throw new Error("Google n'a pas renvoyé de refresh_token");
   }
   const googleAccountEmail = await fetchGoogleEmail(tokens.access_token);
@@ -138,8 +119,6 @@ async function refreshAccessToken(refreshToken: string): Promise<GoogleTokenResp
   });
 }
 
-// Renvoie un access token valide pour ce ClientService, en le rafraîchissant
-// d'abord si besoin — null si aucune connexion n'existe.
 export async function getValidAccessToken(
   clientServiceId: string
 ): Promise<{ accessToken: string; calendarId: string } | null> {
@@ -148,7 +127,6 @@ export async function getValidAccessToken(
   });
   if (!connection) return null;
 
-  // Marge de 60s pour éviter d'utiliser un token qui expire pendant l'appel.
   if (connection.accessTokenExpiresAt.getTime() - Date.now() > 60_000) {
     return { accessToken: connection.accessToken, calendarId: connection.calendarId };
   }
@@ -164,9 +142,6 @@ export async function getValidAccessToken(
   return { accessToken: tokens.access_token, calendarId: connection.calendarId };
 }
 
-// Vérifie qu'aucun événement n'occupe déjà ce créneau (API freeBusy) — false
-// si la connexion est absente ou si l'appel échoue (on laisse alors l'agent
-// proposer le créneau plutôt que de bloquer sur une erreur technique).
 export async function isSlotFree(
   clientServiceId: string,
   startAt: Date,
@@ -227,8 +202,6 @@ export async function createCalendarEvent(
     const created = (await res.json()) as { id: string };
     return created.id;
   } catch {
-    // Best-effort : l'appelant (book_appointment) crée quand même la
-    // Booking avec googleEventId: null pour ne jamais perdre une réservation.
     return null;
   }
 }

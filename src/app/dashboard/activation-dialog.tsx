@@ -55,9 +55,6 @@ export function ActivationDialog({
 
   function handleOpenChange(open: boolean) {
     if (open && service) {
-      // Pré-rempli avec le nom de la prestation — le client n'a besoin de le
-      // changer que s'il active la même prestation plusieurs fois (ex. deux
-      // boutiques) et veut les distinguer.
       setName(service.name);
     }
     if (!open) {
@@ -69,9 +66,6 @@ export function ActivationDialog({
     onOpenChange(open);
   }
 
-  // Interroge le serveur, qui interroge Stripe. Renvoie aussi le résultat :
-  // la validation du formulaire s'en sert pour vérifier un code saisi mais
-  // pas encore appliqué.
   async function checkPromo(): Promise<PromoPreview | null> {
     if (!service) return null;
     const code = promoInput.trim();
@@ -113,9 +107,6 @@ export function ActivationDialog({
     startTransition(async () => {
       let code: string | null = null;
       if (promoInput.trim()) {
-        // Un code saisi mais pas encore vérifié l'est ici. Payer sans la
-        // remise que le client croyait avoir obtenue serait pire que de
-        // s'arrêter pour lui dire pourquoi le code ne passe pas.
         const preview = promo.status === "applied" ? promo.preview : await checkPromo();
         if (!preview?.ok) {
           document.getElementById(promoFieldId)?.focus();
@@ -208,8 +199,6 @@ export function ActivationDialog({
                     value={promoInput}
                     onChange={(e) => {
                       setPromoInput(e.target.value);
-                      // Le code affiché ne correspond plus à celui qui a été
-                      // vérifié : l'aperçu de remise n'est plus vrai.
                       if (promo.status !== "idle") setPromo({ status: "idle" });
                     }}
                     onKeyDown={(e) => {
@@ -234,8 +223,6 @@ export function ActivationDialog({
                     {promo.status === "checking" ? "Vérification…" : "Appliquer"}
                   </Button>
                 </div>
-                {/* aria-live : le résultat arrive après un aller-retour
-                    serveur, un lecteur d'écran doit l'annoncer. */}
                 <div id={promoMessageId} aria-live="polite">
                   {promo.status === "applied" && (
                     <p className="flex items-start gap-1.5 text-sm text-foreground">

@@ -20,9 +20,6 @@ function row(overrides: Partial<Row> = {}): Row {
   };
 }
 
-// Le BOM et le point-virgule ne sont pas des détails : sans eux, le fichier
-// s'ouvre en une seule colonne et les accents sont illisibles dans Excel en
-// configuration française — c'est-à-dire chez tous les destinataires.
 const BOM = "﻿";
 
 describe("toCsv", () => {
@@ -37,8 +34,6 @@ describe("toCsv", () => {
     expect(csv.split("\r\n")).toHaveLength(3);
   });
 
-  // Le vrai danger : un champ qui contient le séparateur décale toutes les
-  // colonnes suivantes, silencieusement.
   it("protège un champ contenant le séparateur", () => {
     const csv = toCsv([row({ name: "Dupont; et fils" })], columns);
     expect(csv).toContain('"Dupont; et fils"');
@@ -54,7 +49,6 @@ describe("toCsv", () => {
     expect(csv).toContain('"ligne 1\nligne 2"');
   });
 
-  // Inversement : citer ce qui n'en a pas besoin alourdit le fichier.
   it("ne cite pas un champ ordinaire", () => {
     expect(toCsv([row()], columns)).toContain("Plomberie Lefèvre;79;");
   });
@@ -81,7 +75,6 @@ describe("csvResponseHeaders", () => {
     );
   });
 
-  // Un export est une photographie : la remettre depuis un cache tromperait.
   it("interdit la mise en cache", () => {
     const headers = csvResponseHeaders("clients") as Record<string, string>;
     expect(headers["Cache-Control"]).toBe("no-store");

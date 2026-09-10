@@ -16,22 +16,10 @@ model User {
   updatedAt               DateTime        @updatedAt
   stripeCustomerId        String?
   role                    String?         @default("CLIENT")
-  // Champs requis par le plugin `admin` de better-auth (voir src/lib/auth.ts)
-  // — gestion des comptes depuis /admin/users.
   banned                  Boolean?        @default(false)
   banReason               String?
   banExpires              DateTime?
-  // Préférences de notification par e-mail — { [type: NotificationType]:
-  // boolean }, voir src/lib/email/preferences.ts. Une clé absente vaut
-  // "activée" (opt-out plutôt qu'opt-in), pour que les notifications
-  // existantes continuent d'être envoyées aux comptes créés avant l'ajout
-  // d'un nouveau type.
   notificationPreferences Json            @default("{}")
-  // Dernière ouverture du centre de notifications (icône cloche de
-  // l'en-tête) : tout ce qui est arrivé après est considéré comme non lu.
-  // Un seul horodatage plutôt qu'une table de notifications — celles-ci
-  // sont déduites des événements existants (voir src/lib/notifications.ts),
-  // pas dupliquées à l'écriture.
   notificationsSeenAt     DateTime?
   sessions                Session[]
   accounts                Account[]
@@ -55,9 +43,6 @@ model Session {
   updatedAt      DateTime @updatedAt
   ipAddress      String?
   userAgent      String?
-  // Id de l'admin qui a lancé une usurpation d'identité (plugin `admin`
-  // better-auth) — non utilisé pour l'instant (pas d'usurpation dans
-  // /admin/users), mais requis par le schéma du plugin.
   impersonatedBy String?
   userId         String
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -123,10 +108,6 @@ model Subscription {
   @@map("subscription")
 }
 
-// ---------------------------------------------------------------------------
-// Catalogue Noveris
-// ---------------------------------------------------------------------------
-
 enum ServiceCategory {
   COMMUNICATION
   ADMINISTRATION
@@ -140,21 +121,11 @@ model Service {
   name              String
   description       String
   category          ServiceCategory
-  // Modèle tarifaire hybride : frais de mise en place ponctuel et/ou
-  // abonnement mensuel, indépendamment optionnels (au moins un des deux).
   setupFeeCents     Int?
   monthlyPriceCents Int?
-  // Plafond d'usage affiché au client (ex. "150 min incluses, puis 0,30 €/min").
   usageCapLabel     String?
-  // Champs de configuration demandés au client à l'activation :
-  // [{ "key": "phoneNumber", "label": "...", "type": "tel", "required": true, "placeholder": "..." }]
   configFields      Json            @default("[]")
   sortOrder         Int             @default(0)
-  // Désactivation temporaire par un admin (/admin/services) : masque la
-  // prestation du catalogue public et du catalogue d'activation du
-  // dashboard, sans toucher aux ClientService existants (un client déjà
-  // abonné garde sa prestation, seules les nouvelles activations sont
-  // bloquées). Réactivable à tout moment.
   isActive          Boolean         @default(true)
   clientServices    ClientService[]
   marketingPosts    MarketingPost[]
@@ -173,74 +144,30 @@ model ClientService {
   id                      String              @id @default(cuid())
   userId                  String
   user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Entreprise du client à laquelle cette activation est rattachée — un même
-  // client peut avoir plusieurs organisations (voir Organization ci-dessus),
-  // et activer plusieurs fois la même prestation (ex. deux boutiques), d'où
-  // `name` pour les distinguer et l'absence de contrainte d'unicité sur
-  // (organizationId, serviceId) seul.
   organizationId          String
   organization            Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  // Nom donné par le client à cette activation (ex. "Boutique Paris") —
-  // pré-rempli avec le nom de la prestation à l'activation, modifiable.
   name                    String
   serviceId               String
   service                 Service             @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   status                  ClientServiceStatus @default(PENDING_PAYMENT)
-  // Configuration saisie par le client (numéro WhatsApp, ligne à connecter, etc.)
   configuration           Json                @default("{}")
-  // Note libre de l'équipe Noveris lors de la bascule vers un statut (ex. « connexion agenda en cours »).
   adminNote               String?
   stripeCheckoutSessionId String?
   stripePaymentIntentId   String?
   stripeSubscriptionId    String?
-  // Numéro Twilio acheté en libre-service par le client depuis son tableau
-  // de bord (voir src/lib/twilio.ts) — le webhook /api/voice/incoming
-  // retrouve le client à partir du `To` reçu. `externalPhoneNumberSid` est
-  // conservé pour pouvoir relâcher le numéro (et arrêter sa facturation
-  // Twilio) si la prestation est résiliée.
   externalPhoneNumber     String?
   externalPhoneNumberSid  String?
-  // Identifiant Meta ("Phone Number ID") du numéro WhatsApp Business du
-  // client, connecté à l'app Meta de Noveris (voir src/lib/whatsapp.ts) —
-  // sert à la fois à retrouver le client depuis le webhook entrant
-  // (metadata.phone_number_id) et à cibler l'envoi de la réponse. Distinct
-  // du numéro humainement lisible saisi par le client à l'activation
-  // (configuration.whatsappNumber), qui n'est qu'informatif.
   whatsappPhoneNumberId    String?
-  // Renseignés uniquement quand la connexion vient du parcours self-service
-  // du client (Embedded Signup, voir whatsapp-connection.tsx) plutôt que
-  // d'une saisie manuelle par l'admin : whatsappBusinessAccountId identifie
-  // le WABA du client (nécessaire pour abonner l'app à ses webhooks),
-  // whatsappAccessToken est le jeton propre à ce client (Business
-  // Integration System User) utilisé pour envoyer en son nom — à défaut on
-  // retombe sur WHATSAPP_ACCESS_TOKEN (notre propre numéro de test).
-  // whatsappDisplayNumber n'est que la confirmation lisible affichée au
-  // client, jamais utilisé pour router quoi que ce soit.
   whatsappBusinessAccountId String?
   whatsappAccessToken       String?
   whatsappDisplayNumber     String?
-  // Connexion self-service de la Page Facebook du client (Facebook Login for
-  // Business, voir src/lib/messenger.ts et messenger-connection.tsx) —
-  // facebookPageAccessToken est propre à cette Page (pas au client
-  // Facebook), c'est lui qui sert à envoyer et à s'abonner aux webhooks de
-  // la Page. facebookPageName n'est que la confirmation affichée à l'écran.
   facebookPageId           String?
   facebookPageAccessToken  String?
   facebookPageName         String?
-  // Connexion self-service du compte Instagram du client ("Business Login
-  // for Instagram", OAuth classique — voir src/lib/instagram.ts et
-  // instagram-connection.tsx). instagramAccessToken est un jeton longue
-  // durée (60 jours, cf. exchangeForLongLivedInstagramToken) qu'il faut
-  // rafraîchir avant expiration (instagramTokenExpiresAt) — même principe
-  // que CalendarConnection.accessTokenExpiresAt pour Google Agenda.
   instagramAccountId       String?
   instagramAccessToken     String?
   instagramTokenExpiresAt  DateTime?
   instagramUsername        String?
-  // Code promo saisi à l'activation, tel que le client l'a tapé une fois
-  // normalisé. Le code lui-même vit chez Stripe (voir
-  // src/lib/stripe-promo-codes.ts) ; on ne garde ici que la trace de ce qui a
-  // été appliqué à cette activation, pour que l'équipe la retrouve.
   promoCode                String?
   activatedAt             DateTime?
   canceledAt              DateTime?
@@ -278,30 +205,17 @@ enum ServiceEventType {
   CANCELED
 }
 
-// Historique d'une prestation, affiché au client (voir service-timeline.tsx)
-// pour qu'il voie ce qui se passe sans avoir à deviner à partir des seuls
-// champs `activatedAt`/`canceledAt`/`adminNote` (qui n'écrasent que la
-// dernière valeur — une note remplacée perdait jusqu'ici toute trace de la
-// précédente). Écrit ponctuellement à chaque transition, jamais modifié.
 model ServiceEvent {
   id              String           @id @default(cuid())
   clientServiceId String
   clientService   ClientService    @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
   type            ServiceEventType
-  // Détail spécifique à l'événement (texte de la note, numéro attribué,
-  // e-mail du compte Google connecté…) — null quand le type se suffit à
-  // lui-même (ex. CANCELED).
   message         String?
   createdAt       DateTime         @default(now())
 
   @@index([clientServiceId, createdAt])
   @@map("service_event")
 }
-
-// Connexion OAuth Google Calendar d'un client pour une prestation donnée —
-// une par ClientService (un même client peut avoir plusieurs entreprises,
-// donc plusieurs agendas). Les tokens permettent à l'agent vocal d'écrire
-// directement les rendez-vous pris par téléphone dans l'agenda réel du client.
 
 model CalendarConnection {
   id                   String        @id @default(cuid())
@@ -319,11 +233,6 @@ model CalendarConnection {
   @@map("calendar_connection")
 }
 
-// Rendez-vous ou commande pris par l'agent vocal IA lors d'un appel —
-// modèle unifié (kind) plutôt que deux tables, les deux partageant le même
-// cycle de vie (créés pendant un appel, affichés dans la même liste côté
-// client) ; voir le même choix pour UsageEvent.type plus bas.
-
 model Booking {
   id              String        @id @default(cuid())
   clientServiceId String
@@ -331,14 +240,10 @@ model Booking {
   kind            String
   customerName    String
   customerPhone   String
-  // Renseignés pour un rendez-vous ; null pour une commande.
   startAt         DateTime?
   endAt           DateTime?
-  // Id de l'événement Google Calendar créé — null si l'écriture a échoué
-  // (la réservation est quand même conservée pour ne rien perdre).
   googleEventId   String?
   notes           String?
-  // Détails propres au type (ex. items/total/adresse pour une commande).
   metadata        Json?
   createdAt       DateTime      @default(now())
 
@@ -346,33 +251,16 @@ model Booking {
   @@map("booking")
 }
 
-// Un événement d'usage par appel/action facturable (ex. un appel reçu par le
-// standard téléphonique IA), reporté par le système externe concerné via le
-// webhook POST /api/usage-events. Sert à afficher un compteur en direct côté
-// client (voir usage-counter.tsx) — le type reste une simple chaîne plutôt
-// qu'un enum pour ne pas nécessiter de migration à chaque nouvelle métrique.
-
 model UsageEvent {
   id              String        @id @default(cuid())
   clientServiceId String
   clientService   ClientService @relation(fields: [clientServiceId], references: [id], onDelete: Cascade)
   type            String        @default("call")
-  // "in_progress" tant que l'appel n'est pas terminé (posé par le webhook au
-  // décroché, voir /api/usage-events), puis "completed" une fois raccroché
-  // — permet d'afficher les appels en cours côté client, pas seulement le
-  // récapitulatif après coup.
   status          String        @default("completed")
   occurredAt      DateTime
   endedAt         DateTime?
-  // Durée en secondes, quand la prestation facture au temps plutôt qu'à
-  // l'événement (ex. minutes du standard téléphonique IA) — null sinon.
   durationSec     Int?
-  // Identifiant côté système externe (ex. call_id Retell), pour dédupliquer
-  // les webhooks qui peuvent être renvoyés plusieurs fois par l'émetteur.
   externalId      String?       @unique
-  // Détails bruts propres au type d'événement (ex. fromNumber, transcript,
-  // endedReason pour un appel) — volontairement non typé pour ne pas
-  // nécessiter de migration à chaque nouvelle métrique.
   metadata        Json?
   createdAt       DateTime      @default(now())
 
@@ -380,9 +268,6 @@ model UsageEvent {
   @@index([clientServiceId, status])
   @@map("usage_event")
 }
-
-// Messages envoyés depuis la page de contact publique (visiteurs non
-// authentifiés — pas de lien vers User).
 
 model ContactMessage {
   id        String   @id @default(cuid())
@@ -400,22 +285,15 @@ enum HelpRequestStatus {
   RESOLVED
 }
 
-// Demande envoyée depuis le centre d'aide du dashboard client (contrairement
-// à ContactMessage, envoyé par un visiteur non authentifié) — le profil du
-// client et, si renseignée, la prestation concernée sont donc déjà connus
-// côté admin sans qu'il ait à les redemander.
 model HelpRequest {
   id              String            @id @default(cuid())
   userId          String
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   organizationId  String
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  // Absente pour une question générale (pas liée à une prestation précise).
   clientServiceId String?
   clientService   ClientService?    @relation(fields: [clientServiceId], references: [id], onDelete: SetNull)
   subject         String
-  // Message d'ouverture — les réponses qui suivent, des deux côtés, vivent
-  // dans HelpRequestMessage ci-dessous.
   message         String
   status          HelpRequestStatus @default(OPEN)
   createdAt       DateTime          @default(now())
@@ -429,19 +307,12 @@ model HelpRequest {
   @@map("help_request")
 }
 
-// Fil de discussion d'une demande d'aide, alimenté dans les deux sens : le
-// client depuis /dashboard/aide, l'équipe depuis /admin/aide. Le message
-// d'ouverture reste sur HelpRequest.message (il porte aussi le sujet et le
-// statut) — seules les réponses arrivent ici.
 model HelpRequestMessage {
   id            String      @id @default(cuid())
   helpRequestId String
   helpRequest   HelpRequest @relation(fields: [helpRequestId], references: [id], onDelete: Cascade)
   authorId      String
   author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  // Côté figé à l'écriture plutôt que déduit du rôle de l'auteur au moment
-  // de l'affichage : une promotion ou une rétrogradation ultérieure ne doit
-  // pas réécrire qui parlait au nom de Noveris dans un fil déjà clos.
   fromTeam      Boolean
   body          String
   createdAt     DateTime    @default(now())
@@ -510,31 +381,15 @@ enum AuditAction {
   PROMO_CODE_DEACTIVATED
 }
 
-// Journal des actions d'administration sensibles — qui a fait quoi, à qui,
-// et quand. Distinct de ServiceEvent, qui raconte la vie d'une prestation au
-// client concerné : ce journal-ci n'est jamais montré aux clients et retient
-// l'auteur de l'action, ce que ServiceEvent ne fait pas.
-//
-// Aucune écriture n'est jamais modifiée ni supprimée par l'application : une
-// ligne fausse ou effaçable ne vaudrait rien comme trace.
 model AuditLog {
   id      String      @id @default(cuid())
   actorId String
-  // Restrict plutôt que Cascade : supprimer un compte admin ne doit pas
-  // effacer discrètement la trace de ce qu'il a fait. Le jour où une
-  // suppression de compte existera, il faudra trancher explicitement le sort
-  // de ces lignes plutôt que de les perdre par défaut.
   actor   User        @relation(fields: [actorId], references: [id], onDelete: Restrict)
   action  AuditAction
-  // Libellés figés à l'écriture (nom de l'admin, e-mail du client visé, nom
-  // de la prestation) : un renommage ultérieur ne doit pas réécrire
-  // l'histoire, et la ligne reste lisible même si la cible disparaît.
   actorLabel  String
   targetType  String
   targetId    String
   targetLabel String
-  // Précision libre et déjà mise en forme pour l'affichage (motif d'un
-  // bannissement, « 79,00 € → 89,00 € »…).
   detail      String?
   createdAt   DateTime @default(now())
 
@@ -543,12 +398,6 @@ model AuditLog {
   @@map("audit_log")
 }
 
-// ---------------------------------------------------------------------------
-// Studio marketing — les comptes sociaux de Noveris, pas ceux des clients.
-// Rien ici n'est vendable ni visible d'un client : c'est l'outil interne qui
-// alimente la présence de l'agence (voir src/app/admin/marketing).
-// ---------------------------------------------------------------------------
-
 enum MarketingChannel {
   LINKEDIN
   FACEBOOK
@@ -556,12 +405,9 @@ enum MarketingChannel {
 }
 
 enum MarketingPostStatus {
-  // Proposé par l'agent, pas encore tranché.
   DRAFT
-  // Validé par un humain : seul état depuis lequel une publication est permise.
   APPROVED
   PUBLISHED
-  // Écarté — conservé plutôt que supprimé, pour ne pas reproposer la même idée.
   REJECTED
 }
 
@@ -570,29 +416,18 @@ model MarketingPost {
   channel MarketingChannel
   status  MarketingPostStatus @default(DRAFT)
 
-  // L'angle éditorial retenu par l'agent, en une phrase — sert à repérer d'un
-  // coup d'œil que deux propositions ne disent pas la même chose.
   angle String
   body  String
 
-  // La solution du catalogue dont le post parle. Nullable : un post peut
-  // porter sur l'offre en général. onDelete: SetNull — supprimer une solution
-  // ne doit pas effacer l'historique éditorial qu'elle a inspiré.
   serviceId String?
   service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
-  // Instagram n'accepte pas de publication sans image : l'agent décrit le
-  // visuel attendu plutôt que d'en inventer un. Renseigné pour ce canal,
-  // laissé vide pour les autres.
   imageBrief String?
 
-  // Signalements automatiques relevés à la génération (chiffre invérifiable,
-  // témoignage inventé…). Purement consultatif : c'est l'humain qui tranche.
   warnings String[] @default([])
 
   scheduledFor DateTime?
   publishedAt  DateTime?
-  // Identifiant du post chez le réseau, une fois publié.
   externalId   String?
 
   createdAt DateTime @default(now())

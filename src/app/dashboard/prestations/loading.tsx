@@ -6,7 +6,6 @@ export default function Loading() {
       <Skeleton className="h-8 w-44" />
       <Skeleton className="mt-2 h-5 w-72" />
 
-      {/* Mes solutions : la barre de filtres, puis les cartes activées. */}
       <div className="mt-10 flex flex-wrap gap-2">
         <Skeleton className="h-9 min-w-48 flex-1" />
         <Skeleton className="h-9 w-44" />
@@ -18,7 +17,6 @@ export default function Loading() {
         ))}
       </div>
 
-      {/* Le catalogue d'activation, en grille. */}
       <Skeleton className="mt-14 h-6 w-56" />
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (

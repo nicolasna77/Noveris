@@ -25,10 +25,6 @@ const PERKS = [
 ];
 
 export function MaintenanceSection({ services }: { services: ServiceDTO[] }) {
-  // Un admin peut désactiver temporairement n'importe quelle prestation
-  // depuis /admin/services (voir isActive) — cette section ne doit pas faire
-  // planter la page d'accueil si « support-prioritaire » n'est pas (ou plus)
-  // dans le catalogue actif.
   const support = services.find((s) => s.slug === "support-prioritaire");
   if (!support) return null;
 

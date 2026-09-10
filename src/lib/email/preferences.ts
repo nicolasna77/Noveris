@@ -3,10 +3,6 @@ import { NOTIFICATION_TYPES } from "./types";
 
 export type NotificationPreferences = Partial<Record<NotificationType, boolean>>;
 
-// Une clé absente vaut "activée" (opt-out plutôt qu'opt-in) — voir le
-// commentaire sur User.notificationPreferences dans prisma/schema.prisma :
-// un compte créé avant l'ajout d'un type continue de le recevoir tant qu'il
-// ne l'a pas explicitement désactivé.
 export function isNotificationEnabled(
   preferences: unknown,
   type: NotificationType

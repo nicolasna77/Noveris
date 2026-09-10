@@ -31,9 +31,6 @@ import {
   WeeklyHoursField,
 } from "./config-field-inputs";
 
-// Regroupe les champs visibles par section (dans l'ordre d'apparition) — les
-// champs sans section explicite tombent dans un groupe générique commun, ce
-// qui évite d'avoir à étiqueter chaque champ individuellement.
 const DEFAULT_SECTION = "Détail de la solution";
 
 function groupBySection(fields: ConfigField[]): [string, ConfigField[]][] {
@@ -47,9 +44,6 @@ function groupBySection(fields: ConfigField[]): [string, ConfigField[]][] {
   return Array.from(groups.entries());
 }
 
-// Un seul endroit pour "quel widget pour quel type de champ" — un switch
-// plutôt qu'une chaîne de ternaires imbriqués, pour que trouver ou ajouter un
-// type de champ n'oblige pas à relire toute la chaîne du dessus.
 function renderFieldInput({
   field,
   value,
@@ -84,8 +78,6 @@ function renderFieldInput({
       return (
         <Select
           value={typeof value === "string" ? value : null}
-          // Sans `items`, le déclencheur affiche la valeur brute de l'option
-          // (« appointment ») au lieu de son libellé.
           items={field.options}
           onValueChange={(next) => {
             onChange(next ?? "");
@@ -185,10 +177,6 @@ function renderFieldInput({
       );
 
     default:
-      // "text" | "tel" | "email" | "url" | "connection" — toutes des saisies
-      // texte simples pour l'instant ; "connection" reste une saisie
-      // manuelle en attendant une vraie connexion OAuth finalisée par
-      // l'équipe Noveris.
       return (
         <Input
           id={field.key}
@@ -214,9 +202,6 @@ export function ConfigFieldsForm({
   fields: ConfigField[];
   values: Configuration;
   onChange: (key: string, value: ConfigValue) => void;
-  // Passé à true par le formulaire parent après une tentative de
-  // soumission invalide — révèle les erreurs des champs que l'utilisateur
-  // n'a pas encore quittés (ex. cases à cocher jamais "blurées").
   submitAttempted?: boolean;
 }) {
   const [touched, setTouched] = useState<Set<string>>(new Set());
@@ -293,10 +278,6 @@ export function ConfigFieldsForm({
               );
             }
 
-            // "weekly-hours" et "rules-list" sont des groupes de contrôles,
-            // pas un champ unique : htmlFor pointerait sur un <div>, que les
-            // lecteurs d'écran ignorent. Ils se nomment eux-mêmes via
-            // aria-labelledby vers l'id de ce label (voir renderFieldInput).
             const isFieldGroup =
               field.type === "weekly-hours" || field.type === "rules-list";
 

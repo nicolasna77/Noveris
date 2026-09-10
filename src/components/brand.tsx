@@ -1,11 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-// Le "N" est tracé comme un tracé continu (bas-gauche → haut-gauche →
-// bas-droite → haut-droite, comme on écrirait la lettre) plutôt qu'affiché en
-// texte — les deux points aux extrémités de la diagonale évoquent des points
-// reliés (l'automatisation connecte des systèmes entre eux), sans complexifier
-// le tracé au point de le rendre illisible en petite taille (favicon 16 px).
 export function NoverisMark({ className }: { className?: string }) {
   return (
     <svg

@@ -1,8 +1,3 @@
-// Types de notification que le client peut désactiver individuellement
-// depuis /dashboard/profile — voir src/lib/email/preferences.ts et
-// User.notificationPreferences dans prisma/schema.prisma. Les notifications
-// internes à l'équipe Noveris (nouvelle demande d'aide, message de contact)
-// n'en font pas partie : il n'y a pas de préférence client à vérifier.
 export const NOTIFICATION_TYPES = [
   "HELP_REQUEST_REPLY",
   "HELP_REQUEST_RESOLVED",

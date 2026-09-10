@@ -95,10 +95,6 @@ export function ServicesTable({ services }: { services: EditableService[] }) {
   );
 }
 
-// Bascule rapide, sans passer par le formulaire d'édition complet — une
-// prestation désactivée disparaît du catalogue public et du catalogue
-// d'activation, mais les clients qui l'ont déjà activée ne sont pas
-// affectés (voir setServiceActiveAction).
 function ServiceActiveToggle({ service }: { service: EditableService }) {
   const [isActive, setIsActive] = useState(service.isActive);
   const [isPending, startTransition] = useTransition();

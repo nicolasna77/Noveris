@@ -13,10 +13,6 @@ declare global {
 
 let fbSdkPromise: Promise<void> | null = null;
 
-// Charge le SDK JavaScript Facebook une seule fois par page, quel que soit
-// le nombre de composants qui le demandent (WhatsAppConnection et
-// MessengerConnection utilisent tous les deux Facebook Login for Business)
-// — un second appel à FB.init lèverait une erreur du SDK.
 export function loadFacebookSdk(appId: string): Promise<void> {
   if (typeof window.FB !== "undefined") return Promise.resolve();
   if (fbSdkPromise) return fbSdkPromise;

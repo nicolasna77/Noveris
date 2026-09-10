@@ -1,11 +1,5 @@
 "use client";
 
-// Widgets de saisie dédiés à un type de champ de configuration (date,
-// tags, multiselect, horaires hebdo, liste de règles) — regroupés dans un
-// seul fichier plutôt que fragmentés en un fichier par composant : ce sont
-// des variantes d'un même type de brique (un champ personnalisé pour
-// ConfigFieldsForm), pas des responsabilités distinctes les unes des autres.
-
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -172,9 +166,6 @@ function TimePicker({
   onChange,
 }: {
   value: string;
-  // Nom accessible du bouton : seul "09:00" est affiché, un lecteur d'écran
-  // ne saurait pas sinon s'il s'agit de l'ouverture ou de la fermeture, ni
-  // de quel jour.
   label: string;
   disabled?: boolean;
   onChange: (value: string) => void;
@@ -223,9 +214,6 @@ function TimePicker({
   );
 }
 
-// Groupe de contrôles, pas un champ unique : le <Label> du formulaire ne
-// peut pas le désigner par htmlFor (il ne pointerait sur rien d'étiquetable),
-// d'où role="group" + aria-labelledby vers ce même label.
 export function WeeklyHoursField({
   id,
   labelledBy,
@@ -246,10 +234,6 @@ export function WeeklyHoursField({
       {WEEK_DAYS.map((day) => {
         const hours = value[day];
         return (
-          // Sous 640px, le jour passe au-dessus de ses horaires : la ligne
-          // complète (jour + deux sélecteurs) fait ~350px et ne tient pas
-          // dans un Dialog sur mobile, où flex-wrap séparait l'heure de
-          // fermeture de son ouverture au milieu de la ligne.
           <div
             key={day}
             className="flex flex-col gap-1.5 border-b border-border pb-2 text-sm last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:gap-3 sm:border-b-0 sm:pb-0"
@@ -287,7 +271,6 @@ export function WeeklyHoursField({
   );
 }
 
-// Même raison que WeeklyHoursField ci-dessus pour role="group".
 export function RulesListField({
   id,
   labelledBy,
@@ -299,12 +282,6 @@ export function RulesListField({
   value: RuleRow[];
   onChange: (value: RuleRow[]) => void;
 }) {
-  // Clés stables générées à la création de chaque ligne (pas dérivées de
-  // l'index) : sans ça, supprimer une ligne au milieu de la liste fait
-  // réutiliser par React le mauvais <Input> (focus, sélection) pour les
-  // lignes suivantes, dont la position a changé mais pas la clé. Mises à
-  // jour uniquement depuis les handlers ci-dessous (jamais pendant le
-  // rendu, voir react-hooks/refs).
   const [keys, setKeys] = useState<string[]>(() =>
     value.map(() => crypto.randomUUID())
   );
@@ -326,8 +303,6 @@ export function RulesListField({
   return (
     <div id={id} role="group" aria-labelledby={labelledBy} className="space-y-2">
       {value.map((row, index) => (
-        // Sous 640px les deux champs s'empilent : côte à côte, "Condition" et
-        // "Action" tombent à ~90px de large chacun dans un Dialog mobile.
         <div
           key={keys[index] ?? index}
           className="flex flex-col gap-2 sm:flex-row sm:items-center"

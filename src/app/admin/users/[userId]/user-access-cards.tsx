@@ -3,10 +3,6 @@ import { RoleSelector } from "../role-selector";
 import { BanControl } from "../ban-control";
 import { PasswordResetControl } from "../password-reset-control";
 
-// Les 3 actions qu'un admin ne peut pas s'appliquer à lui-même (voir
-// requireAdminActingOnOther dans admin/users/actions.ts) — isSelf coupe
-// court côté UI avant même d'essayer, plutôt que de laisser l'action
-// échouer après coup.
 export function UserAccessCards({
   user,
   isSelf,

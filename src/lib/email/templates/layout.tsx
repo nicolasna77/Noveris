@@ -10,8 +10,6 @@ import {
 import type { ReactNode } from "react";
 import { EMAIL_COLORS } from "../colors";
 
-// Habillage commun à tous les e-mails Noveris — un seul endroit pour le
-// header/footer plutôt que dupliqué dans chaque template.
 export function EmailLayout({
   preview,
   children,

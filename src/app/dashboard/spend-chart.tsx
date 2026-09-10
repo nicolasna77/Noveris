@@ -3,9 +3,6 @@ import { SpendChartView } from "./spend-chart-view";
 
 const MONTHS_SHOWN = 6;
 
-// Regroupe les factures payées par mois calendaire (6 derniers mois, mois en
-// cours inclus) — toujours 6 buckets, même à zéro, pour ne pas cacher le
-// graphique chez un client qui vient de s'inscrire.
 export async function SpendChart({
   userId,
   organizationId,

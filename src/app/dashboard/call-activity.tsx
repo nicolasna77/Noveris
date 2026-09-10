@@ -51,10 +51,6 @@ function formatDateTime(iso: string): string {
   });
 }
 
-// Appels en cours (voyant vert clignotant, comme le standard téléphonique) +
-// récapitulatif des derniers appels terminés — alimenté par le webhook
-// POST /api/usage-events (statut in_progress puis completed, voir la route)
-// et interrogé ici en polling, comme usage-counter.tsx.
 export function CallActivity({ clientServiceId }: { clientServiceId: string }) {
   const [data, setData] = useState<CallsResponse | null>(null);
 
@@ -68,7 +64,6 @@ export function CallActivity({ clientServiceId }: { clientServiceId: string }) {
         const json: CallsResponse = await res.json();
         if (!cancelled) setData(json);
       } catch {
-        // Un raté de polling ne doit pas casser l'affichage existant.
       }
     }
 

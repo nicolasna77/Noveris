@@ -9,12 +9,6 @@ import {
   sendNewHelpRequestInternalEmail,
 } from "@/lib/email/notifications";
 
-// Envoie une demande depuis le centre d'aide du dashboard client. Le profil
-// (userId) et l'entreprise (organizationId, l'organisation active) sont
-// déduits de la session plutôt que saisis par le client — seule la
-// prestation concernée, optionnelle, vient du formulaire, et sa
-// correspondance avec l'organisation active est revérifiée côté serveur
-// plutôt que de faire confiance à l'id transmis.
 export async function submitHelpRequest(input: {
   subject: string;
   message: string;
@@ -63,9 +57,6 @@ export async function submitHelpRequest(input: {
   revalidatePath("/admin/aide");
 }
 
-// Réponse du client dans le fil d'une de ses demandes (relance, précision,
-// réponse à l'équipe). La demande est rattachée à l'organisation active et
-// revérifiée ici plutôt que de faire confiance à l'id transmis.
 export async function replyToHelpRequest(helpRequestId: string, body: string) {
   const session = await getSession();
   if (!session) throw new Error("UNAUTHENTICATED");
@@ -86,9 +77,6 @@ export async function replyToHelpRequest(helpRequestId: string, body: string) {
     data: { helpRequestId, authorId: session.user.id, fromTeam: false, body: trimmed },
   });
 
-  // Une relance sur une demande déjà close doit la faire remonter : la liste
-  // admin ne montre que les demandes "En attente" par défaut, la réponse
-  // resterait invisible sinon.
   if (helpRequest.status === "RESOLVED") {
     await db.helpRequest.update({
       where: { id: helpRequestId },

@@ -14,10 +14,6 @@ function formatCents(cents: number | null): string {
       );
 }
 
-// Ce qui a réellement changé, mis en forme pour le journal — sans ça, une
-// ligne « Solution modifiée » n'apprendrait rien : c'est précisément le
-// passage d'un prix mensuel de 79 à 89 € qu'on cherche à retrouver après
-// coup. La description, potentiellement longue, est seulement signalée.
 function describeServiceChanges(
   before: {
     name: string;
@@ -61,19 +57,12 @@ export type ServiceUpdateInput = {
   name: string;
   description: string;
   category: ServiceCategory;
-  // En euros (pas en centimes) — conversion faite ici, pas dans le
-  // formulaire, pour que l'unité en base (centimes) reste un détail
-  // d'implémentation invisible de l'admin.
   setupFeeEuros: number | null;
   monthlyPriceEuros: number | null;
   usageCapLabel: string | null;
   sortOrder: number;
 };
 
-// Le catalogue (nom, description, catégorie, prix, plafond d'usage, ordre)
-// est éditable depuis /admin/services depuis cette fonctionnalité — voir
-// prisma/seed.ts pour ce qui reste synchronisé depuis le code (uniquement
-// configFields, pas encore d'éditeur générique pour ceux-ci).
 export async function updateServiceAction(
   serviceId: string,
   input: ServiceUpdateInput
@@ -109,8 +98,6 @@ export async function updateServiceAction(
   });
 
   const changes = describeServiceChanges(before, after);
-  // Une soumission sans modification réelle ne laisse pas de trace : le
-  // journal ne sert qu'à retrouver ce qui a changé.
   if (changes) {
     await logAdminAction({
       actor: session.user,
@@ -120,21 +107,10 @@ export async function updateServiceAction(
     });
   }
 
-  // Le catalogue est affiché sur le site public (accueil, /prestations/[slug],
-  // menus de navigation) et dans le tableau de bord client — on invalide
-  // largement plutôt que d'énumérer chaque route, une édition de catalogue
-  // restant rare (pas un chemin chaud).
   revalidatePath("/", "layout");
   revalidatePath("/dashboard", "layout");
 }
 
-// Désactive/réactive une prestation sans la supprimer : une fois désactivée,
-// elle disparaît du catalogue public et du catalogue d'activation (voir
-// getCatalog/getServiceBySlug dans src/lib/get-catalog.ts) mais les clients
-// qui l'ont déjà activée gardent leur prestation intacte — seules les
-// nouvelles activations sont bloquées. Séparée de updateServiceAction : un
-// aller-retour rapide en un clic depuis le tableau, pas besoin d'ouvrir le
-// formulaire d'édition complet pour ça.
 export async function setServiceActiveAction(serviceId: string, isActive: boolean) {
   const session = await requireAdmin();
 

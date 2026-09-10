@@ -5,8 +5,6 @@ import { recordUsageEvent } from "@/lib/usage-events";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { validateMetaSignature, verifyMetaWebhookChallenge } from "@/lib/meta";
 
-// Vérification du webhook faite une fois par Meta à sa configuration —
-// https://developers.facebook.com/docs/graph-api/webhooks/getting-started.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("hub.mode");
@@ -35,11 +33,6 @@ type WhatsAppWebhookPayload = {
   }[];
 };
 
-// Reçoit chaque message WhatsApp entrant (voir src/lib/whatsapp.ts pour la
-// vérification de signature et l'envoi de réponse). Un seul numéro Meta
-// partagé par tous les clients Noveris : `phone_number_id` identifie lequel
-// a reçu le message (voir ClientService.whatsappPhoneNumberId), exactement
-// comme le `To` Twilio identifie la prestation téléphonique appelée.
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
@@ -53,9 +46,6 @@ export async function POST(request: Request) {
   const phoneNumberId = value?.metadata?.phone_number_id;
   const message = value?.messages?.[0];
 
-  // Statuts de livraison ("delivered", "read"...) et messages non-texte
-  // (image, audio...) arrivent sur la même route sans `message.text` — on
-  // accuse simplement réception, rien à répondre pour l'instant.
   if (!phoneNumberId || !message || message.type !== "text" || !message.text) {
     return NextResponse.json({ received: true });
   }
@@ -65,8 +55,6 @@ export async function POST(request: Request) {
     include: { service: true, organization: true },
   });
   if (!clientService) {
-    // Numéro Meta connu de Meta mais pas encore rattaché à une prestation
-    // côté Noveris (configuration en cours) — on ne répond pas.
     return NextResponse.json({ received: true });
   }
 

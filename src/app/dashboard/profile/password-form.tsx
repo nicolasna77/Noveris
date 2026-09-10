@@ -9,9 +9,6 @@ import { authClient } from "@/lib/auth-client";
 import { ProfileSection } from "./profile-section";
 
 export function PasswordForm() {
-  // Replié par défaut : changer son mot de passe est rare, trois champs
-  // vides en permanence occupaient autant de place que le reste de la page
-  // pour une action qu'on ne fait presque jamais.
   const [open, setOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

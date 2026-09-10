@@ -3,12 +3,6 @@ import { db } from "@/lib/db";
 
 export type RecordUsageEventInput = {
   clientServiceId: string;
-  // "call" par défaut (seul type existant jusqu'ici) — "whatsapp_message"
-  // pour un message reçu sur /api/whatsapp/webhook. Ne change pas le calcul
-  // de `count` ci-dessous (compteur mensuel d'appels affiché par
-  // UsageCounter) : WhatsApp n'a pas de plafond d'usage au catalogue
-  // (usageCapLabel: null pour "assistant-whatsapp"), donc rien n'en dépend
-  // encore — juste une meilleure étiquette dans l'historique brut.
   type?: string;
   externalId?: string | null;
   status?: "in_progress" | "completed";
@@ -17,13 +11,6 @@ export type RecordUsageEventInput = {
   metadata?: Prisma.InputJsonValue;
 };
 
-// Enregistre le cycle de vie d'un appel (ou autre événement d'usage
-// facturable) : upsert par `externalId` quand fourni — le raccroché met à
-// jour la même ligne que le décroché plutôt que d'en créer une seconde —
-// sinon création directe. Partagé par POST /api/usage-events (système
-// externe, via x-api-key) et par le webhook OpenAI
-// (src/app/api/voice/openai-webhook/route.ts, appelé en process, sans
-// repasser par HTTP) — un seul endroit pour cette logique d'upsert.
 export async function recordUsageEvent(
   input: RecordUsageEventInput
 ): Promise<{ count: number }> {

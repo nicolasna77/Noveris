@@ -1,8 +1,5 @@
 import Link from "next/link";
 
-// Partagé par ClientsSection et UsersSection — construit les liens
-// Précédent/Suivant en reportant les paramètres de recherche/filtre actifs,
-// sans jamais les deux dupliquer avec un `buildPageHref` propre à chacun.
 export function PaginationNav({
   page,
   totalPages,

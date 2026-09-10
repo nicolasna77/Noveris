@@ -16,11 +16,6 @@ export const stripeClient = new Stripe(
   { apiVersion: "2026-06-24.dahlia" }
 );
 
-// Le plugin `admin` résout les permissions d'un rôle via une map interne
-// dont les clés par défaut sont "admin"/"user" (minuscules) — nos valeurs de
-// rôle sont "ADMIN"/"CLIENT" (voir user.additionalFields.role plus bas), donc
-// on remappe les permissions par défaut (adminAc/userAc, inchangées) sur nos
-// propres noms de rôle plutôt que de renommer nos rôles.
 const accessControl = createAccessControl(defaultStatements);
 const adminRole = accessControl.newRole(adminAc.statements);
 const clientRole = accessControl.newRole(userAc.statements);
@@ -34,13 +29,6 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
-  // Protège /sign-in, /sign-up, /change-password, /change-email
-  // (3 tentatives / 10s) et /request-password-reset, /forget-password,
-  // /email-otp/* (3 / 60s) via les règles par défaut de better-auth — pas
-  // besoin de customRules pour ça. customStorage (Redis, voir
-  // src/lib/rate-limit.ts) plutôt que le backend "memory" par défaut : sur
-  // Vercel, chaque instance serverless aurait sinon son propre compteur,
-  // contournable simplement en retombant sur une autre instance.
   rateLimit: {
     enabled: true,
     customStorage: redisRateLimitStorage,
@@ -60,19 +48,11 @@ export const auth = betterAuth({
   },
   account: {
     accountLinking: {
-      // Aucun compte de l'app n'a jamais d'e-mail vérifié
-      // (requireEmailVerification: false ci-dessus, pas de flux de
-      // vérification) — la protection par défaut de Better Auth contre le
-      // vol de compte via un e-mail non vérifié n'apporte donc rien ici :
-      // elle bloquerait la connexion Google de tout client déjà inscrit par
-      // e-mail/mot de passe pour rien.
       requireLocalEmailVerified: false,
     },
   },
   user: {
     additionalFields: {
-      // input: false — le rôle ne peut jamais être fourni par le client à
-      // l'inscription ; seul un accès direct à la base peut le modifier.
       role: {
         type: "string",
         required: false,
@@ -88,9 +68,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    // Gestion des comptes depuis /admin/users (rôles, bannissement, sessions)
-    // — nos valeurs de rôle sont "ADMIN"/"CLIENT" (voir user.additionalFields
-    // .role ci-dessus), pas les "admin"/"user" par défaut du plugin.
     admin({
       defaultRole: "CLIENT",
       adminRoles: ["ADMIN"],
@@ -100,11 +77,6 @@ export const auth = betterAuth({
         CLIENT: clientRole,
       },
     }),
-    // Une "organisation" = une entreprise du client (il peut en avoir
-    // plusieurs). Équipes et contrôle d'accès dynamique désactivés (défaut) :
-    // un client est seul propriétaire de ses organisations pour l'instant,
-    // pas de collaborateurs à inviter — juste Organization/Member/Invitation,
-    // sans la complexité des équipes.
     organization({
       organizationLimit: 20,
     }),
@@ -112,11 +84,6 @@ export const auth = betterAuth({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
       createCustomerOnSignUp: true,
-      // Chaque prestation ouvre sa propre Checkout Session (voir
-      // activateService dans src/app/dashboard/actions.ts), qui peut mélanger
-      // une ligne ponctuelle (frais de mise en place) et une ligne récurrente
-      // (abonnement mensuel) selon le modèle tarifaire hybride du service —
-      // il n'y a donc plus de plan d'abonnement unique à déclarer ici.
       onEvent: async (event) => {
         switch (event.type) {
           case "checkout.session.completed": {
@@ -126,15 +93,9 @@ export const auth = betterAuth({
               const { count } = await db.clientService.updateMany({
                 where: {
                   id: session.metadata.clientServiceId,
-                  // Idempotence : Stripe peut redélivrer cet événement
-                  // (timeout, retry) — sans ce garde-fou, une redélivrance
-                  // tardive ferait régresser une prestation déjà validée
-                  // ACTIVE par un admin vers CONFIGURING.
                   status: { not: "ACTIVE" },
                 },
                 data: {
-                  // Paiement confirmé — l'équipe Noveris déploie la
-                  // prestation ; un admin la bascule ensuite en ACTIVE.
                   status: "CONFIGURING",
                   stripePaymentIntentId:
                     typeof session.payment_intent === "string"
@@ -146,8 +107,6 @@ export const auth = betterAuth({
                       : session.subscription?.id,
                 },
               });
-              // count === 0 sur une redélivrance déjà traitée (voir garde-fou
-              // ci-dessus) — ne pas dupliquer l'entrée d'historique.
               if (count > 0) {
                 await logServiceEvent(session.metadata.clientServiceId, "PAYMENT_RECEIVED");
               }
@@ -157,11 +116,6 @@ export const auth = betterAuth({
 
           case "customer.subscription.deleted": {
             const subscription = event.data.object as Stripe.Subscription;
-            // Une résiliation peut arriver ici plutôt que par cancelService
-            // (portail client Stripe, annulation directe dans le dashboard
-            // Stripe) — sans relâcher le numéro Twilio ici aussi, il restait
-            // facturé à Noveris indéfiniment après une résiliation qui ne
-            // passe pas par le tableau de bord.
             const affected = await db.clientService.findMany({
               where: { stripeSubscriptionId: subscription.id },
               select: { id: true, externalPhoneNumberSid: true },

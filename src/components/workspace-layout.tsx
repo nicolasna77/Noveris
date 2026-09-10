@@ -12,10 +12,6 @@ import type { NotificationDTO } from "@/lib/notifications";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 
-// Coquille partagée par le dashboard client et l'admin : sidebar à gauche +
-// en-tête (bascule sidebar, thème, menu utilisateur) + contenu. Seule la
-// sidebar elle-même diffère entre les deux (voir DashboardSidebar/AdminSidebar),
-// passée en slot plutôt que dupliquer tout le reste de la mise en page.
 export async function WorkspaceLayout({
   sidebar,
   name,
@@ -26,8 +22,6 @@ export async function WorkspaceLayout({
   sidebar: React.ReactNode;
   name: string;
   email: string;
-  // Calculées par chaque layout : le client voit ce qui touche ses
-  // solutions, l'équipe ce qui appelle une réponse de sa part.
   notifications: NotificationDTO[];
   children: React.ReactNode;
 }) {

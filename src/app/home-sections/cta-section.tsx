@@ -2,9 +2,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
-// Aligné à gauche comme le reste de la page et comme la fin des pages de
-// solution : un bloc centré relançait une mise en page de gabarit au moment
-// précis où l'on demande au lecteur d'agir.
 export function CtaSection() {
   return (
     <section className="bg-muted/40 py-20 sm:py-24">

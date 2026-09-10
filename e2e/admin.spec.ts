@@ -3,8 +3,6 @@ import { ADMIN_STATE, ANONYMOUS } from "./roles";
 
 test.use({ storageState: ADMIN_STATE });
 
-// Ouvre le détail du premier client listé — les identifiants viennent du
-// seed, on ne les code donc pas en dur.
 test("le détail d'un utilisateur montre ce que voit le client", async ({ page }) => {
   await page.goto("/admin/users");
   await page
@@ -15,12 +13,8 @@ test("le détail d'un utilisateur montre ce que voit le client", async ({ page }
 
   await expect(page.getByRole("heading", { name: "Ce que voit le client" })).toBeVisible();
 
-  // L'état d'une session n'était signalé nulle part : une session expirée
-  // gardait un bouton « Révoquer » qui ne pouvait rien révoquer.
   await expect(page.getByRole("columnheader", { name: "État" })).toBeVisible();
 
-  // Le suivi en direct, demandé pour voir arriver un paiement ou une
-  // connexion sans recharger.
   await expect(page.getByRole("button", { name: /Direct|En pause/ })).toBeVisible();
 });
 
@@ -31,8 +25,6 @@ test("le centre d'aide propose le direct et l'export", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Exporter en CSV" })).toBeVisible();
 });
 
-// L'export est une route, pas un bouton : on vérifie qu'elle rend bien un
-// fichier, et qu'elle ne le sert pas depuis un cache.
 test("l'export clients rend un CSV téléchargeable", async ({ page }) => {
   const response = await page.request.get("/admin/export/clients");
   expect(response.status()).toBe(200);
@@ -49,8 +41,6 @@ test("la liste clients bascule en cartes sur mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/admin");
 
-  // La table à huit colonnes obligeait à défiler horizontalement dans chaque
-  // mini-tableau pour lire une seule ligne.
   const tables = page.locator("table");
   const count = await tables.count();
   for (let i = 0; i < count; i++) {
@@ -58,8 +48,6 @@ test("la liste clients bascule en cartes sur mobile", async ({ page }) => {
   }
 });
 
-// Le rendu doit tenir même quand Stripe ne répond pas — c'est le cas en CI,
-// avec une clé factice : la page le dit au lieu de planter.
 test("la page des codes promo s'ouvre", async ({ page }) => {
   await page.goto("/admin/codes-promo");
   await expect(page.getByRole("heading", { level: 1, name: "Codes promo" })).toBeVisible();

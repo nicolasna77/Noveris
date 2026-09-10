@@ -4,16 +4,10 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { CATALOG } from "../src/lib/catalog-data";
 import { slugify } from "../src/lib/utils";
-// Import dynamique : src/lib/auth.ts importe src/lib/db.ts, qui lit
-// process.env.DATABASE_URL au chargement du module. Les imports statiques
-// sont hoistés avant l'exécution de config() ci-dessus — un import dynamique
-// dans main() garantit que les variables d'environnement sont déjà chargées.
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const db = new PrismaClient({ adapter });
 
-// Mot de passe de démonstration pour tous les faux clients — développement
-// local uniquement, ne correspond à aucun compte réel.
 const DEMO_PASSWORD = "password123";
 
 type FakeClient = {
@@ -22,9 +16,6 @@ type FakeClient = {
   company: string;
   subscriptions: {
     slug: string;
-    // Nom donné à cette activation (voir ClientService.name) — distinct du
-    // nom de la prestation elle-même une fois qu'un client peut l'activer
-    // plusieurs fois pour des entreprises/enseignes différentes.
     name: string;
     status: "PENDING_PAYMENT" | "CONFIGURING" | "ACTIVE" | "CANCELED";
     configuration?: Record<string, string | string[]>;
@@ -135,12 +126,6 @@ async function main() {
       db.service.upsert({
         where: { slug: service.slug },
         create: service,
-        // Un admin peut éditer nom/description/catégorie/prix/plafond
-        // d'usage/ordre depuis /admin/services (voir toServiceDTO et
-        // updateServiceAction) — un reseed ne doit pas écraser ces
-        // modifications. Seuls les champs de configuration à l'activation
-        // restent gérés par le code (pas d'éditeur générique pour ceux-ci) et
-        // se resynchronisent donc à chaque seed.
         update: { configFields: service.configFields },
       })
     )
@@ -149,9 +134,6 @@ async function main() {
 
   const serviceIdBySlug = new Map(services.map((s) => [s.slug, s.id]));
 
-  // Un admin de démonstration, sans lequel tout /admin restait hors de portée
-  // des parcours de bout en bout : ils n'avaient aucun moyen de s'y connecter.
-  // Distinct de tout compte réel — développement local uniquement.
   const adminEmail = "equipe@noveris.test";
   if (!(await db.user.findUnique({ where: { email: adminEmail } }))) {
     const result = await auth.api.signUpEmail({

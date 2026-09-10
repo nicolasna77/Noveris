@@ -1,11 +1,6 @@
 import type { AuditAction } from "@prisma/client";
 import { db } from "@/lib/db";
 
-// Un seul point d'écriture du journal d'administration (voir AuditLog dans
-// prisma/schema.prisma), appelé depuis les actions sensibles de
-// /admin/users et /admin/services. Distinct de logServiceEvent, qui écrit
-// l'historique montré au client : celui-ci retient l'auteur de l'action et
-// n'est visible que de l'équipe.
 export async function logAdminAction(input: {
   actor: { id: string; name: string; email: string };
   action: AuditAction;
@@ -38,9 +33,6 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   PROMO_CODE_DEACTIVATED: "Code promo désactivé",
 };
 
-// Les actions qui retirent un accès ou touchent à l'authentification sont
-// signalées à part dans le journal : ce sont celles qu'on relit après coup
-// quand quelque chose s'est mal passé.
 export const SENSITIVE_AUDIT_ACTIONS = new Set<AuditAction>([
   "USER_ROLE_CHANGED",
   "USER_BANNED",

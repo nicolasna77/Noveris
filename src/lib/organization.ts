@@ -20,16 +20,6 @@ async function fetchMemberOrganizations(userId: string): Promise<OrganizationSum
   return memberships.map((m) => m.organization);
 }
 
-// Mémoïsé par requête (comme getSession) : le sélecteur d'organisation dans
-// l'en-tête et chaque page qui scope ses données par organisation appellent
-// cette fonction séparément sans redéclencher les mêmes requêtes.
-//
-// L'organisation "active" suit session.activeOrganizationId quand elle
-// pointe vers une organisation dont l'utilisateur est encore membre, sinon
-// retombe sur la première (ordre de création) — ça couvre aussi bien le cas
-// où le cookie de session n'a jamais été positionné (comptes migrés avant
-// cette fonctionnalité) que celui où l'organisation active vient d'être
-// supprimée, sans avoir besoin d'écrire un cookie depuis un Server Component.
 export const getActiveOrganizationContext = cache(
   async (): Promise<ActiveOrganizationContext | null> => {
     const session = await getSession();
@@ -37,11 +27,6 @@ export const getActiveOrganizationContext = cache(
 
     let organizations = await fetchMemberOrganizations(session.user.id);
 
-    // Filet de sécurité : un client sans aucune organisation ne peut plus
-    // rien faire sur le dashboard (chaque prestation appartient à une
-    // organisation). Ne devrait arriver que pour un compte migré avant
-    // l'ajout des organisations ou un échec silencieux à l'inscription —
-    // on lui en crée une par défaut plutôt que de le bloquer.
     if (organizations.length === 0) {
       const name = session.user.name || "Mon entreprise";
       await auth.api.createOrganization({

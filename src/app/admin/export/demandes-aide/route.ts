@@ -25,8 +25,6 @@ export async function GET() {
     { header: "Message", value: (r) => r.message },
     { header: "Statut", value: (r) => HELP_REQUEST_STATUS_LABELS[r.status] },
     { header: "Réponses de l'équipe", value: (r) => r.messages.filter((m) => m.fromTeam).length },
-    // Le délai de première réponse est la mesure qui compte pour un centre
-    // d'aide, et elle n'est visible nulle part dans l'interface.
     {
       header: "Première réponse le",
       value: (r) => r.messages.find((m) => m.fromTeam)?.createdAt ?? "",

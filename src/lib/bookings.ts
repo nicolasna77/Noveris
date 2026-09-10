@@ -9,9 +9,6 @@ const KIND_LABELS: Record<string, string> = {
   order: "Commande",
 };
 
-// Fenêtre chargée par les pages calendrier : un an en arrière, un an en
-// avant. Sans borne, la requête ramènerait tout l'historique des rendez-vous
-// à chaque affichage, pour une grille qui n'en montre qu'un mois.
 const WINDOW_MONTHS = 12;
 
 export function calendarWindow(): { gte: Date; lte: Date } {
@@ -22,11 +19,6 @@ export function calendarWindow(): { gte: Date; lte: Date } {
   };
 }
 
-// Sépare les réservations en deux : celles qui ont un créneau (rendez-vous,
-// placées sur la grille) et celles qui n'en ont pas (commandes). Partagé par
-// les quatre endroits qui affichent un calendrier — page calendrier client
-// et admin, page détail d'une solution, page d'un utilisateur — qui ne
-// diffèrent que par le sous-titre affiché sous chaque réservation.
 export function toCalendarBookings<
   T extends Pick<
     Booking,

@@ -36,8 +36,6 @@ export function OrganizationManageDialog({
   onOpenChange,
 }: {
   organization: OrganizationSummary;
-  // Interdit de supprimer la seule organisation restante — évaluée dans le
-  // composant parent, qui connaît le nombre total d'organisations.
   canDelete: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -101,9 +99,6 @@ export function OrganizationManageDialog({
               <Label htmlFor="organization-name">Nom</Label>
               <div className="flex gap-2">
                 <Input
-                  // Remonte (et réinitialise sa valeur non contrôlée) à
-                  // chaque ouverture ou changement d'organisation, sans passer
-                  // par un effet qui déclencherait un setState pendant le rendu.
                   key={open ? organization.id : "closed"}
                   id="organization-name"
                   name="name"

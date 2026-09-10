@@ -18,7 +18,6 @@ export type PromoCodeRow = {
   code: string;
   state: PromoCodeState;
   discount: string;
-  // null : valable pour toutes les solutions.
   services: string[] | null;
   firstTimeOnly: boolean;
   timesRedeemed: number;
@@ -26,9 +25,6 @@ export type PromoCodeRow = {
   expiresAt: Date | null;
 };
 
-// Un code peut cesser de servir de trois façons, et l'équipe doit savoir
-// laquelle : un code épuisé qui marche bien se recrée, un code expiré se
-// prolonge, un code désactivé l'a été exprès.
 const STATE_LABELS: Record<PromoCodeState, string> = {
   active: "Actif",
   expired: "Expiré",

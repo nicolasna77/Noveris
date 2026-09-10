@@ -33,10 +33,6 @@ const INTL_WEEKDAY_TO_WEEK_DAY: Record<string, (typeof WEEK_DAYS)[number]> = {
   Sun: "sun",
 };
 
-// Heure d'appel calculée côté serveur (fuseau Europe/Paris) plutôt que
-// laissée au modèle — évite qu'il improvise l'heure actuelle. Horaires non
-// configurés : on part du principe que l'entreprise est ouverte (neutre,
-// mieux vaut renseigner l'appelant que le décourager à tort).
 function isOpenNow(hours: WeeklyHours | null): boolean {
   if (!hours) return true;
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -159,12 +155,6 @@ function buildStandardTelephoniquePrompt(configuration: Configuration, companyNa
   return lines.join("\n");
 }
 
-// Agent de messagerie (WhatsApp, Messenger, Instagram) : bien plus simple
-// que le téléphone pour l'instant (pas de rendez-vous ni de commande — les
-// configFields de ces services dans catalog-data.ts n'ont qu'un FAQ) — un
-// tour de message à la fois, pas de notion d'ouverture/fermeture puisque la
-// messagerie n'a pas d'attente en ligne. Les 3 canaux partagent exactement
-// le même périmètre, seul le nom du canal change dans le prompt.
 function buildMessagingPrompt(
   configuration: Configuration,
   companyName: string,
@@ -189,16 +179,6 @@ function buildMessagingPrompt(
   return lines.join("\n");
 }
 
-// Construit les instructions système de l'agent vocal à partir de la
-// configuration saisie par le client à l'activation (voir configFields de
-// chaque service dans src/lib/catalog-data.ts) — un seul point d'entrée,
-// dispatché par `serviceSlug`, réutilisé tel quel en mode texte
-// (scripts/test-voice-agent.ts) et en mode appel réel
-// (src/app/api/voice/openai-webhook/route.ts).
-//
-// `companyName` vient de l'organisation du client (Organization.name) et
-// non de `configuration` : aucun service n'a de champ "nom d'entreprise" —
-// c'était un bug (le prompt retombait toujours sur "cette entreprise").
 export function buildSystemPrompt(
   serviceSlug: string,
   configuration: Configuration,

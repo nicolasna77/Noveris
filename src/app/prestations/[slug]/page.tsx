@@ -12,13 +12,6 @@ import { CATEGORY_LABELS, TELEPHONY_SERVICE_SLUGS, formatCents } from "@/lib/cat
 import { getCatalog, getServiceBySlug } from "@/lib/get-catalog";
 import { SERVICE_ICONS } from "@/lib/service-icons";
 
-// Pas de generateStaticParams ici : la page lit la session, donc les
-// en-têtes de la requête, et ne peut pas être rendue à l'avance. La déclarer
-// n'accélérait rien et cassait le déploiement sur une base vide — sans
-// paramètre à prérendre, Next ne rend jamais la page au build, ne voit donc
-// pas l'appel dynamique, classe la route en statique, et chaque page de
-// solution répondait alors 500 (« Page changed from static to dynamic at
-// runtime, reason: headers »).
 export async function generateMetadata({
   params,
 }: {
@@ -27,9 +20,6 @@ export async function generateMetadata({
   const { slug } = await params;
   const service = await getServiceBySlug(slug);
   if (!service) return {};
-  // Le prix figure dans la description partagée : c'est la première chose
-  // qu'un prospect cherche, et un aperçu qui l'omet le fait cliquer pour
-  // rien.
   const description = `${service.description} ${priceSummary(service)}`;
   const url = `/prestations/${service.slug}`;
   return {
@@ -41,15 +31,8 @@ export async function generateMetadata({
   };
 }
 
-// Champ quasi universel (présent sur presque toutes les prestations) — ne
-// distingue pas une prestation d'une autre, on l'omet de la liste "ce que
-// vous configurez" pour ne garder que ce qui est propre à celle-ci.
 const GENERIC_FIELD_KEYS = new Set(["companyName"]);
 
-// Réponse à la question qu'un prospect se pose avant même d'activer une
-// prestation de téléphonie : "dois-je changer de numéro ?" — voir aussi le
-// guide interactif équivalent dans le tableau de bord une fois le numéro
-// attribué (src/app/dashboard/call-forwarding-guide.tsx).
 const PHONE_FORWARDING_STEPS = [
   {
     title: "Un numéro dédié à l'IA",
@@ -92,10 +75,6 @@ export default async function PrestationDetailPage({
       <JsonLd data={serviceSchema(service)} />
       <SiteHeader />
       <main className="flex-1">
-        {/* Le tarif est la première question d'un artisan : il remonte
-            dans le hero, à droite, au lieu d'attendre sous le pli dans trois
-            cartes identiques. C'est aussi ce qui donne au hero son point
-            d'appui — le fond à rayures ne faisait que masquer son absence. */}
         <section className="border-b border-border">
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 sm:py-20">
             <Link
@@ -108,11 +87,6 @@ export default async function PrestationDetailPage({
 
             <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
               <div>
-                {/* La catégorie en texte simple, pas en pastille : une
-                    pastille grise à côté du bloc d'icône faisait deux marques
-                    concurrentes au même endroit. Et pas de capitales
-                    espacées — elles suppriment la silhouette des mots pour un
-                    gain visuel nul. */}
                 <div className="flex items-center gap-3">
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="size-5" aria-hidden="true" />
@@ -173,11 +147,6 @@ export default async function PrestationDetailPage({
                   )}
                   {service.monthlyPriceCents !== null && (
                     <div className="py-4 first:pt-0">
-                      {/* Volontairement pas en violet : sur la carte sombre du
-                          thème, le primaire tombe à environ 2:1, sous le
-                          minimum de 3:1 exigé pour du grand texte. Le panneau
-                          se distingue déjà par sa place et sa taille — la
-                          couleur n'y ajoutait rien qu'un risque de lisibilité. */}
                       <dd className="text-3xl font-semibold tabular-nums text-foreground">
                         {formatCents(service.monthlyPriceCents)}
                       </dd>
@@ -216,8 +185,6 @@ export default async function PrestationDetailPage({
                 clients continuent d&apos;appeler le num&eacute;ro qu&apos;ils
                 connaissent d&eacute;j&agrave;.
               </p>
-              {/* Une numérotation, parce que c'est une vraie séquence : chaque
-                  étape suppose la précédente. */}
               <ol className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6">
                 {PHONE_FORWARDING_STEPS.map((step, index) => (
                   <li key={step.title} className="border-t border-border pt-4">
@@ -249,8 +216,6 @@ export default async function PrestationDetailPage({
                 voici les informations qu&apos;on vous demande pour la
                 personnaliser &agrave; votre activit&eacute;.
               </p>
-              {/* Une liste à filets plutôt que des cartes : ce sont des
-                  informations à lire, pas des objets à choisir. */}
               <dl className="mt-10 grid gap-x-12 sm:grid-cols-2">
                 {configFields.map((field) => (
                   <div key={field.key} className="border-t border-border py-4">
@@ -283,11 +248,6 @@ export default async function PrestationDetailPage({
                 {related.map((relatedService) => {
                   const RelatedIcon = SERVICE_ICONS[relatedService.slug] ?? Bot;
                   return (
-                    // Lien "étiré" plutôt qu'un <Link> englobant toute la
-                    // carte : englober l'icône et la description les faisait
-                    // avaler par le nom accessible du lien, qu'un lecteur
-                    // d'écran énonce alors en entier. Même motif que
-                    // MyServiceRow dans le tableau de bord.
                     <Card
                       key={relatedService.slug}
                       className="relative h-full transition-colors has-[a:hover]:bg-card/70 has-[a:focus-visible]:bg-card/70 has-[a:focus-visible]:ring-3 has-[a:focus-visible]:ring-ring/30"
@@ -296,9 +256,6 @@ export default async function PrestationDetailPage({
                         <span className="mb-2 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
                           <RelatedIcon className="size-4" aria-hidden="true" />
                         </span>
-                        {/* Un vrai <h3> plutôt que CardTitle, qui rend un
-                            <div> : ces cartes n'apparaissaient pas dans le
-                            sommaire des titres. */}
                         <h3 className="font-heading text-base font-medium">
                           <Link
                             href={`/prestations/${relatedService.slug}`}
@@ -319,9 +276,6 @@ export default async function PrestationDetailPage({
           </section>
         )}
 
-        {/* La page s'achevait sur les autres solutions : après avoir lu le
-            tarif et le fonctionnement, un visiteur convaincu n'avait aucun
-            moyen d'agir sans remonter en haut. */}
         <section
           aria-labelledby="cta-heading"
           className="bg-muted/40"

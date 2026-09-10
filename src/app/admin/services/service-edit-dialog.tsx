@@ -39,8 +39,6 @@ export type EditableService = {
   isActive: boolean;
 };
 
-// Centimes -> euros pour l'affichage dans le formulaire, tronqué aux
-// décimales utiles (evite "79.900000000001" sur certains flottants).
 function centsToEurosInput(cents: number | null): string {
   return cents === null ? "" : String(Math.round(cents) / 100);
 }
@@ -126,8 +124,6 @@ export function ServiceEditDialog({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="service-category">Catégorie</Label>
-                  {/* `items` : sans lui, le déclencheur affiche la valeur
-                      brute (« COMMUNICATION ») au lieu du libellé. */}
                   <Select
                     name="category"
                     defaultValue={service.category}

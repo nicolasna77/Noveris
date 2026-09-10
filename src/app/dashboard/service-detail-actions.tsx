@@ -19,10 +19,6 @@ import { getErrorMessage } from "@/lib/utils";
 import type { MyServiceDTO } from "@/lib/catalog";
 import { cancelService, resumeServiceCheckout } from "./actions";
 
-// Actions de cycle de vie de la solution (payer, réactiver, résilier) —
-// avant, elles n'existaient que sur la carte de la liste. La modification de
-// la configuration, elle, vit sur la carte Configuration, au contact des
-// valeurs qu'elle change (voir configure-button.tsx).
 export function ServiceDetailActions({ item }: { item: MyServiceDTO }) {
   const router = useRouter();
   const [isResuming, startResumeTransition] = useTransition();

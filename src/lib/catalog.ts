@@ -1,6 +1,3 @@
-// Types et libellés partagés du catalogue (utilisables côté client et serveur
-// sans importer @prisma/client).
-
 export type ServiceCategory =
   | "COMMUNICATION"
   | "ADMINISTRATION"
@@ -13,23 +10,11 @@ export type ClientServiceStatus =
   | "ACTIVE"
   | "CANCELED";
 
-// Prestations qui reçoivent de vrais appels téléphoniques IA — la seule
-// source de vérité pour ce qui est "une prestation de téléphonie" (achat de
-// numéro, widget d'appels en direct, compteur d'usage, agenda). Auparavant
-// dupliqué indépendamment dans 4 fichiers (dashboard/actions.ts,
-// admin/clients-section.tsx, dashboard/my-services.tsx,
-// dashboard/service-detail-table.tsx) — un nouveau service téléphonique
-// n'aurait mis à jour que celui qu'on pensait à modifier.
 export const TELEPHONY_SERVICE_SLUGS = new Set([
   "prise-rdv-telephone",
   "standard-telephonique-ia",
 ]);
 
-// Même raison que TELEPHONY_SERVICE_SLUGS ci-dessus — utilisé partout où le
-// code a besoin de savoir "est-ce la prestation WhatsApp/Facebook/Instagram"
-// (admin, tableau de bord, prompt de l'agent). Trois prestations distinctes
-// (pas une seule "réseaux sociaux") : un client peut vouloir l'une sans les
-// autres, avec des tarifs et des connexions Meta indépendantes.
 export const WHATSAPP_SERVICE_SLUG = "assistant-whatsapp";
 export const FACEBOOK_SERVICE_SLUG = "assistant-facebook";
 export const INSTAGRAM_SERVICE_SLUG = "assistant-instagram";
@@ -63,9 +48,6 @@ export const DEFAULT_WEEKLY_HOURS: WeeklyHours = WEEK_DAYS.reduce(
 
 export type RuleRow = { trigger: string; target: string };
 
-// Valeur d'un champ de configuration : simple pour les champs classiques,
-// structurée pour les sélecteurs d'horaires et listes de règles réutilisables
-// (voir section 12 du cahier des charges).
 export type ConfigValue = string | string[] | WeeklyHours | RuleRow[];
 export type Configuration = Record<string, ConfigValue>;
 
@@ -90,13 +72,8 @@ export type ConfigField = {
   required?: boolean;
   placeholder?: string;
   helpText?: string;
-  // "select" | "multiselect"
   options?: { value: string; label: string }[];
-  // Regroupe visuellement les champs dans le formulaire (ex. "Entreprise").
-  // Les champs sans section tombent dans un groupe générique commun.
   section?: string;
-  // Affichage conditionnel : le champ n'apparaît que si le champ visé par
-  // `key` vaut (ou contient, pour tags/multiselect) `includes`.
   showIf?: { key: string; includes: string };
 };
 
@@ -132,8 +109,6 @@ export const STATUS_LABELS: Record<ClientServiceStatus, string> = {
   CANCELED: "Résilié",
 };
 
-// Frais de mise en place (ponctuel) et/ou abonnement mensuel, indépendamment
-// optionnels — au moins un des deux est renseigné.
 export function formatPrice(
   setupFeeCents: number | null,
   monthlyPriceCents: number | null
@@ -144,10 +119,6 @@ export function formatPrice(
   return parts.join(" + ") || "—";
 }
 
-// Sans décimales pour un montant rond (« 450 € »), toujours deux dès qu'il y
-// a des centimes (« 783,20 € », jamais « 783,2 € »). Tant que tous les tarifs
-// étaient ronds la seconde forme ne se voyait pas : les remises produisent
-// les premiers montants avec centimes du site.
 export function formatCents(cents: number): string {
   const whole = cents % 100 === 0;
   return (cents / 100).toLocaleString("fr-FR", {
@@ -156,7 +127,6 @@ export function formatCents(cents: number): string {
   }) + " €";
 }
 
-// Forme sérialisable d'un Service pour les composants client.
 export type ServiceDTO = {
   id: string;
   slug: string;
@@ -170,8 +140,6 @@ export type ServiceDTO = {
   sortOrder: number;
 };
 
-// Rendez-vous ou commande pris par l'agent vocal IA — voir Booking dans
-// prisma/schema.prisma.
 export type BookingDTO = {
   id: string;
   kind: string;
@@ -184,9 +152,6 @@ export type BookingDTO = {
   createdAt: Date;
 };
 
-// Historique d'une prestation (voir ServiceEvent dans prisma/schema.prisma) —
-// écrit à chaque transition plutôt que de ne garder que le dernier état, pour
-// que le client voie ce qui s'est passé et pas seulement où il en est.
 export type ServiceEventType =
   | "CREATED"
   | "PAYMENT_RECEIVED"
@@ -229,12 +194,8 @@ export type ServiceEventDTO = {
   createdAt: Date;
 };
 
-// Prestation souscrite par le client courant (jointure ClientService + Service),
-// utilisée pour la section « Mes prestations » du tableau de bord.
 export type MyServiceDTO = {
   clientServiceId: string;
-  // Nom donné par le client à cette activation (distinct de service.name dès
-  // qu'il active la même prestation plusieurs fois — ex. deux boutiques).
   name: string;
   status: ClientServiceStatus;
   configuration: Configuration;
@@ -255,9 +216,6 @@ export type MyServiceDTO = {
   service: ServiceDTO;
 };
 
-// Représentation textuelle d'une valeur de configuration, tous types
-// confondus — utilisée pour l'affichage en lecture seule (le formulaire
-// d'édition ne gère pour l'instant que les champs texte simples).
 export function formatConfigValue(value: ConfigValue): string {
   if (typeof value === "string") return value;
   if (Array.isArray(value)) {
@@ -281,9 +239,6 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
-// Résume l'état courant d'une prestation en une phrase — partagé par la
-// carte "Mes prestations" (my-service-row.tsx) et l'en-tête de sa page
-// détail, pour ne pas maintenir deux fois le même embranchement par statut.
 export function describeServiceStatus(item: {
   status: ClientServiceStatus;
   createdAt: Date;
@@ -304,11 +259,6 @@ export function describeServiceStatus(item: {
   }
 }
 
-// Étapes de mise en service encore à la charge du client. Une même source
-// pour la carte de la liste (my-service-row.tsx), qui signale qu'il reste
-// quelque chose à faire, et la carte « Mise en service » de la page détail
-// (service-setup-card.tsx), qui porte l'action correspondante — sinon les
-// deux finiraient par ne plus dire la même chose.
 type SetupSubject = {
   status: ClientServiceStatus;
   externalPhoneNumber: string | null;
@@ -324,8 +274,6 @@ function isDeployable(status: ClientServiceStatus): boolean {
   return status === "ACTIVE" || status === "CONFIGURING";
 }
 
-// Une prestation de téléphonie sans numéro ne peut tout simplement pas
-// décrocher : c'est bloquant, pas un réglage optionnel.
 export function needsPhoneNumber(item: SetupSubject): boolean {
   return (
     isDeployable(item.status) &&
@@ -342,8 +290,6 @@ export function needsCalendarConnection(item: SetupSubject): boolean {
   );
 }
 
-// Une prestation WhatsApp sans compte connecté ne peut recevoir ni répondre
-// à aucun message — même statut "bloquant" que needsPhoneNumber ci-dessus.
 export function needsWhatsAppConnection(item: SetupSubject): boolean {
   return (
     isDeployable(item.status) &&
@@ -368,22 +314,12 @@ export function needsInstagramConnection(item: SetupSubject): boolean {
   );
 }
 
-// Ramène une valeur de configuration à un tableau de chaînes (ex. un champ
-// "multiselect" comme objectives/appointmentTypes) — [] pour toute autre
-// forme. Partagé par src/lib/voice-agent/prompt.ts et tools.ts, qui lisent
-// tous deux ce genre de champ depuis la même Configuration.
 export function asStringArray(value: ConfigValue | undefined): string[] {
   return Array.isArray(value) && (value.length === 0 || typeof value[0] === "string")
     ? (value as string[])
     : [];
 }
 
-// Un champ ne s'affiche que si le champ visé par `showIf` contient (ou vaut)
-// la valeur attendue — ex. les champs propres à la prise de rendez-vous ne
-// s'affichent que si "objectives" contient "appointment". Partagé entre le
-// formulaire client (config-fields.tsx) et la validation serveur
-// (dashboard/actions.ts) : un champ masqué par showIf ne doit jamais être
-// exigé côté serveur alors qu'il ne peut pas être rempli côté client.
 export function isFieldVisible(field: ConfigField, values: Configuration): boolean {
   if (!field.showIf) return true;
   const target = values[field.showIf.key];

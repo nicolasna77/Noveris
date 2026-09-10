@@ -9,8 +9,6 @@ import {
   sendServiceNoteAddedEmail,
 } from "@/lib/email/notifications";
 
-// Bascule une prestation payée (CONFIGURING) vers ACTIVE une fois le
-// déploiement vérifié par l'équipe Noveris.
 export async function markServiceActive(clientServiceId: string) {
   await requireAdmin();
 
@@ -34,9 +32,6 @@ export async function markServiceActive(clientServiceId: string) {
   revalidatePath("/dashboard");
 }
 
-// Met à jour la note visible par le client sur sa prestation (ex. « Connexion
-// de votre agenda en cours ») — c'est le principal moyen pour l'équipe
-// Noveris de faire savoir au client où en est le déploiement.
 export async function updateServiceNote(clientServiceId: string, note: string) {
   await requireAdmin();
 
@@ -46,9 +41,6 @@ export async function updateServiceNote(clientServiceId: string, note: string) {
     data: { adminNote: trimmed || null },
     include: { user: true },
   });
-  // Une note effacée n'a rien à raconter dans l'historique — seule une note
-  // renseignée (même en remplacement d'une précédente) y va, avec son texte
-  // en message pour ne pas perdre la version précédente au prochain remplacement.
   if (trimmed) {
     await logServiceEvent(clientServiceId, "NOTE_ADDED", trimmed);
     await sendServiceNoteAddedEmail(
@@ -67,11 +59,6 @@ export async function updateServiceNote(clientServiceId: string, note: string) {
   revalidatePath("/dashboard");
 }
 
-// Renseigne manuellement le numéro Twilio d'une prestation — le client
-// achète normalement son numéro lui-même depuis son tableau de bord (voir
-// purchasePhoneNumberForService dans dashboard/actions.ts) ; ceci reste un
-// filet de sécurité pour l'équipe support (achat échoué, migration d'un
-// numéro existant…).
 export async function setExternalPhoneNumber(
   clientServiceId: string,
   phoneNumber: string
@@ -89,13 +76,6 @@ export async function setExternalPhoneNumber(
   revalidatePath("/dashboard");
 }
 
-// Renseigne l'identifiant Meta ("Phone Number ID") du numéro WhatsApp
-// Business du client — pas de connexion en libre-service pour l'instant
-// (contrairement au numéro Twilio), donc entièrement manuel : le client
-// communique son numéro à l'équipe, qui le connecte à l'app Meta de Noveris
-// (Embedded Signup) et reporte ici l'identifiant obtenu. Pas de type
-// ServiceEventType dédié pour éviter une migration d'enum pour un seul
-// champ admin — CONFIGURATION_UPDATED reste sémantiquement correct.
 export async function setWhatsAppPhoneNumberId(
   clientServiceId: string,
   phoneNumberId: string
@@ -113,9 +93,6 @@ export async function setWhatsAppPhoneNumberId(
   revalidatePath("/dashboard");
 }
 
-// Même repli manuel que setWhatsAppPhoneNumberId ci-dessus, pour la Page
-// Facebook (Messenger) d'un client — utile si la connexion self-service
-// échoue ou pour notre propre Page de test.
 export async function setFacebookPageId(clientServiceId: string, pageId: string) {
   await requireAdmin();
 
@@ -130,7 +107,6 @@ export async function setFacebookPageId(clientServiceId: string, pageId: string)
   revalidatePath("/dashboard");
 }
 
-// Même repli manuel, pour le compte Instagram d'un client.
 export async function setInstagramAccountId(clientServiceId: string, accountId: string) {
   await requireAdmin();
 

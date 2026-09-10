@@ -22,8 +22,6 @@ const options = {
 };
 
 describe("toCalendarBookings", () => {
-  // La distinction qui structure tout le calendrier : un rendez-vous a un
-  // créneau et se place sur la grille, une commande n'en a pas.
   it("place sur la grille ce qui a un horaire", () => {
     const { scheduled, unscheduled } = toCalendarBookings([booking()], options);
     expect(unscheduled).toHaveLength(0);

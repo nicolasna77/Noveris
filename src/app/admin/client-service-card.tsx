@@ -8,14 +8,6 @@ import {
   type ClientServiceCellData,
 } from "./client-service-cells";
 
-// La même solution, empilée, pour les écrans étroits. La table à huit
-// colonnes obligeait l'admin à défiler horizontalement dans chaque
-// mini-tableau pour lire une seule ligne — et verticalement dans la page
-// pour passer d'un client au suivant.
-//
-// Ce qui identifie la ligne (nom, organisation, statut) reste en haut ; ce
-// qui se modifie (note, connexion, activation) descend en bas, où le pouce
-// l'atteint.
 export function ClientServiceCard({
   cs,
 }: {

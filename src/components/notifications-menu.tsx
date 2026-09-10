@@ -35,8 +35,6 @@ export function NotificationsMenu({
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   function handleOpenChange(open: boolean) {
-    // Ouvrir le panneau vaut lecture — sans état par notification, c'est le
-    // seul moment où marquer le tout comme lu a un sens.
     if (open && unreadCount > 0) {
       startTransition(() => {
         markNotificationsSeen();
@@ -71,9 +69,6 @@ export function NotificationsMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-80">
-        {/* DropdownMenuLabel rend un GroupLabel de Base UI, qui exige d'être
-            dans un Group — sans ce conteneur, l'ouverture du panneau lève
-            une erreur de contexte. Même structure que UserMenu. */}
         <DropdownMenuGroup>
           <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         </DropdownMenuGroup>

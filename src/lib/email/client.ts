@@ -9,9 +9,6 @@ function getResendClient(): Resend | null {
   return new Resend(apiKey);
 }
 
-// Best-effort : un envoi raté ne doit jamais faire échouer l'action métier
-// qui le déclenche (ex. la prestation doit passer "Actif" même si l'e-mail
-// part en erreur) — même logique que releasePhoneNumber (src/lib/twilio.ts).
 export async function sendEmail({
   to,
   subject,

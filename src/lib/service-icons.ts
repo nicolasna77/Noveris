@@ -18,8 +18,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Icône par prestation — partagée entre la landing page et les pages de
-// détail /prestations/[slug] pour ne pas dupliquer la table.
 export const SERVICE_ICONS: Record<string, LucideIcon> = {
   "standard-telephonique-ia": PhoneCall,
   "prise-rdv-telephone": Phone,

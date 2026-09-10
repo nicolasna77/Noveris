@@ -10,10 +10,6 @@ function formatEventDateTime(date: Date): string {
   }).format(date);
 }
 
-// La liste elle-même, sans carte ni titre : le client la voit encadrée sur
-// la page détail d'une solution (ServiceTimeline), l'équipe la voit dépliée
-// par solution sur la fiche d'un utilisateur (ServiceHistory) — même
-// historique, deux contenants.
 export function ServiceTimelineList({ events }: { events: ServiceEventDTO[] }) {
   return (
     <ol>

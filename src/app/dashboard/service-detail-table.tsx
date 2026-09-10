@@ -17,9 +17,6 @@ import { MessengerConnection } from "./messenger-connection";
 import { UsageCounter } from "./usage-counter";
 import { WhatsAppConnection } from "./whatsapp-connection";
 
-// Ordonné par urgence : ce qui se passe maintenant (appels en direct) avant
-// ce qui est fixé une fois pour toutes (configuration). Ce qui reste à faire
-// pour que la solution fonctionne vit dans ServiceSetupCard, au-dessus.
 export function ServiceDetailTable({ item }: { item: MyServiceDTO }) {
   const isTelephony = TELEPHONY_SERVICE_SLUGS.has(item.service.slug);
   const isLive =

@@ -2,10 +2,6 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-// Partagé par ClientsFilters et UsersFilters — patch un ou plusieurs
-// paramètres de l'URL (navigation SPA) et réinitialise toujours la
-// pagination, puisqu'une nouvelle recherche/filtre invalide la page en
-// cours.
 export function useQueryParamFilters() {
   const router = useRouter();
   const pathname = usePathname();

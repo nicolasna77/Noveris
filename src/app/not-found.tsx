@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Page introuvable" };
 
-// Fallback pour toute URL qui ne correspond à aucune route.
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col bg-background">

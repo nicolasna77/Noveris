@@ -121,9 +121,6 @@ export async function ClientsSection({
             </CardHeader>
             {client.clientServices.length > 0 && (
               <CardContent>
-                {/* Deux mises en page pour la même donnée : la table garde
-                    sa densité là où l'écran la permet, les cartes empilées
-                    prennent le relais en dessous de `md`. */}
                 <div className="hidden md:block">
                   <Table>
                     <TableCaption className="sr-only">

@@ -3,13 +3,6 @@ import { db } from "@/lib/db";
 import { requireEnv } from "@/lib/env";
 import { logServiceEvent } from "@/lib/service-events";
 
-// Connexion Instagram par ClientService — "Business Login for Instagram"
-// (OAuth classique, comme Google Agenda dans src/lib/google-calendar.ts),
-// pas Facebook Login for Business : Instagram utilise sa propre app
-// (INSTAGRAM_APP_ID/SECRET, distincts du Meta App ID partagé par
-// WhatsApp/Messenger — voir App Dashboard > Instagram > API setup with
-// Instagram Login) et son propre domaine OAuth, sans lien obligatoire avec
-// une Page Facebook.
 const INSTAGRAM_AUTH_URL = "https://www.instagram.com/oauth/authorize";
 const INSTAGRAM_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
 const INSTAGRAM_GRAPH_URL = "https://graph.instagram.com";
@@ -17,8 +10,6 @@ const INSTAGRAM_SCOPE = "instagram_business_basic,instagram_business_manage_mess
 
 const FEATURE = "la messagerie Instagram";
 
-// Même raison que signState/verifyState dans google-calendar.ts — évite
-// qu'un tiers déclenche le callback avec un clientServiceId arbitraire.
 function signState(clientServiceId: string): string {
   const secret = requireEnv("INSTAGRAM_OAUTH_STATE_SECRET", FEATURE);
   const signature = createHmac("sha256", secret).update(clientServiceId).digest("hex");
@@ -71,9 +62,6 @@ async function exchangeShortLivedToken(code: string): Promise<ShortLivedTokenRes
   return res.json();
 }
 
-// Le jeton court obtenu ci-dessus n'est valable qu'une heure — on l'échange
-// tout de suite contre un jeton longue durée (60 jours), qu'il faudra
-// ensuite rafraîchir avant expiration (voir getValidInstagramToken).
 async function exchangeForLongLivedToken(shortLivedToken: string): Promise<LongLivedTokenResponse> {
   const params = new URLSearchParams({
     grant_type: "ig_exchange_token",
@@ -96,9 +84,6 @@ async function fetchInstagramUsername(userId: string, accessToken: string): Prom
   return data.username ?? null;
 }
 
-// Termine le flow OAuth : échange le code, l'étend en jeton longue durée,
-// récupère le nom d'utilisateur pour confirmation à l'écran, et upsert les
-// champs Instagram du ClientService.
 export async function completeInstagramConnection(clientServiceId: string, code: string) {
   const shortLived = await exchangeShortLivedToken(code);
   const longLived = await exchangeForLongLivedToken(shortLived.access_token);
@@ -125,12 +110,6 @@ async function refreshLongLivedToken(accessToken: string): Promise<LongLivedToke
   return res.json();
 }
 
-// Renvoie un jeton valide pour ce ClientService, en le rafraîchissant
-// d'abord si besoin — même principe que getValidAccessToken dans
-// google-calendar.ts. Un jeton longue durée ne peut être rafraîchi qu'après
-// 24h d'existence, d'où la marge large (7 jours) plutôt que les 60 secondes
-// utilisées pour Google (un webhook manqué ferait perdre un message client,
-// pas juste retarder un appel API).
 export async function getValidInstagramToken(clientServiceId: string): Promise<string | null> {
   const clientService = await db.clientService.findUnique({
     where: { id: clientServiceId },
@@ -154,9 +133,6 @@ export async function getValidInstagramToken(clientServiceId: string): Promise<s
   return refreshed.access_token;
 }
 
-// Envoie un message texte depuis le compte Instagram du client (igUserId =
-// ClientService.instagramAccountId) vers `to` (IGSID de l'expéditeur du
-// message reçu, tel que fourni dans le webhook entrant).
 export async function sendInstagramMessage(igUserId: string, to: string, body: string, accessToken: string): Promise<void> {
   const res = await fetch(`${INSTAGRAM_GRAPH_URL}/${igUserId}/messages`, {
     method: "POST",

@@ -7,14 +7,11 @@ import { buildSystemPrompt } from "@/lib/voice-agent/prompt";
 import { getToolDefinitions, runTool, toRealtimeTools } from "@/lib/voice-agent/tools";
 import { recordUsageEvent } from "@/lib/usage-events";
 
-// Construit à la demande, pas au chargement du module — voir le même choix
-// et la même raison dans src/lib/voice-agent/tools.ts.
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 const REALTIME_MODEL = "gpt-realtime";
 
-// "sip:+33612345678@sip.example.com" / "tel:+33612345678" -> "+33612345678"
 function extractE164(sipHeaderValue: string): string | null {
   const match = sipHeaderValue.match(/(?:sip|tel):([+0-9]+)/i);
   return match ? match[1] : null;
@@ -27,12 +24,6 @@ function findSipHeader(
   return headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value;
 }
 
-// Webhook OpenAI (voir platform : projet → Realtime → SIP) — reçoit
-// realtime.call.incoming à chaque appel basculé vers OpenAI par TwiML (voir
-// /api/voice/incoming). Identifie la prestation via le numéro appelé,
-// construit le prompt/les tools déjà écrits (src/lib/voice-agent) à partir
-// de sa configuration, puis accepte l'appel. Aucune session utilisateur ici
-// — l'appelant est OpenAI, authentifié par la signature du webhook.
 export async function POST(request: Request) {
   const payload = await request.text();
 
@@ -44,7 +35,6 @@ export async function POST(request: Request) {
   }
 
   if (event.type !== "realtime.call.incoming") {
-    // Autres types de webhook (batch, fine-tuning...) : pas notre affaire ici.
     return NextResponse.json({ received: true });
   }
 
@@ -60,8 +50,6 @@ export async function POST(request: Request) {
     : null;
 
   if (!clientService) {
-    // Numéro Noveris inconnu (mal configuré, ou prestation résiliée depuis) :
-    // on n'accepte pas l'appel, il raccroche naturellement côté appelant.
     return NextResponse.json({ received: true });
   }
 
@@ -97,10 +85,6 @@ export async function POST(request: Request) {
     metadata: { fromNumber: fromHeader ? extractE164(fromHeader) : null },
   }).catch((err) => console.error(`[voice] échec d'enregistrement de l'appel ${callId} :`, err));
 
-  // Écoute les tool-calls et la fin d'appel en tâche de fond — la réponse au
-  // webhook ne doit pas attendre la fin de l'appel (peut durer plusieurs
-  // minutes). Le process Node reste vivant le temps de l'appel (voir le plan
-  // : pas de déploiement serverless ici, donc pas de timeout à ce niveau).
   listenToCall(callId, clientService.id, configuration).catch((err) => {
     console.error(`[voice] erreur sur la connexion d'événements de l'appel ${callId} :`, err);
   });
@@ -108,9 +92,6 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-// Tient une connexion WebSocket ouverte vers l'appel en cours pour exécuter
-// les tools appelés par le modèle (voir runTool) et détecter la fin de
-// l'appel (pour clôturer le UsageEvent avec sa durée).
 function listenToCall(
   sipCallId: string,
   clientServiceId: string,
@@ -141,7 +122,6 @@ function listenToCall(
         try {
           args = JSON.parse(realtimeEvent.arguments || "{}");
         } catch {
-          // Arguments malformés : on laisse runTool échouer proprement sur un objet vide.
         }
 
         const result = await runTool(toolName, args, {

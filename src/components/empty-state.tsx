@@ -1,14 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Un écran vide n'est pas un accident d'affichage : c'est un moment où l'on
-// doit dire quoi faire. Le même motif partout dans le tableau de bord, pour
-// qu'il se reconnaisse d'un écran à l'autre.
-//
-// Une seule variation, et elle porte du sens : un espace jamais rempli
-// appelle à agir (accent de la marque), tandis qu'un filtre sans résultat
-// n'est qu'un état de passage et reste neutre. Confondre les deux ferait
-// passer une recherche infructueuse pour un problème.
 export function EmptyState({
   icon: Icon,
   title,

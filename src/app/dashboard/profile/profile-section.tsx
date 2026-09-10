@@ -1,7 +1,3 @@
-// Une page de réglages parle d'une seule personne : ses trois sections sont
-// séparées par un filet plutôt qu'isolées dans trois cartes de même poids,
-// qui donnaient au mot de passe (rare, sensible) exactement la même
-// importance qu'à une case à cocher de notification.
 export function ProfileSection({
   title,
   description,
@@ -10,9 +6,6 @@ export function ProfileSection({
 }: {
   title: string;
   description?: string;
-  // Ce qui pilote l'enregistrement de la section — bouton explicite ou
-  // simple mention "enregistré automatiquement" : le modèle diffère d'une
-  // section à l'autre et n'était jusqu'ici indiqué nulle part.
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {

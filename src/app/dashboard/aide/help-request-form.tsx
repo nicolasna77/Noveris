@@ -54,9 +54,6 @@ export function HelpRequestForm({
     });
   }
 
-  // Le libellé d'une option, partagé par la liste et le déclencheur. Sans
-  // `items`, le Select de Base UI affichait dans le champ la valeur brute —
-  // ici l'identifiant technique de l'activation — au lieu de son nom.
   const serviceLabel = (service: (typeof services)[number]) =>
     service.name !== service.serviceName
       ? `${service.name} (${service.serviceName})`

@@ -3,21 +3,10 @@ import { db } from "@/lib/db";
 import { createCalendarEvent, isSlotFree } from "@/lib/google-calendar";
 import { asStringArray, type Configuration, type RuleRow } from "@/lib/catalog";
 
-// Construit à la demande plutôt qu'au chargement du module : le SDK OpenAI
-// lève une exception dès la construction si aucune clé n'est disponible, ce
-// qui ferait planter le build Next.js (exécuté sans OPENAI_API_KEY tant que
-// l'agent vocal n'est pas configuré) — voir getTwilioClient() dans
-// src/lib/twilio.ts pour le même principe.
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
-// Schéma de tool au format Chat Completions (utilisé par
-// scripts/test-voice-agent.ts) — voir buildSystemPrompt pour le prompt
-// système correspondant. La Realtime API attend une forme "aplatie" (name/
-// description/parameters directement sur l'objet, pas nichés sous
-// `function`) : voir toRealtimeTools ci-dessous pour la conversion, utilisée
-// par src/app/api/voice/openai-webhook/route.ts.
 export type ToolDefinition = {
   type: "function";
   function: {
@@ -125,9 +114,6 @@ const TAKE_ORDER: ToolDefinition = {
   },
 };
 
-// L'enum est limité aux motifs réellement configurés par le client
-// (callRouting) — le modèle ne peut ni inventer un motif, ni un numéro : le
-// numéro cible est résolu côté serveur dans runTool à partir du motif choisi.
 function buildTransferCallTool(triggers: string[]): ToolDefinition {
   return {
     type: "function",
@@ -163,10 +149,6 @@ const TAKE_MESSAGE: ToolDefinition = {
   },
 };
 
-// Les tools exposés dépendent du service et de ce que le client a configuré
-// (`objectives`/`callRouting`) et, pour les rendez-vous, de la connexion
-// effective d'un agenda — sans quoi l'agent promettrait une réservation
-// qu'il ne peut pas tenir.
 export function getToolDefinitions(
   serviceSlug: string,
   configuration: Configuration,
@@ -193,20 +175,12 @@ export function getToolDefinitions(
 
 type OrderItem = { name: string; quantity: number };
 
-// Contexte partagé par tous les tools d'un même appel — `callId` est le
-// `call_id` OpenAI de l'appel réel (null en mode texte, voir
-// scripts/test-voice-agent.ts, ce qui fait de transfer_call un transfert
-// simulé plutôt qu'un vrai appel à l'API Realtime).
 export type ToolContext = {
   clientServiceId: string;
   callId: string | null;
   configuration: Configuration;
 };
 
-// Exécute un appel de tool émis par le modèle et renvoie une chaîne à
-// repasser au modèle comme résultat (`tool` message) — jamais d'exception
-// non gérée : un échec renvoie un message que l'agent peut reformuler à
-// l'appelant plutôt que de casser la conversation.
 export async function runTool(
   name: string,
   args: Record<string, unknown>,
@@ -286,8 +260,6 @@ export async function runTool(
         return "Aucun numéro de transfert n'est configuré pour ce motif — propose de prendre un message à la place.";
       }
       if (!context.callId) {
-        // Mode texte (scripts/test-voice-agent.ts) : pas d'appel réel à
-        // transférer, on se contente de confirmer la résolution du motif.
         return `Transfert simulé vers ${target} (motif : « ${reason} »).`;
       }
       try {

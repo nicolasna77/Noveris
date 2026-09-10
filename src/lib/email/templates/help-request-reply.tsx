@@ -8,8 +8,6 @@ import {
 } from "./layout";
 import { EMAIL_COLORS } from "../colors";
 
-// Envoyé au client quand l'équipe Noveris répond dans le fil d'une de ses
-// demandes d'aide (voir HelpRequestMessage dans prisma/schema.prisma).
 export function HelpRequestReplyEmail({
   recipientName,
   subject,

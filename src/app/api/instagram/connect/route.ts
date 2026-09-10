@@ -3,9 +3,6 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { buildInstagramAuthUrl } from "@/lib/instagram";
 
-// Démarre la connexion Instagram d'une prestation — redirige vers l'écran
-// de consentement Instagram, le callback fait le reste. Même structure que
-// src/app/api/google-calendar/connect/route.ts.
 export async function GET(request: Request) {
   const session = await requireUser();
 

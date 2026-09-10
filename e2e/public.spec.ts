@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ANONYMOUS } from "./roles";
 
-// Le site public se juge en visiteur : connecté, l'en-tête change et les
-// appels à l'action disparaissent.
 test.use({ storageState: ANONYMOUS });
 
 test("l'accueil présente l'offre et mène au catalogue", async ({ page }) => {
@@ -12,9 +10,6 @@ test("l'accueil présente l'offre et mène au catalogue", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: /automatisations/i })
   ).toBeVisible();
 
-  // Le même libellé mène à l'inscription en haut et en bas de page : c'est
-  // volontaire, une action garde son nom (voir le commit « Resserrer la
-  // landing page »).
   await expect(page.getByRole("link", { name: "Créer mon compte" }).first()).toBeVisible();
 
   await page.getByRole("link", { name: "Voir les solutions" }).first().click();
@@ -28,12 +23,9 @@ test("une page de solution annonce son tarif et propose d'agir", async ({ page }
     page.getByRole("heading", { level: 1, name: "Assistant WhatsApp" })
   ).toBeVisible();
 
-  // Le bloc tarifaire est resté longtemps sans titre : trois montants
-  // isolés, absents du sommaire des titres.
   await expect(page.getByRole("heading", { name: "Tarif" })).toBeVisible();
   await expect(page.getByText(/€.*par mois/)).toBeVisible();
 
-  // La page se terminait sur les autres solutions, sans moyen d'agir.
   await expect(
     page.getByRole("heading", { name: /Prêt à activer/ })
   ).toBeVisible();

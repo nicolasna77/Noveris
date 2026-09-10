@@ -5,8 +5,6 @@ import { recordUsageEvent } from "@/lib/usage-events";
 import { getValidInstagramToken, sendInstagramMessage } from "@/lib/instagram";
 import { validateMetaSignature, verifyMetaWebhookChallenge } from "@/lib/meta";
 
-// Même handshake que le webhook WhatsApp (src/app/api/whatsapp/webhook) —
-// un seul verify_token partagé pour les 3 canaux Meta.
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("hub.mode");
@@ -19,9 +17,6 @@ export async function GET(request: Request) {
   return new NextResponse("Forbidden", { status: 403 });
 }
 
-// Même forme que le payload Messenger (entry[].messaging[]) — la messagerie
-// Instagram est bâtie sur la même infrastructure, avec des identifiants
-// IGSID à la place des PSID.
 type InstagramWebhookPayload = {
   entry?: {
     id?: string;
@@ -33,10 +28,6 @@ type InstagramWebhookPayload = {
   }[];
 };
 
-// Reçoit chaque message Instagram entrant. `recipient.id` (l'id du compte
-// Instagram qui a reçu le message) identifie le client (voir
-// ClientService.instagramAccountId), exactement comme phone_number_id pour
-// WhatsApp.
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");

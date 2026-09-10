@@ -28,8 +28,6 @@ export function PrestationsMenu({ services }: { services: ServiceDTO[] }) {
           category,
           categoryServices: services.filter((s) => s.category === category),
         }))
-          // Une catégorie entièrement désactivée (voir /admin/services) ne
-          // doit pas laisser un titre vide sans rien en dessous.
           .filter(({ categoryServices }) => categoryServices.length > 0)
           .map(({ category, categoryServices }, index) => (
             <Fragment key={category}>

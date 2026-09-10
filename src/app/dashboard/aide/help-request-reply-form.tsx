@@ -8,9 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { getErrorMessage } from "@/lib/utils";
 import { replyToHelpRequest } from "./actions";
 
-// Pendant admin de help-request-reply-form.tsx côté /admin/aide — même
-// formulaire, mais l'action appelée est celle du client (qui rouvre au
-// passage une demande déjà marquée traitée).
 export function HelpRequestReplyForm({
   helpRequestId,
   resolved,

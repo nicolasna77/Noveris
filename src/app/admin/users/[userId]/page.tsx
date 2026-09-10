@@ -17,10 +17,6 @@ import { toMyServiceDTO } from "@/app/dashboard/get-my-service";
 
 export const metadata: Metadata = { title: "Détail utilisateur" };
 
-// Hors du corps du composant : l'heure courante est impure, et la comparer
-// pendant le rendu ferait dépendre l'affichage du moment exact où React
-// rend. C'est ici, au chargement, que la question « cette session est-elle
-// encore valable ? » a un sens.
 async function loadSessionsPage(userId: string, page: number) {
   const rows = await db.session.findMany({
     where: { userId },
@@ -58,8 +54,6 @@ export default async function AdminUserDetailPage({
       include: {
         service: true,
         organization: true,
-        // Le plus récent en premier, comme sur la timeline vue par le
-        // client (voir ServiceTimeline).
         events: { orderBy: { createdAt: "desc" } },
       },
       orderBy: { createdAt: "desc" },
@@ -74,10 +68,6 @@ export default async function AdminUserDetailPage({
 
   const isSelf = user.id === currentSession.user.id;
 
-  // Un même utilisateur peut avoir plusieurs organisations/solutions : le
-  // nom de la solution complète le nom du client dans le sous-titre, à la
-  // différence du calendrier client (une seule solution, pas besoin de le
-  // répéter).
   const { scheduled: scheduledBookings, unscheduled: unscheduledBookings } =
     toCalendarBookings(bookings, {
       subtitle: (b) => `${b.clientService.service.name} · ${b.customerPhone}`,
@@ -113,9 +103,6 @@ export default async function AdminUserDetailPage({
           <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
             {user.role ?? "CLIENT"}
           </Badge>
-          {/* Suivre ce compte pendant qu'il se passe quelque chose : un
-              paiement qui aboutit, une connexion de compte, un appel en
-              cours. Rien de tout cela n'apparaissait sans recharger. */}
           <LiveRefreshToggle />
         </div>
       </div>
@@ -141,8 +128,6 @@ export default async function AdminUserDetailPage({
               Rendez-vous et commandes
             </CardTitle>
           </CardHeader>
-          {/* Hauteur fixe : encarté, le calendrier ne peut pas prendre la
-              hauteur de la fenêtre comme sur /admin/calendrier. */}
           <CardContent className="h-[30rem] sm:h-[34rem]">
             <BookingsCalendar
               scheduled={scheduledBookings}

@@ -46,9 +46,6 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
     "all"
   );
 
-  // La préférence de vue n'existe que côté client (localStorage) — on
-  // démarre en liste (le rendu serveur) puis on bascule après le montage
-  // pour éviter un mismatch d'hydratation, comme dans ThemeToggle.
   useEffect(() => {
     const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
     if (stored === "grid" || stored === "list") {
@@ -124,8 +121,6 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
             />
           </div>
 
-          {/* `items` : sans lui, le déclencheur affiche la valeur brute
-              (« ACTIVE », « all ») au lieu du libellé. */}
           <Select
             value={statusFilter}
             onValueChange={(value) =>

@@ -17,18 +17,12 @@ export default async function ProfilePage() {
     image: session.user.image ?? "",
   };
 
-  // notificationPreferences n'est pas un champ better-auth (pas déclaré dans
-  // user.additionalFields, src/lib/auth.ts) — il ne fait donc pas partie de
-  // session.user, d'où cette requête directe.
   const user = await db.user.findUniqueOrThrow({
     where: { id: session.user.id },
     select: { notificationPreferences: true },
   });
   const initialPreferences = parsePreferences(user.notificationPreferences);
 
-  // Pas de titre de page : le bandeau d'identité (nom + avatar, rendu par
-  // AccountForm) ouvre la page — un "Mon profil" au-dessus du nom de la
-  // personne ne dirait rien de plus, la navigation le dit déjà.
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       <AccountForm initialAccount={initialAccount} />

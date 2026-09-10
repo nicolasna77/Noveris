@@ -1,15 +1,3 @@
-// Illustration du hero : votre entreprise au centre, connectée aux
-// automatisations réellement vendues par Noveris. Purement décoratif —
-// `aria-hidden`, le contenu utile est déjà dans le titre/paragraphe du hero
-// — donc entièrement en SVG/CSS, sans JS (pas de "use client").
-//
-// Les noms viennent du catalogue (voir HeroSection) et non d'une liste
-// écrite ici : la version précédente affichait encore « Assistant Messenger
-// / Instagram » des mois après que cette prestation ait été scindée en deux.
-
-// Ordre de remplissage, pas de lecture : les quatre coins d'abord, puis les
-// deux flancs. Un catalogue de cinq prestations remplit ainsi les coins et
-// un seul flanc, plutôt que de laisser un coin vide.
 const SLOTS = [
   { id: "top-left", cx: 155, cy: 70, side: "top" },
   { id: "top-right", cx: 465, cy: 70, side: "top" },
@@ -19,29 +7,15 @@ const SLOTS = [
   { id: "mid-left", cx: 115, cy: 265, side: "left" },
 ] as const;
 
-// Écart entre une pastille de flanc et le nœud central. Ces deux-là sont
-// ancrées par leur bord intérieur et non par leur centre : à centre fixe, un
-// nom un peu long viendrait toucher le nœud central. L'écart est large à
-// dessein — le segment lumineux qui parcourt le connecteur a besoin de
-// longueur pour se voir, un trait de quelques pixels ne montre rien.
 const SIDE_GAP = 90;
 
 const FONT_SIZE = 12.5;
-// Largeur moyenne d'un caractère à cette taille et cette graisse — sert à
-// dimensionner la pastille d'après son texte, faute de pouvoir mesurer le
-// rendu côté serveur. Volontairement majorée : une pastille un peu large ne
-// se voit pas, un texte qui déborde de son cadre se voit tout de suite.
 const CHAR_WIDTH = 7.3;
 const BADGE_PADDING = 36;
 const LINE_HEIGHT = 14;
 const MAX_LINE_CHARS = 24;
-// Les flancs coupent plus court : ils partagent la largeur du schéma avec le
-// nœud central, là où les coins ont toute la leur.
 const MAX_LINE_CHARS_SIDE = 12;
 
-// Coupe un nom trop long en deux lignes, sur un espace — « Prise de
-// rendez-vous / commande par téléphone » ne tient pas sur une ligne dans une
-// pastille de cette taille.
 function wrapLabel(label: string, maxChars: number): string[] {
   if (label.length <= maxChars) return [label];
   const words = label.split(" ");
@@ -57,8 +31,6 @@ function wrapLabel(label: string, maxChars: number): string[] {
     }
   }
   if (current) lines.push(current);
-  // Au-delà de deux lignes, la pastille déborderait sur les connecteurs :
-  // le reste est tronqué plutôt que d'écraser la mise en page.
   return lines.slice(0, 2);
 }
 
@@ -68,8 +40,6 @@ function toNode(label: string, slot: (typeof SLOTS)[number]) {
   const longest = Math.max(...lines.map((line) => line.length));
   const w = Math.round(longest * CHAR_WIDTH) + BADGE_PADDING;
 
-  // Les flancs s'écartent du centre à mesure qu'ils s'élargissent ; les
-  // coins gardent leur position, ils ont la place.
   const cx =
     slot.side === "left"
       ? CENTER.cx - CENTER.w / 2 - SIDE_GAP - w / 2
@@ -90,17 +60,6 @@ function toNode(label: string, slot: (typeof SLOTS)[number]) {
 
 const CENTER = { cx: 310, cy: 265, w: 176, h: 40 };
 
-// Tracés en équerre reliant chaque pastille au centre — le même `d` sert au
-// trait visible et au segment lumineux qui le parcourt (stroke-dashoffset
-// animé).
-// Le trait part du bord de la pastille, calculé d'après sa hauteur réelle :
-// celle-ci dépend du texte (une ou deux lignes), un tracé écrit en dur
-// laisserait un trait flottant ou masqué selon le nom de la prestation.
-// Le palier horizontal est décalé d'un côté à l'autre pour que les quatre
-// tracés ne se superposent pas en arrivant au centre.
-// Hauteur du palier horizontal des tracés en équerre, décalée d'un côté à
-// l'autre pour que les quatre tracés ne se superposent pas en arrivant au
-// centre. Les flancs rejoignent le centre à l'horizontale, sans équerre.
 const ELBOW_Y: Record<"top-left" | "top-right" | "bottom-left" | "bottom-right", number> = {
   "top-left": 150,
   "top-right": 160,
@@ -124,16 +83,11 @@ function connectorPath(node: Node): string {
   return `M${node.cx},${fromY} L${node.cx},${elbowY} L${CENTER.cx},${elbowY} L${CENTER.cx},${toY}`;
 }
 
-// Vitesses volontairement différentes d'un connecteur à l'autre : synchrones,
-// les quatre points lumineux se lisaient comme un seul clignotement.
 const DURATIONS: Record<SlotId, number> = {
   "top-left": 2.4,
   "top-right": 3,
   "bottom-left": 2.8,
   "bottom-right": 3.4,
-  // Plus courtes : le tracé d'un flanc fait 90 unités contre environ 300
-  // pour un angle — à durée égale, le point y avancerait trois fois moins
-  // vite que les autres.
   "mid-left": 1.6,
   "mid-right": 1.8,
 };
@@ -173,8 +127,6 @@ function NodeBadge({ node }: { node: Node }) {
 }
 
 export function HeroNetworkVisual({ labels }: { labels: string[] }) {
-  // Moins de quatre prestations au catalogue : on ne dessine que les
-  // emplacements réellement remplis plutôt que des pastilles vides.
   const nodes = SLOTS.slice(0, labels.length).map((slot, i) =>
     toNode(labels[i], slot)
   );
@@ -189,11 +141,6 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
         `}</style>
 
         <defs>
-          {/* Zone de filtre en unités absolues, pas en pourcentage de la
-              boîte englobante : le connecteur d'un flanc est une ligne
-              parfaitement horizontale, donc de hauteur nulle — « 200 % » de
-              zéro vaut zéro, et le segment lumineux flouté n'était tout
-              simplement pas dessiné sur ce tracé-là. */}
           <filter
             id="hero-net-blur"
             filterUnits="userSpaceOnUse"
@@ -206,11 +153,6 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
           </filter>
         </defs>
 
-        {/* Une seule chose bouge ici, et elle dit quelque chose : le flux
-            qui remonte des solutions vers l'entreprise. Le halo pulsant qui
-            l'accompagnait était un second mouvement, décoratif, qui lui
-            disputait l'attention. */}
-        {/* Connecteurs + segment lumineux qui défile vers le centre */}
         {nodes.map((node) => (
           <g key={node.id}>
             <path
@@ -243,12 +185,10 @@ export function HeroNetworkVisual({ labels }: { labels: string[] }) {
           </g>
         ))}
 
-        {/* Pastilles */}
         {nodes.map((node) => (
           <NodeBadge key={node.id} node={node} />
         ))}
 
-        {/* Nœud central */}
         <g>
           <rect
             x={CENTER.cx - CENTER.w / 2}

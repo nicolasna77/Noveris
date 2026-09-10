@@ -42,15 +42,7 @@ export default function ContactPage() {
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_18rem]">
             <ContactForm />
             <aside>
-              {/* Plus de capitales espacées : elles suppriment la silhouette
-                  des mots, et c'était le dernier libellé de ce genre sur le
-                  site. Même traitement que le titre du panneau tarifaire
-                  d'une page de solution. */}
               <h2 className="text-sm font-medium text-muted-foreground">Ensuite</h2>
-              {/* Une vraie séquence, donc numérotée — mais un chiffre suffit.
-                  Les pastilles violettes reliées par un trait faisaient un
-                  ornement là où les filets suffisent, comme dans la méthode
-                  de la page d'accueil. */}
               <ol className="mt-4">
                 {NEXT_STEPS.map((step, index) => (
                   <li key={step.label} className="border-t border-border py-4">

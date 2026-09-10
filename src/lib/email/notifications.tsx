@@ -113,8 +113,6 @@ export async function sendServiceCanceledEmail(
   });
 }
 
-// Notifications internes à l'équipe Noveris — pas de préférence à vérifier,
-// il n'y a pas de client destinataire.
 export async function sendNewHelpRequestInternalEmail(input: {
   clientName: string;
   clientEmail: string;
@@ -157,9 +155,6 @@ export async function sendNewContactMessageInternalEmail(input: {
   });
 }
 
-// Sécurité, pas une préférence : contrairement aux notifications ci-dessus,
-// pas de vérification isNotificationEnabled — un client ne doit jamais
-// pouvoir se couper de son propre lien de réinitialisation de mot de passe.
 export async function sendPasswordResetEmail(
   recipient: { email: string; name: string },
   url: string

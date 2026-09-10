@@ -26,10 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-// Un rendez-vous a un horaire (startAt) et se place sur la grille ; une
-// commande prise par téléphone n'en a pas (voir Booking dans
-// prisma/schema.prisma, startAt/endAt "renseignés pour un rendez-vous, null
-// pour une commande") — elle est listée à part, jamais sur une case.
 export type CalendarBooking = {
   id: string;
   date: Date;
@@ -58,9 +54,6 @@ const VIEW_LABELS: Record<ViewMode, string> = {
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MAX_CHIPS_PER_DAY = 3;
 const DEFAULT_DURATION_MIN = 30;
-// Plage horaire affichée par défaut, élargie si un rendez-vous tombe en
-// dehors — inutile de dérouler 24 heures pour une activité qui travaille de
-// 8h à 19h.
 const DEFAULT_START_HOUR = 8;
 const DEFAULT_END_HOUR = 20;
 const HOUR_ROW_PX = 56;
@@ -78,9 +71,6 @@ function dayKey(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-// Place les réservations d'une journée en colonnes : deux rendez-vous qui se
-// chevauchent se partagent la largeur au lieu de se recouvrir. Balayage trié
-// par heure de début, première colonne libre à chaque fois.
 function layoutDay(items: CalendarBooking[]) {
   const columnEnds: number[] = [];
   const placed = items.map((item) => {
@@ -107,9 +97,6 @@ export function BookingsCalendar({
   unscheduled?: UnscheduledBooking[];
 }) {
   const [view, setView] = useState<ViewMode>("month");
-  // Une seule date d'ancrage pour les trois vues : son mois, sa semaine ou
-  // elle-même selon `view` — plus simple à faire naviguer que deux états
-  // (mois courant + jour sélectionné) qu'il fallait garder cohérents.
   const [cursor, setCursor] = useState(() => startOfDay(new Date()));
   const [detail, setDetail] = useState<CalendarBooking | null>(null);
   const [showOrders, setShowOrders] = useState(false);
@@ -148,8 +135,6 @@ export function BookingsCalendar({
     [view, cursor]
   );
 
-  // Plage horaire commune à toutes les colonnes affichées, sinon les lignes
-  // d'une colonne ne s'aligneraient pas avec celles d'à côté.
   const hours = useMemo(() => {
     let start = DEFAULT_START_HOUR;
     let end = DEFAULT_END_HOUR;
@@ -178,9 +163,6 @@ export function BookingsCalendar({
         : format(cursor, "EEEE d MMMM yyyy", { locale: fr });
 
   return (
-    // h-full : c'est le conteneur qui décide de la hauteur (pleine page sur
-    // /dashboard/calendrier, hauteur fixe quand le calendrier est encarté
-    // dans une carte de page détail). Seule la grille défile, jamais la page.
     <div className="flex h-full min-h-0 flex-col">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">

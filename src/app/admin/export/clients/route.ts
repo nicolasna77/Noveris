@@ -3,14 +3,7 @@ import { requireAdmin } from "@/lib/session";
 import { csvResponseHeaders, toCsv } from "@/lib/csv";
 import { STATUS_LABELS, formatCents, type ClientServiceStatus } from "@/lib/catalog";
 
-// Export de l'ensemble des activations, une ligne par solution activée.
-//
-// Volontairement non paginé, à la différence de l'écran : un export sert
-// justement à sortir de l'outil — comptabilité, réconciliation, demande
-// d'accès aux données. Le limiter à la page affichée le rendrait inutile.
 export async function GET() {
-  // Une route d'export lit les données de tous les clients : la vérification
-  // se refait ici, elle n'est pas héritée du layout.
   await requireAdmin();
 
   const rows = await db.clientService.findMany({

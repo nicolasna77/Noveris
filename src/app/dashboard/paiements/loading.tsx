@@ -1,9 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-// La page la plus exposée à l'attente : les factures viennent de l'API
-// Stripe, hors de notre contrôle. Sans ce fichier, un ralentissement de
-// Stripe se traduisait par une navigation figée, sans le moindre signe que
-// quelque chose se passait.
 export default function Loading() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6" role="status" aria-label="Chargement des paiements…">

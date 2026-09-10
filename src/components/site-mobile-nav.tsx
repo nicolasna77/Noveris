@@ -23,9 +23,6 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-// Reprend les liens masqués par `hidden md:flex` dans SiteHeader (menu
-// Prestations inclus) — sans lui, ils étaient entièrement inaccessibles en
-// dessous de md, faute de tout repli mobile.
 export function SiteMobileNav({
   services,
   loggedIn,
@@ -62,8 +59,6 @@ export function SiteMobileNav({
               const categoryServices = services.filter(
                 (s) => s.category === category
               );
-              // Une catégorie entièrement désactivée (voir /admin/services)
-              // ne doit pas laisser un titre vide sans rien en dessous.
               if (categoryServices.length === 0) return null;
 
               return (

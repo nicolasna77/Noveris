@@ -18,8 +18,6 @@ export default async function DashboardLayout({
     db.helpRequest.count({
       where: { organizationId: active.id, status: "OPEN" },
     }),
-    // notificationsSeenAt n'est pas un champ better-auth : il ne fait pas
-    // partie de session.user, d'où cette lecture directe.
     db.user
       .findUnique({
         where: { id: session.user.id },

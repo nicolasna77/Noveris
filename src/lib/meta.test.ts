@@ -27,8 +27,6 @@ describe("validateMetaSignature", () => {
     expect(validateMetaSignature(sign(body, "mauvais-secret"), body)).toBe(false);
   });
 
-  // Le cœur du sujet : c'est le corps exact qui est signé. Un octet modifié
-  // en transit doit invalider la requête.
   it("rejette un corps altéré après signature", () => {
     const signature = sign(body);
     expect(validateMetaSignature(signature, body.replace("123", "456"))).toBe(false);
@@ -52,9 +50,6 @@ describe("validateMetaSignature", () => {
     expect(validateMetaSignature(null, body)).toBe(false);
   });
 
-  // Sans secret configuré, tout doit être refusé : accepter par défaut
-  // ouvrirait le webhook à n'importe qui le temps d'un déploiement mal
-  // configuré.
   it("rejette tout quand le secret n'est pas configuré", () => {
     delete process.env.WHATSAPP_APP_SECRET;
     expect(validateMetaSignature(sign(body), body)).toBe(false);
@@ -86,8 +81,6 @@ describe("verifyMetaWebhookChallenge", () => {
     expect(verifyMetaWebhookChallenge("subscribe", null)).toBe(false);
   });
 
-  // Sans jeton configuré, `token` valant null rendrait la comparaison vraie
-  // par accident si elle était mal écrite.
   it("refuse quand le jeton n'est pas configuré", () => {
     delete process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
     expect(verifyMetaWebhookChallenge("subscribe", null)).toBe(false);

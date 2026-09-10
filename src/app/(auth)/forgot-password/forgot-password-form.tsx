@@ -29,8 +29,6 @@ export function ForgotPasswordForm() {
       redirectTo: "/reset-password",
     });
 
-    // Toujours le même message, que l'e-mail existe ou non — ne pas révéler
-    // quels comptes existent (même logique côté serveur, voir Better Auth).
     setSent(true);
     setLoading(false);
   }

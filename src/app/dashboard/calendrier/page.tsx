@@ -9,8 +9,6 @@ export const metadata: Metadata = { title: "Calendrier" };
 export default async function CalendrierPage() {
   const { active: organization } = await requireActiveOrganization();
 
-  // Rendez-vous de toutes les solutions de l'organisation, à la différence
-  // du calendrier de la page détail d'une solution, scopé à une seule.
   const bookings = await db.booking.findMany({
     where: {
       clientService: { organizationId: organization.id },
@@ -27,9 +25,6 @@ export default async function CalendrierPage() {
     isSynced: (b) => !b.clientService.calendarConnection || Boolean(b.googleEventId),
   });
 
-  // Hauteur de la fenêtre moins l'en-tête collant (h-14) de WorkspaceLayout :
-  // la grille occupe tout l'écran et défile toute seule, la page ne défile
-  // jamais.
   return (
     <div className="flex h-[calc(100svh-3.5rem)] flex-col px-4 py-6 sm:px-6">
       <div className="mb-5 shrink-0">

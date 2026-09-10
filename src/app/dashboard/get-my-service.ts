@@ -37,11 +37,6 @@ function toServiceEventDTO(event: ServiceEvent): ServiceEventDTO {
   };
 }
 
-// Jointure ClientService + Service -> MyServiceDTO, partagée entre la liste
-// « Mes prestations » (dashboard/page.tsx) et la page détail d'une prestation
-// (services/[clientServiceId]) pour ne pas dupliquer le mapping des deux
-// côtés. `calendarConnection`/`bookings`/`events` sont optionnels : la liste
-// ne les charge pas (pas besoin), seule la page détail les inclut.
 export function toMyServiceDTO(
   cs: ClientService & {
     service: Service;
@@ -84,9 +79,6 @@ export function toMyServiceDTO(
   };
 }
 
-// Renvoie null si la prestation n'existe pas ou n'appartient pas à cet
-// utilisateur — le même null couvre les deux cas (404), pour ne pas révéler
-// l'existence d'une prestation d'un autre client.
 export async function getMyService(
   clientServiceId: string,
   userId: string

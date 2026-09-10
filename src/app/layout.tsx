@@ -7,11 +7,6 @@ import { cn } from "@/lib/utils";
 import { JsonLd, organizationSchema } from "@/components/json-ld";
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 
-// Deux familles, comme le prévoit le thème shadcn : Geist pour le texte et
-// l'interface, Bricolage Grotesque pour les titres (voir --font-heading dans
-// globals.css). Outfit était chargée ici mais jamais affichée : la règle :root
-// de globals.css redéfinissait --font-sans vers Geist, et les deux rôles du
-// thème se résolvaient en une seule famille.
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
@@ -31,8 +26,6 @@ const geistMono = Geist_Mono({
 const TITLE = "Noveris — Automatisation pour artisans, coachs et TPE/PME";
 
 export const metadata: Metadata = {
-  // Sans metadataBase, les URL d'aperçu et les canoniques restent relatives
-  // et ne se résolvent nulle part : aucun aperçu au partage.
   metadataBase: new URL(siteUrl()),
   title: { default: TITLE, template: "%s | Noveris" },
   description: SITE_DESCRIPTION,

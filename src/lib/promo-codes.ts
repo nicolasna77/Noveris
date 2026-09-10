@@ -1,15 +1,5 @@
 import { formatCents } from "@/lib/catalog";
 
-// Les codes promo vivent chez Stripe — un Coupon (la remise) et un Promotion
-// Code (le texte que le client saisit). C'est Stripe qui fait respecter
-// l'expiration et le plafond d'utilisations, et qui décompte les utilisations
-// de façon atomique : rien de tout cela n'est réimplémenté ici.
-//
-// Ce module ne garde que ce qui se calcule sans réseau — la remise telle
-// qu'on l'annonce au client, la restriction à certaines solutions, les
-// raisons de refuser un code, la validation du formulaire d'admin — pour
-// pouvoir le tester. Les appels à Stripe sont dans stripe-promo-codes.ts.
-
 export type DiscountDuration = "once" | "repeating" | "forever";
 
 export type DiscountRule = {
@@ -19,8 +9,6 @@ export type DiscountRule = {
   durationInMonths: number | null;
 };
 
-// Stocké et comparé en majuscules : un client qui tape « bienvenue20 » doit
-// obtenir la même remise que celui qui tape « BIENVENUE20 ».
 export function normalizePromoCode(raw: string): string {
   return raw.trim().toUpperCase();
 }
@@ -45,11 +33,6 @@ function formatPercent(percent: number): string {
   return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(percent)} %`;
 }
 
-// La remise telle qu'on l'annonce, en une phrase. Le détail qui compte vient
-// d'une vérification sur Stripe : un pourcentage porte sur tout le premier
-// paiement, frais de mise en place compris — ne pas le dire laisserait croire
-// à une remise sur l'abonnement seul. Un montant fixe, lui, se retranche
-// simplement du total.
 export function describeDiscount(
   rule: DiscountRule,
   pricing: { hasSetupFee: boolean; hasSubscription: boolean }
@@ -59,15 +42,11 @@ export function describeDiscount(
     ? `−${formatPercent(rule.percentOff!)}`
     : `−${formatCents(rule.amountOffCents ?? 0)}`;
 
-  // Sans abonnement il n'y a qu'un paiement : la durée n'a pas de sens.
   if (!pricing.hasSubscription) return `${amount} sur le paiement`;
 
   const setupClause = isPercent && pricing.hasSetupFee ? ", mise en place comprise" : "";
   const months = rule.durationInMonths ?? 1;
 
-  // Une durée d'un seul mois revient à « premier paiement seulement ». La
-  // condition porte sur `repeating` uniquement : une remise permanente n'a
-  // pas de durée en mois, et ne doit pas être prise pour une remise unique.
   if (rule.duration === "once" || (rule.duration === "repeating" && months === 1)) {
     return `${amount} sur le premier paiement${setupClause}`;
   }
@@ -81,8 +60,6 @@ export function describeDiscount(
     : `${amount} sur chaque paiement`;
 }
 
-// Le premier paiement d'une solution : la mise en place et le premier mois,
-// réglés ensemble.
 export function firstPaymentCents(pricing: {
   setupFeeCents: number | null;
   monthlyPriceCents: number | null;
@@ -97,10 +74,6 @@ export function applyDiscount(totalCents: number, rule: DiscountRule): number {
   return Math.max(0, totalCents - (rule.amountOffCents ?? 0));
 }
 
-// La restriction à certaines solutions est portée par l'application, dans
-// les métadonnées du code : les lignes de paiement étant créées à la volée
-// (price_data), chaque Checkout Session a ses propres produits Stripe, et
-// Stripe ne peut pas restreindre un coupon à « l'assistant WhatsApp ».
 export const SERVICES_METADATA_KEY = "services";
 
 export function allowedServiceSlugs(
@@ -122,8 +95,6 @@ export type PromotionCodeLike = {
   coupon: { valid: boolean } | null;
 };
 
-// Pourquoi un code ne peut pas servir ici, ou null s'il le peut. Le message
-// est adressé au client : il dit ce qui ne va pas, sans jargon.
 export function redeemabilityProblem(
   promo: PromotionCodeLike,
   serviceSlug: string,
@@ -143,15 +114,12 @@ export function redeemabilityProblem(
   return null;
 }
 
-// Ce que le formulaire d'admin envoie : uniquement des valeurs sérialisables.
 export type PromoCodeFormInput = {
   code: string;
   kind: "percent" | "amount";
-  // Un pourcentage, ou un montant en euros selon `kind`.
   value: number;
   duration: DiscountDuration;
   durationInMonths: number | null;
-  // Fin de journée choisie par l'admin, calculée dans son fuseau.
   expiresAtMs: number | null;
   maxRedemptions: number | null;
   firstTimeOnly: boolean;
@@ -161,7 +129,6 @@ export type PromoCodeFormInput = {
 export type ParsedPromoCode = {
   code: string;
   rule: DiscountRule;
-  // En secondes Unix, l'unité de Stripe.
   expiresAt: number | null;
   maxRedemptions: number | null;
   firstTimeOnly: boolean;
@@ -207,9 +174,6 @@ export function parsePromoCodeInput(
   };
 }
 
-// La remise seule, sans le code ni les limites. Partagée par le serveur et
-// l'aperçu du formulaire d'admin : ce que l'admin voit en tapant est ce que
-// Stripe recevra, et ce que le client lira.
 export function parseDiscountRule(
   input: Pick<PromoCodeFormInput, "kind" | "value" | "duration" | "durationInMonths">
 ): { ok: true; rule: DiscountRule } | { ok: false; error: string } {
@@ -219,7 +183,6 @@ export function parseDiscountRule(
     if (!Number.isFinite(input.value) || input.value <= 0 || input.value > 100) {
       return { ok: false, error: "Le pourcentage doit être compris entre 0 (exclu) et 100." };
     }
-    // Stripe n'accepte que deux décimales.
     percentOff = Math.round(input.value * 100) / 100;
   } else {
     const cents = Math.round(input.value * 100);

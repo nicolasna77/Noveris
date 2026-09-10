@@ -3,7 +3,6 @@ import { requireUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { completeInstagramConnection, verifyInstagramState } from "@/lib/instagram";
 
-// Même structure que src/app/api/google-calendar/callback/route.ts.
 export async function GET(request: Request) {
   const session = await requireUser();
   const url = new URL(request.url);

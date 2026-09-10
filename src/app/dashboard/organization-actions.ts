@@ -6,16 +6,8 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { requireUser } from "@/lib/session";
 
-// Statuts qui empêchent la suppression d'une organisation — seules des
-// prestations résiliées (ou aucune) peuvent être nettoyées automatiquement,
-// vu la FK ClientService.organizationId en onDelete: Restrict.
 const BLOCKING_STATUSES = ["PENDING_PAYMENT", "CONFIGURING", "ACTIVE"] as const;
 
-// Suppression via une action serveur dédiée (plutôt que
-// authClient.organization.delete() directement côté client) car elle doit
-// appliquer des règles métier que better-auth ne connaît pas : un client
-// garde toujours au moins une organisation, et une organisation avec des
-// prestations en cours ne se supprime pas silencieusement.
 export async function deleteOrganizationAction(organizationId: string) {
   const session = await requireUser();
 
@@ -37,8 +29,6 @@ export async function deleteOrganizationAction(organizationId: string) {
     );
   }
 
-  // Les prestations résiliées bloqueraient la suppression (FK Restrict) sans
-  // apporter d'information utile une fois l'organisation elle-même partie.
   await db.clientService.deleteMany({
     where: { organizationId, status: "CANCELED" },
   });

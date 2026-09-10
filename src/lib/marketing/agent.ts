@@ -4,16 +4,10 @@ import { formatCents, type ServiceDTO } from "@/lib/catalog";
 import { channelRule } from "./channels";
 import { detectUnsupportedClaims } from "./claims";
 
-// Construit à la demande, pas au chargement du module — même raison que dans
-// src/lib/messaging-agent.ts.
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
-// Un modèle plus capable que celui de l'agent de messagerie, et c'est
-// assumé : celui-ci tourne à chaque message entrant, celui-là quelques fois
-// par jour à la demande d'un admin. Ici la qualité du texte est tout l'intérêt
-// de la fonctionnalité, et le coût est négligeable à ce volume.
 const COPY_MODEL = "gpt-5.5";
 
 export type PostProposal = {
@@ -24,8 +18,6 @@ export type PostProposal = {
   warnings: string[];
 };
 
-// Rendu du catalogue tel que le modèle doit le voir : ce sont les seuls faits
-// dont il dispose, et il n'a le droit de rien affirmer d'autre.
 function describeCatalog(services: ServiceDTO[]): string {
   return services
     .map((service) => {
@@ -44,7 +36,6 @@ function describeCatalog(services: ServiceDTO[]): string {
 export function buildMarketingPrompt(options: {
   channel: MarketingChannel;
   services: ServiceDTO[];
-  /** Angles déjà proposés, à ne pas resservir. */
   recentAngles: string[];
   count: number;
 }): string {
@@ -58,8 +49,6 @@ export function buildMarketingPrompt(options: {
 
     `Le catalogue réel, et la totalité des faits dont tu disposes :\n${describeCatalog(options.services)}`,
 
-    // La contrainte qui compte le plus, et la raison pour laquelle elle est
-    // écrite en toutes lettres plutôt que suggérée.
     `Interdiction absolue d'inventer une preuve. Aucun pourcentage, aucun chiffre de résultat, aucun nombre de clients, aucun témoignage, aucune étude, aucune récompense, aucune position de marché : rien de tout cela n'existe et rien ne peut être vérifié. Tu n'as le droit d'affirmer que ce qui figure ci-dessus. Une publication convaincante et fausse est un échec, pas un succès. Ce qui remplace la preuve chiffrée : une situation que le lecteur reconnaît, décrite avec précision.`,
 
     `Écris en français, à la deuxième personne du pluriel. Pas de jargon technique, pas de superlatif, pas de « révolutionnaire » ni de « game changer ». Le lecteur est occupé et méfiant : une phrase juste vaut mieux qu'une phrase enthousiaste.`,
@@ -145,8 +134,6 @@ export async function generateMarketingPosts(options: {
   return parsed.posts.map((post) => ({
     angle: post.angle,
     body: post.body,
-    // Le modèle peut renvoyer un slug inventé malgré la consigne : on ne
-    // rattache le post qu'à une solution qui existe vraiment.
     serviceSlug: post.serviceSlug && knownSlugs.has(post.serviceSlug) ? post.serviceSlug : null,
     imageBrief: channelRule(options.channel).needsImage ? post.imageBrief : null,
     warnings: detectUnsupportedClaims(post.body),

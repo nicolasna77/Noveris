@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isNotificationEnabled, parsePreferences } from "./preferences";
 
-// La règle centrale : une clé absente vaut « activée ». Un compte créé
-// avant l'ajout d'un type de notification doit continuer à le recevoir,
-// sans quoi une nouvelle notification n'atteindrait aucun compte existant.
 describe("isNotificationEnabled", () => {
   it("active par défaut un type jamais choisi", () => {
     expect(isNotificationEnabled({}, "SERVICE_ACTIVATED")).toBe(true);
@@ -18,8 +15,6 @@ describe("isNotificationEnabled", () => {
     expect(isNotificationEnabled(preferences, "HELP_REQUEST_REPLY")).toBe(true);
   });
 
-  // Le champ vient d'une colonne Json : il peut valoir null ou contenir
-  // n'importe quoi si quelqu'un l'édite à la main.
   it("reste permissif face à une valeur inexploitable", () => {
     expect(isNotificationEnabled(null, "SERVICE_ACTIVATED")).toBe(true);
     expect(isNotificationEnabled("pas un objet", "SERVICE_ACTIVATED")).toBe(true);

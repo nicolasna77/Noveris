@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
 
-// Lu en polling par usage-counter.tsx côté client — volontairement pas
-// requireUser() (qui redirige) : une API JSON doit répondre 401, pas
-// rediriger vers /login.
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }

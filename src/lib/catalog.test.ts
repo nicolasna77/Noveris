@@ -17,9 +17,6 @@ describe("formatCents", () => {
     expect(formatCents(9000)).toBe("90 €");
   });
 
-  // Deux décimales dès qu'il y a des centimes : « 79,5 € » n'est pas une
-  // façon d'écrire un prix. L'attente précédente protégeait ce défaut, qui ne
-  // se voyait pas tant que tous les tarifs étaient ronds.
   it("garde les centimes quand il y en a", () => {
     expect(formatCents(7950)).toBe("79,50 €");
   });
@@ -42,15 +39,11 @@ describe("formatPrice", () => {
     expect(formatPrice(45000, null)).toBe("450 €");
   });
 
-  // Le catalogue interdit ce cas (au moins un prix est requis), mais la
-  // fonction est appelée sur des données venant de la base.
   it("renvoie un tiret quand aucun prix n'est défini", () => {
     expect(formatPrice(null, null)).toBe("—");
   });
 });
 
-// Base d'une prestation "prête à déployer" : chaque test ne modifie que ce
-// qu'il teste.
 const deployable = {
   status: "ACTIVE" as const,
   externalPhoneNumber: null,
@@ -79,8 +72,6 @@ describe("étapes de mise en service restantes", () => {
     ).toBe(false);
   });
 
-  // Une prestation résiliée ou en attente de paiement n'a rien à réclamer :
-  // c'est le paiement, pas la configuration, qui bloque.
   it("ne réclame rien tant que la prestation n'est pas payée", () => {
     expect(needsPhoneNumber({ ...deployable, status: "PENDING_PAYMENT" })).toBe(false);
   });
@@ -158,8 +149,6 @@ describe("champs obligatoires manquants", () => {
     expect(findMissingRequiredField(fields, { phoneLine: "   " })?.key).toBe("phoneLine");
   });
 
-  // Le piège : un champ requis mais masqué par sa condition bloquerait
-  // l'activation sans que le client puisse le remplir.
   it("ignore un champ requis que sa condition rend invisible", () => {
     expect(findMissingRequiredField(fields, { phoneLine: "+33123456789" })).toBeUndefined();
   });

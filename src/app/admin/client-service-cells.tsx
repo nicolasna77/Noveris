@@ -14,11 +14,6 @@ import {
   WhatsAppPhoneNumberEditor,
 } from "./client-service-actions";
 
-// Les cellules que la table et la vue en cartes partagent. Extraites parce
-// qu'une même solution s'affiche de deux façons selon la largeur d'écran :
-// dupliquer cette logique — quel éditeur de connexion selon la solution,
-// quels réglages afficher — la ferait diverger à la première évolution.
-
 export type ClientServiceCellData = {
   id: string;
   status: string;
@@ -45,9 +40,6 @@ export function NoteCell({ cs }: { cs: ClientServiceCellData }) {
   return <NoteEditor clientServiceId={cs.id} initialNote={cs.adminNote ?? ""} />;
 }
 
-// Chaque solution se connecte à un service tiers différent, et l'identifiant
-// à saisir n'a pas le même sens d'une plateforme à l'autre — d'où un éditeur
-// par famille plutôt qu'un champ générique.
 export function ConnectionCell({ cs }: { cs: ClientServiceCellData }) {
   if (cs.status === "CANCELED") return <Dash />;
 

@@ -8,11 +8,6 @@ import { getErrorMessage } from "@/lib/utils";
 import { completeMessengerConnection, disconnectMessenger } from "./actions";
 import { loadFacebookSdk } from "./facebook-sdk";
 
-// Équivalent Messenger de WhatsAppConnection — même SDK Facebook Login for
-// Business, mais un parcours plus simple : pas d'assistant multi-écrans
-// (la Page existe déjà), donc pas de postMessage à écouter, juste le code
-// renvoyé par le callback FB.login. La Page elle-même est retrouvée côté
-// serveur via /me/accounts (voir fetchManagedPage dans src/lib/messenger.ts).
 export function MessengerConnection({
   clientServiceId,
   connected,
@@ -48,8 +43,6 @@ export function MessengerConnection({
         );
 
         const code = response.authResponse?.code;
-        // Fenêtre fermée sans terminer le parcours (annulation) — rien à
-        // signaler, ce n'est pas une erreur.
         if (!code) return;
 
         await completeMessengerConnection(clientServiceId, code);

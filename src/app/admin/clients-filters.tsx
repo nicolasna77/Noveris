@@ -47,8 +47,6 @@ export function ClientsFilters() {
         />
       </form>
 
-      {/* `items` : sans lui, le déclencheur affiche la valeur brute
-          (« PENDING_PAYMENT ») au lieu du libellé. */}
       <Select
         value={searchParams.get("status") ?? "all"}
         items={{ all: "Tous les statuts", ...STATUS_LABELS }}
@@ -69,9 +67,6 @@ export function ClientsFilters() {
         </SelectContent>
       </Select>
 
-      {/* L'export ne suit pas les filtres affichés, et c'est voulu : on
-          exporte pour sortir de l'outil — comptabilité, réconciliation,
-          demande d'accès aux données — pas pour figer la page en cours. */}
       <Link
         href="/admin/export/clients"
         prefetch={false}

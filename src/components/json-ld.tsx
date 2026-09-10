@@ -1,12 +1,6 @@
 import { absoluteUrl, FAQS, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import { formatCents, type ServiceDTO } from "@/lib/catalog";
 
-// Balisage schema.org, rendu côté serveur.
-//
-// Le <script type="application/ld+json"> n'est pas exécuté par le navigateur,
-// seulement lu par les moteurs et les agents : il n'y a donc rien à hydrater,
-// et JSON.stringify suffit. On échappe tout de même `<` — une valeur venue de
-// la base contenant « </script> » terminerait la balise autrement.
 export function JsonLd({ data }: { data: object }) {
   return (
     <script
@@ -47,9 +41,6 @@ export function faqSchema() {
   };
 }
 
-// Une prestation vendue est un Service au sens schema.org, pas un Product :
-// rien n'est livré, c'est une prestation récurrente rattachée à un
-// fournisseur.
 export function serviceSchema(service: ServiceDTO) {
   const offers: object[] = [];
   if (service.setupFeeCents !== null) {
@@ -86,14 +77,10 @@ export function serviceSchema(service: ServiceDTO) {
     ...(offers.length > 0 && {
       offers: offers.length === 1 ? offers[0] : offers,
     }),
-    // Le plafond d'usage fait partie de l'offre : l'omettre laisserait croire
-    // à un forfait sans limite.
     ...(service.usageCapLabel && { termsOfService: service.usageCapLabel }),
   };
 }
 
-// Formatage humain du prix, réutilisé par les métadonnées de partage — le
-// prix est l'information qu'un prospect cherche en premier dans un aperçu.
 export function priceSummary(service: ServiceDTO): string {
   if (service.setupFeeCents !== null && service.monthlyPriceCents !== null) {
     return `${formatCents(service.setupFeeCents)} à l'installation, puis ${formatCents(service.monthlyPriceCents)} par mois.`;

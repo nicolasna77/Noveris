@@ -7,20 +7,6 @@ import { ServiceProgress } from "@/app/dashboard/service-progress";
 import { formatDate, type MyServiceDTO } from "@/lib/catalog";
 import { ConnectionSummary } from "./connection-summary";
 
-// Ce que l'équipe voit d'une solution : exactement ce que son client en voit,
-// et rien de plus. Les ServiceEvent, la configuration renseignée, l'avancement
-// — jusqu'ici seul le compte du client lui-même y donnait accès, ce qui
-// obligeait l'équipe à demander au client de décrire son propre écran.
-//
-// Volontairement en lecture seule : les commandes qui accompagnent ces mêmes
-// informations côté client (modifier la configuration, connecter un compte)
-// ne sont pas reprises. Un admin n'a pas à connecter le WhatsApp de
-// quelqu'un d'autre depuis son dos.
-//
-// <details> natif plutôt qu'un état React : la page reste un composant
-// serveur, et le repli d'un historique long marche au clavier sans code.
-// La première solution est ouverte — c'est la plus récente, celle qu'on
-// vient généralement consulter.
 export function ServiceHistory({ items }: { items: MyServiceDTO[] }) {
   if (items.length === 0) return null;
 

@@ -34,8 +34,6 @@ describe("normalizePromoCode", () => {
   });
 });
 
-// Les montants attendus viennent d'une vérification sur Stripe, en mode test,
-// avec la tarification réelle de l'assistant WhatsApp (450 € + 59 €/mois).
 describe("applyDiscount", () => {
   const first = firstPaymentCents({ setupFeeCents: 45000, monthlyPriceCents: 5900 });
 
@@ -57,8 +55,6 @@ describe("applyDiscount", () => {
 });
 
 describe("describeDiscount", () => {
-  // Le point qui compterait le plus s'il était tu : un pourcentage entame
-  // aussi les frais de mise en place.
   it("précise qu'un pourcentage porte sur la mise en place", () => {
     expect(describeDiscount(percent(20), HYBRID)).toBe(
       `−20${NBSP}% sur le premier paiement, mise en place comprise`
@@ -98,8 +94,6 @@ describe("describeDiscount", () => {
     );
   });
 
-  // Une solution sans abonnement n'a qu'un paiement : parler de durée
-  // serait faux.
   it("ignore la durée quand il n'y a qu'un paiement", () => {
     expect(
       describeDiscount(percent(20, "forever"), { hasSetupFee: true, hasSubscription: false })
@@ -240,7 +234,6 @@ describe("parsePromoCodeInput", () => {
 });
 
 describe("formatCents", () => {
-  // Une remise produit les premiers montants non ronds du site.
   it("écrit deux décimales dès qu'il y a des centimes", () => {
     expect(formatCents(78320)).toBe("783,20 €");
     expect(formatCents(1999)).toBe("19,99 €");

@@ -39,8 +39,6 @@ export function OrganizationCreateDialog({
     if (!trimmedName) return;
 
     setIsSubmitting(true);
-    // Devient automatiquement l'organisation active (côté serveur, quand une
-    // session existe) — inutile de rappeler setActive nous-mêmes ensuite.
     const { error } = await authClient.organization.create({
       name: trimmedName,
       slug: slugify(trimmedName),

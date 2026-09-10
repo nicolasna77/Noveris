@@ -5,9 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const POLL_INTERVAL_MS = 15_000;
 
-// Interroge périodiquement l'usage du mois en cours (alimenté par le webhook
-// POST /api/usage-events côté système externe) pour donner au client un
-// compteur qui bouge tout seul, sans qu'il ait besoin de recharger la page.
 export function UsageCounter({ clientServiceId }: { clientServiceId: string }) {
   const [count, setCount] = useState<number | null>(null);
 
@@ -23,7 +20,6 @@ export function UsageCounter({ clientServiceId }: { clientServiceId: string }) {
         const data: { count: number } = await res.json();
         if (!cancelled) setCount(data.count);
       } catch {
-        // Un raté de polling ne doit pas casser l'affichage existant.
       }
     }
 

@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/utils";
 import { disconnectInstagram } from "./actions";
 
-// Contrairement à WhatsApp/Messenger (popup Facebook Login for Business),
-// Instagram utilise un redirect OAuth classique — même structure que
-// CalendarConnection (Google Agenda).
 export function InstagramConnection({
   clientServiceId,
   connected,

@@ -14,9 +14,6 @@ import { PromoCodesTable, type PromoCodeRow, type PromoCodeState } from "./promo
 
 export const metadata: Metadata = { title: "Codes promo" };
 
-// Hors du corps du composant : l'état d'un code dépend de l'heure courante,
-// qui est impure. C'est au chargement que la question « ce code sert-il
-// encore ? » a un sens.
 async function loadPromoCodes(nameBySlug: Map<string, string>): Promise<PromoCodeRow[] | null> {
   try {
     const codes = await listPromotionCodes();
@@ -39,9 +36,6 @@ async function loadPromoCodes(nameBySlug: Map<string, string>): Promise<PromoCod
         id: promo.id,
         code: promo.code,
         state,
-        // Décrite comme pour une solution avec mise en place et abonnement,
-        // le cas de tout le catalogue : c'est la formulation qui ne cache
-        // rien de ce que la remise touche.
         discount: coupon
           ? describeDiscount(discountRuleFromCoupon(coupon), {
               hasSetupFee: true,
@@ -56,8 +50,6 @@ async function loadPromoCodes(nameBySlug: Map<string, string>): Promise<PromoCod
       };
     });
   } catch (err) {
-    // Stripe injoignable ou clé invalide : la page reste utilisable, elle
-    // dit simplement pourquoi la liste manque.
     console.error("[codes-promo] Stripe injoignable :", err);
     return null;
   }

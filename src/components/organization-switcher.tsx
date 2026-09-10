@@ -24,9 +24,6 @@ import type { OrganizationSummary } from "@/lib/organization";
 import { OrganizationCreateDialog } from "./organization-create-dialog";
 import { OrganizationManageDialog } from "./organization-manage-dialog";
 
-// Une lettre plutôt qu'une icône générique (Building2) : distingue déjà deux
-// organisations d'un coup d'œil, y compris sidebar repliée où seule cette
-// pastille reste visible.
 function orgInitial(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "?";
 }
@@ -84,10 +81,6 @@ export function OrganizationSwitcher({
                 aria-hidden="true"
               />
             </DropdownMenuTrigger>
-            {/* "right" suppose une sidebar étroite et fixe (desktop) ; sur
-                mobile la sidebar devient un Sheet plein écran (voir isMobile
-                dans Sidebar, ui/sidebar.tsx) et "right" fait alors déborder
-                le menu hors du Sheet, sur le fond assombri. */}
             <DropdownMenuContent
               align="start"
               side={isMobile ? "bottom" : "right"}

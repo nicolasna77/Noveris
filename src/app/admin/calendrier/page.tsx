@@ -9,8 +9,6 @@ export const metadata: Metadata = { title: "Calendrier" };
 export default async function AdminCalendrierPage() {
   await requireAdmin();
 
-  // Tous les rendez-vous, tous clients confondus — à la différence du
-  // calendrier de la page d'un utilisateur, scopé à un seul client.
   const bookings = await db.booking.findMany({
     where: { OR: [{ startAt: calendarWindow() }, { startAt: null }] },
     include: {
@@ -27,8 +25,6 @@ export default async function AdminCalendrierPage() {
     isSynced: (b) => !b.clientService.calendarConnection || Boolean(b.googleEventId),
   });
 
-  // Même mise en page pleine hauteur que le calendrier client — voir le
-  // commentaire dans src/app/dashboard/calendrier/page.tsx.
   return (
     <div className="flex h-[calc(100svh-3.5rem)] flex-col px-4 py-6 sm:px-6">
       <div className="mb-5 shrink-0">

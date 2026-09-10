@@ -13,8 +13,6 @@ export default async function AdminLayout({
     requireAdmin(),
     db.helpRequest.count({ where: { status: "OPEN" } }),
   ]);
-  // notificationsSeenAt n'est pas un champ better-auth : il ne fait pas
-  // partie de session.user, d'où cette lecture directe.
   const viewer = await db.user.findUnique({
     where: { id: session.user.id },
     select: { notificationsSeenAt: true },

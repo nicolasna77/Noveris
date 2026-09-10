@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { detectUnsupportedClaims } from "./claims";
 
-// Ces cas viennent des sorties réelles de l'agent : ce qu'il a écrit de juste
-// ne doit pas déclencher d'alerte, ce qu'il pourrait inventer doit en lever
-// une. Un détecteur trop bavard finit ignoré, ce qui le rend inutile le jour
-// où il a raison.
 describe("preuves inventées", () => {
   it("laisse passer un texte qui n'affirme que le catalogue", () => {
     const body =
@@ -14,14 +10,11 @@ describe("preuves inventées", () => {
     expect(detectUnsupportedClaims(body)).toEqual([]);
   });
 
-  // Le tarif et le plafond d'usage viennent de la base : ce sont des faits.
   it("ne s'alarme ni d'un prix ni d'un quota", () => {
     expect(detectUnsupportedClaims("79 € par mois, 150 minutes incluses, puis 0,30 € par minute."))
       .toEqual([]);
   });
 
-  // Faux positif observé à la première génération : une pensée prêtée au
-  // lecteur n'est pas un témoignage.
   it("ne prend pas une citation rhétorique pour un témoignage", () => {
     const body = "Ensemble, elles créent une pression permanente : “il faut que je réponde vite”.";
     expect(detectUnsupportedClaims(body)).toEqual([]);

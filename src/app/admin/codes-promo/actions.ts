@@ -13,15 +13,9 @@ import {
 
 type ActionResult<T extends object = object> = ({ ok: true } & T) | { ok: false; error: string };
 
-// Ces actions renvoient un résultat plutôt que de lever une erreur : un code
-// déjà pris ou une valeur hors bornes sont des réponses attendues, à afficher
-// telles quelles dans le formulaire.
-
 export async function createPromoCodeAction(
   input: PromoCodeFormInput
 ): Promise<ActionResult<{ code: string }>> {
-  // Vérifié ici et pas seulement dans le layout : une Server Action
-  // n'hérite pas de l'authentification de la page qui l'appelle.
   const session = await requireAdmin();
 
   const parsed = parsePromoCodeInput(input, Date.now());
@@ -40,7 +34,6 @@ export async function createPromoCodeAction(
     promo = await createPromotionCode(parsed.value);
   } catch (err) {
     const message = err instanceof Error ? err.message : "";
-    // Stripe refuse deux codes actifs identiques.
     if (/already exists/i.test(message)) {
       return { ok: false, error: `Un code « ${parsed.value.code} » est déjà actif.` };
     }

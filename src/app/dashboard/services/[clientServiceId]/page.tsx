@@ -47,9 +47,6 @@ export default async function ServiceDetailPage({
   const showBookings =
     isLive && (objectives.includes("appointment") || objectives.includes("order"));
 
-  // Le badge "non synchronisé" ne veut rien dire si aucun agenda n'est
-  // connecté — on ne le lève que si l'agenda l'est vraiment mais que cette
-  // réservation précise a échoué.
   const { scheduled: scheduledBookings, unscheduled: unscheduledBookings } =
     toCalendarBookings(item.bookings, {
       subtitle: (b) => b.customerPhone,
@@ -126,9 +123,6 @@ export default async function ServiceDetailPage({
                 Rendez-vous et commandes reçus
               </CardTitle>
             </CardHeader>
-            {/* Hauteur fixe ici : encarté dans une carte, le calendrier ne
-                peut pas prendre la hauteur de la fenêtre comme sur la page
-                /dashboard/calendrier. */}
             <CardContent className="h-[30rem] sm:h-[34rem]">
               <BookingsCalendar
                 scheduled={scheduledBookings}

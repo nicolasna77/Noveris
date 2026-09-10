@@ -10,12 +10,6 @@ import { loadFacebookSdk } from "./facebook-sdk";
 
 type EmbeddedSignupData = { phoneNumberId: string; wabaId: string };
 
-// Équivalent WhatsApp de CalendarConnection (Google Calendar) — mais Meta
-// n'offre pas de simple redirect OAuth pour l'Embedded Signup : la
-// connexion se fait dans une popup pilotée par le SDK JS, qui renvoie le
-// WABA/numéro du client via un postMessage pendant le parcours et le code
-// d'échange via le callback FB.login à la toute fin — on doit donc capturer
-// les deux avant de pouvoir appeler le serveur.
 export function WhatsAppConnection({
   clientServiceId,
   connected,
@@ -86,13 +80,7 @@ export function WhatsAppConnection({
         );
 
         const code = response.authResponse?.code;
-        // Cast nécessaire : TS ne voit que le `= null` synchrone plus haut
-        // dans cette fonction et en déduit (à tort) que `.current` vaut
-        // toujours null ici — il ignore que handleMessage, un closure séparé,
-        // a pu l'écrire entre-temps pendant les deux `await` ci-dessus.
         const signupData = signupDataRef.current as EmbeddedSignupData | null;
-        // Fenêtre fermée sans terminer le parcours (annulation) — rien à
-        // signaler, ce n'est pas une erreur.
         if (!code || !signupData) return;
 
         await completeWhatsAppEmbeddedSignup(

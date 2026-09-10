@@ -10,12 +10,6 @@ function formatMessageDate(date: Date): string {
   });
 }
 
-// Fil d'une demande d'aide, affiché à l'identique côté client
-// (/dashboard/aide) et côté équipe (/admin/aide) — seule la façon d'y
-// répondre change, d'où deux formulaires distincts qui appellent chacun
-// leur propre action. Les messages de l'équipe sont décalés visuellement
-// pour distinguer les deux voix d'un coup d'œil, sans dépendre de la seule
-// couleur (le libellé d'auteur porte déjà l'information).
 export function HelpRequestThread({
   messages,
 }: {

@@ -5,12 +5,6 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
-// `resolvedTheme` n'est fiable qu'après le montage côté client (next-themes
-// ne connaît pas encore la préférence système/localStorage pendant le rendu
-// serveur) — on affiche une icône neutre et un bouton désactivé jusque-là
-// plutôt que de risquer un mismatch d'hydratation. C'est l'exception
-// documentée à "pas de setState dans un effet" : le seul moyen de détecter
-// de façon fiable que l'hydratation est terminée.
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);

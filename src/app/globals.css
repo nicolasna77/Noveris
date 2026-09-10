@@ -198,8 +198,6 @@
     @apply font-sans;
   }
 
-  /* Les titres prennent la famille de titre du thème partout, pas seulement
-     dans les composants shadcn qui posent déjà font-heading. */
   h1,
   h2,
   h3 {

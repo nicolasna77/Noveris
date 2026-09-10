@@ -3,9 +3,6 @@ import { appUrl } from "../app-url";
 import { EmailLayout, emailButtonStyle, emailTextStyle } from "./layout";
 import { EMAIL_COLORS } from "../colors";
 
-// Envoyé à l'équipe Noveris quand un client répond dans le fil d'une de ses
-// demandes — sans ça, une relance passerait inaperçue tant que personne
-// n'ouvre /admin/aide.
 export function HelpRequestClientReplyInternalEmail({
   clientName,
   clientEmail,

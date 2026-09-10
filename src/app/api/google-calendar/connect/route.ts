@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { buildGoogleAuthUrl } from "@/lib/google-calendar";
 
-// Démarre la connexion Google Calendar d'une prestation — redirige vers
-// l'écran de consentement Google, le callback fait le reste.
 export async function GET(request: Request) {
   const session = await requireUser();
 

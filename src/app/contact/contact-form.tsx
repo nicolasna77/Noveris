@@ -50,11 +50,6 @@ export function ContactForm() {
     <Card>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Honeypot anti-spam : invisible et inatteignable au clavier pour
-              une personne réelle (positionné hors écran, pas display:none —
-              certains bots ignorent les champs display:none), mais rempli
-              par les bots qui remplissent tout formulaire trouvé dans le
-              DOM. Vérifié côté serveur dans submitContactMessage. */}
           <div className="absolute left-[-9999px]" aria-hidden="true">
             <Label htmlFor="website">Site web</Label>
             <Input

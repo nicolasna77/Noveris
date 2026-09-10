@@ -3,11 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/catalog";
 
-// Mêmes calculs que src/app/admin/stats.tsx (dépense = somme des
-// monthlyPriceCents des prestations ACTIVE) et
-// src/app/api/client-services/[id]/usage/route.ts (appels du mois), scopés à
-// l'organisation active plutôt qu'à l'ensemble des clients ou à une seule
-// prestation.
 export async function OverviewStats({ organizationId }: { organizationId: string }) {
   const now = new Date();
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);

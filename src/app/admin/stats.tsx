@@ -106,11 +106,6 @@ export async function Stats() {
     ])
   );
   const sparklineCounts = Array.from({ length: SPARKLINE_DAYS }, (_, i) => {
-    // Arithmétique calendaire (pas +i * 86 400 000 ms) : une transition
-    // heure d'été/hiver dans la fenêtre de 14 jours décalerait les jours à
-    // ms fixe d'une heure par rapport aux buckets date_trunc('day', ...)
-    // de Postgres ci-dessus, et les activations du jour de transition
-    // n'apparaîtraient plus dans le sparkline.
     const day = new Date(
       sparklineStart.getFullYear(),
       sparklineStart.getMonth(),

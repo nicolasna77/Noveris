@@ -1,33 +1,8 @@
-// Description unique des variables d'environnement, et vérification au
-// démarrage.
-//
-// Deux niveaux, volontairement distincts — c'est tout l'enjeu du ticket #7 :
-//
-// - Les variables *requises* sont celles sans lesquelles l'application ne
-//   fonctionne pas du tout. Leur absence interrompt le démarrage avec un
-//   message qui les nomme toutes d'un coup. C'est le cas de
-//   BETTER_AUTH_SECRET, resté à sa valeur par défaut en production, qui ne se
-//   manifestait qu'au premier appel authentifié.
-//
-// - Les variables *par fonctionnalité* ne concernent qu'une intégration. Leur
-//   absence désactive cette intégration et rien d'autre : on l'annonce au
-//   démarrage, sans interrompre quoi que ce soit. Faire échouer le démarrage
-//   là-dessus reproduirait le plantage de build qu'OPENAI_API_KEY provoquait,
-//   loin de sa cause.
-//
-// Le cas vraiment coûteux n'est ni l'un ni l'autre : c'est le groupe à moitié
-// rempli. Une intégration dont il manque une variable sur quatre se croit
-// active et échoue à l'usage, chez un client. inspectEnv le signale à part.
-
 type Rule = {
   name: string;
-  /** Message montré quand la valeur est présente mais inutilisable. */
   validate?: (value: string) => string | null;
 };
 
-// Requises dans tous les environnements : elles figurent aussi bien dans .env
-// en local que dans la CI et sur Vercel. Une valeur manquante ici n'est jamais
-// un choix, c'est un oubli.
 export const REQUIRED: Rule[] = [
   {
     name: "DATABASE_URL",
@@ -45,8 +20,6 @@ export const REQUIRED: Rule[] = [
   },
   {
     name: "NEXT_PUBLIC_APP_URL",
-    // Le slash final a déjà cassé la validation de signature Twilio : l'URL
-    // reconstruite ne correspondait plus à celle appelée (voir src/lib/twilio.ts).
     validate: (v) => {
       if (!/^https?:\/\//.test(v)) return "doit commencer par http:// ou https://";
       if (v.endsWith("/")) return "ne doit pas se terminer par un slash";
@@ -61,13 +34,10 @@ export const REQUIRED: Rule[] = [
 ];
 
 export type FeatureGroup = {
-  /** Nom lisible, tel qu'il apparaît dans les messages de démarrage. */
   feature: string;
   vars: string[];
 };
 
-// Chaque groupe correspond à une intégration entière : ou bien on l'a
-// configurée, ou bien on ne s'en sert pas encore.
 export const FEATURES: FeatureGroup[] = [
   {
     feature: "Agent vocal IA (standard téléphonique)",
@@ -125,20 +95,14 @@ export const FEATURES: FeatureGroup[] = [
 ];
 
 export type EnvReport = {
-  /** Requises absentes, ou présentes avec une valeur inutilisable. */
   problems: string[];
-  /** Groupes entièrement configurés. */
   enabled: string[];
-  /** Groupes entièrement vides — l'intégration n'est simplement pas branchée. */
   disabled: string[];
-  /** Groupes partiellement remplis : la configuration a été commencée puis laissée en plan. */
   incomplete: { feature: string; missing: string[] }[];
 };
 
 type Source = Record<string, string | undefined>;
 
-// Une variable vide vaut absente : sur Vercel comme dans un .env, une valeur
-// effacée laisse souvent la clé derrière elle.
 function read(source: Source, name: string): string | null {
   const value = source[name];
   return value && value.trim() !== "" ? value : null;
@@ -179,7 +143,6 @@ export function formatProblems(report: EnvReport): string {
   ].join("\n");
 }
 
-// Appelée une fois au démarrage du serveur (voir src/instrumentation.ts).
 export function checkEnvAtBoot(source: Source = process.env): void {
   const report = inspectEnv(source);
 
@@ -199,10 +162,6 @@ export function checkEnvAtBoot(source: Source = process.env): void {
   }
 }
 
-// Lecture ponctuelle, au moment où une intégration s'en sert — le seul endroit
-// où l'on sait quelle fonctionnalité est concernée, et donc où l'on peut le
-// dire. Remplace les copies locales qui vivaient dans google-calendar.ts et
-// instagram.ts.
 export function requireEnv(name: string, feature?: string): string {
   const value = read(process.env, name);
   if (value === null) {

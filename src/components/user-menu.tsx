@@ -56,11 +56,6 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
             authClient.signOut({
               fetchOptions: {
                 onSuccess: () => {
-                  // refresh() avant push() : le cookie de session vient de
-                  // disparaître, mais le cache de routeur contient encore
-                  // les pages rendues pour la session précédente. Sans
-                  // l'invalider, l'écran d'arrivée peut réafficher un état
-                  // connecté.
                   router.refresh();
                   router.push("/");
                 },

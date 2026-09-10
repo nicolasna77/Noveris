@@ -15,10 +15,6 @@ import {
   updateServiceNote,
 } from "./actions";
 
-// NoteEditor et PhoneNumberEditor sont le même éditeur inline à un champ
-// (useState + useTransition, Enter pour valider, bouton avec spinner) —
-// factorisé ici plutôt que dupliqué, seuls le champ édité et le message de
-// succès changent.
 function InlineFieldEditor({
   id,
   label,

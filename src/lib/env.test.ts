@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FEATURES, REQUIRED, checkEnvAtBoot, inspectEnv } from "./env";
 
-// Un environnement minimal valide, dont chaque test ne casse qu'une pièce.
 function validEnv(overrides: Record<string, string | undefined> = {}) {
   return {
     DATABASE_URL: "postgresql://noveris:secret@localhost:5432/noveris",
@@ -24,7 +23,6 @@ describe("variables requises", () => {
     expect(problems).toEqual(["DATABASE_URL est manquante"]);
   });
 
-  // Sur Vercel comme dans un .env, effacer une valeur laisse souvent la clé.
   it("traite une valeur vide comme absente", () => {
     expect(inspectEnv(validEnv({ DATABASE_URL: "   " })).problems).toEqual([
       "DATABASE_URL est manquante",
@@ -37,15 +35,12 @@ describe("variables requises", () => {
     expect(problems[0]).toContain("PostgreSQL");
   });
 
-  // L'incident à l'origine du ticket : un secret laissé à sa valeur par
-  // défaut ne se manifestait qu'au premier appel authentifié, en production.
   it("refuse un secret d'authentification trop court", () => {
     const { problems } = inspectEnv(validEnv({ BETTER_AUTH_SECRET: "trop-court" }));
     expect(problems[0]).toContain("BETTER_AUTH_SECRET");
     expect(problems[0]).toContain("10 caractères");
   });
 
-  // Ce slash a déjà cassé la validation de signature Twilio en production.
   it("refuse une URL d'application terminée par un slash", () => {
     const { problems } = inspectEnv(validEnv({ NEXT_PUBLIC_APP_URL: "https://noveris.fr/" }));
     expect(problems).toEqual(["NEXT_PUBLIC_APP_URL ne doit pas se terminer par un slash"]);
@@ -61,8 +56,6 @@ describe("variables requises", () => {
     expect(problems).toEqual(["STRIPE_SECRET_KEY doit commencer par sk_"]);
   });
 
-  // Le point de la vérification groupée : corriger une variable, redéployer,
-  // découvrir la suivante, recommencer — c'est ce qu'on veut éviter.
   it("rapporte tous les problèmes d'un coup, pas seulement le premier", () => {
     const { problems } = inspectEnv({});
     expect(problems).toHaveLength(5);
@@ -90,7 +83,6 @@ describe("groupes par fonctionnalité", () => {
     expect(report.incomplete).toEqual([]);
   });
 
-  // Le cas coûteux : l'intégration se croit active et échoue chez un client.
   it("distingue une configuration commencée puis laissée en plan", () => {
     const report = inspectEnv(
       validEnv({ ...instagram, INSTAGRAM_APP_SECRET: undefined })
@@ -107,9 +99,6 @@ describe("groupes par fonctionnalité", () => {
   });
 });
 
-// Un fichier d'exemple qui se périme est pire que pas de fichier du tout :
-// il fait croire que la liste est à jour. Le schéma étant la source de
-// vérité, c'est lui qui le garde.
 describe(".env.example", () => {
   const example = readFileSync(new URL("../../.env.example", import.meta.url), "utf-8");
   const declared = [...REQUIRED.map((r) => r.name), ...FEATURES.flatMap((f) => f.vars)];

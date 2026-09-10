@@ -10,8 +10,6 @@ import { revokeUserSessionAction } from "./actions";
 export function RevokeSessionButton({
   userId,
   sessionToken,
-  // Une session expirée n'existe déjà plus côté auth : proposer de la
-  // révoquer promettait une action sans effet.
   expired = false,
 }: {
   userId: string;

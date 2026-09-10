@@ -14,10 +14,6 @@ const STEPS = [
   },
 ];
 
-// Rend visible un processus qui, jusqu'ici, n'était décrit nulle part : le
-// client envoyait une demande sans savoir s'il devait attendre une réponse
-// par e-mail, revenir voir cette page, ou les deux (les deux, en fait — voir
-// sendHelpRequestResolvedEmail).
 export function HowItWorks() {
   return (
     <aside aria-labelledby="help-process-heading" className="lg:sticky lg:top-8 lg:self-start">

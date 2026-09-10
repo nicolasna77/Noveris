@@ -10,9 +10,6 @@ import {
 } from "@/components/ui/select";
 import { useQueryParamFilters } from "@/hooks/use-query-param-filters";
 
-// Passés à `items` : sans eux, le Select de Base UI affiche la valeur brute
-// (« ADMIN », « all ») dans son déclencheur au lieu du libellé. Une seule
-// source pour la liste et le déclencheur.
 const ROLE_FILTER_LABELS = {
   all: "Tous les rôles",
   ADMIN: "Administrateurs",

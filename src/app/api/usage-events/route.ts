@@ -2,29 +2,7 @@ import { NextResponse } from "next/server";
 import { recordUsageEvent } from "@/lib/usage-events";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
-// Webhook appelé par le système externe qui gère réellement la prestation
-// pour reporter le cycle de vie d'un appel : un premier appel au décroché
-// ("in_progress"), puis un second au raccroché ("completed", avec
-// durée/récapitulatif) — les deux identifiés par le même `externalId` (ex.
-// CallSid Twilio, ou call_id OpenAI) pour que le second mette à jour la
-// même ligne plutôt que d'en créer une autre. Un appel sans externalId
-// reste possible (compat. usage ponctuel) : il crée directement une ligne
-// "completed". Pas de session utilisateur ici, l'appelant est un système,
-// pas un client connecté. Voir src/lib/usage-events.ts pour la logique
-// d'upsert elle-même (partagée avec le webhook OpenAI de l'agent vocal).
-//
-// Décroché :
-// curl -X POST http://localhost:3000/api/usage-events \
-//   -H "x-api-key: $USAGE_EVENTS_API_KEY" -H "Content-Type: application/json" \
-//   -d '{"clientServiceId":"...","externalId":"CA123","status":"in_progress","metadata":{"fromNumber":"+33612345678"}}'
-//
-// Raccroché :
-// curl -X POST http://localhost:3000/api/usage-events \
-//   -H "x-api-key: $USAGE_EVENTS_API_KEY" -H "Content-Type: application/json" \
-//   -d '{"clientServiceId":"...","externalId":"CA123","status":"completed","durationSec":42,"metadata":{"outcome":"appointment_booked"}}'
 export async function POST(request: Request) {
-  // Protégée par x-api-key, pas par une signature cryptographique — un
-  // rate limit par IP en défense supplémentaire contre le bourrage.
   const allowed = await checkRateLimit("usage-events", await getClientIp(), "1 m", 60);
   if (!allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });

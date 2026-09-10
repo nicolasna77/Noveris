@@ -16,11 +16,6 @@ const BOX_OPERATORS: { value: BoxOperator; label: string }[] = [
   { value: "autre", label: "Autre opérateur" },
 ];
 
-// Emplacement habituel du réglage chez chaque opérateur — volontairement
-// formulé en termes génériques (rubrique, pas capture d'écran d'un menu
-// précis) car les interfaces des espaces client changent régulièrement ;
-// le raccourci *21* ci-dessous reste la valeur sûre si ce texte devient
-// obsolète.
 const BOX_INSTRUCTIONS: Record<BoxOperator, string> = {
   orange:
     "Espace client Orange (orange.fr ou l'application Orange et moi), rubrique Assistance > Téléphone fixe > Renvoi d'appel.",
@@ -32,10 +27,6 @@ const BOX_INSTRUCTIONS: Record<BoxOperator, string> = {
     "Espace client en ligne de votre opérateur, généralement dans une rubrique « Téléphone fixe » ou « Ligne fixe ».",
 };
 
-// Codes de renvoi d'appel GSM (norme ETSI) — identiques chez tous les
-// opérateurs mobiles français, contrairement aux interfaces web qui, elles,
-// varient d'un opérateur à l'autre (d'où le choix de ne proposer un sélecteur
-// d'opérateur que pour les lignes fixes/box).
 function MobileInstructions({ targetNumber }: { targetNumber: string }) {
   return (
     <div className="space-y-2 text-sm">
@@ -119,8 +110,6 @@ export function CallForwardingGuide({ targetNumber }: { targetNumber: string }) 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Presse-papiers indisponible (contexte non sécurisé, permission
-      // refusée) — le numéro reste affiché et copiable à la main.
     }
   }
 

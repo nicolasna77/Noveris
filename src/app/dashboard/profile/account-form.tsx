@@ -19,9 +19,6 @@ export type InitialAccount = {
 const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
 const AVATAR_DIMENSION = 256;
 
-// Redimensionne l'image côté client et la renvoie en data URL — stockée
-// directement dans le champ `image` de l'utilisateur (pas d'hébergement de
-// fichiers configuré pour l'instant).
 function resizeImageToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -66,10 +63,6 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
     .join("")
     .toUpperCase();
 
-  // Le bouton ne s'allume que s'il y a réellement quelque chose à
-  // enregistrer : sur une page où les notifications s'enregistrent toutes
-  // seules, un bouton toujours actif laissait planer le doute sur ce qui
-  // avait été pris en compte.
   const isDirty = name !== initialAccount.name || image !== initialAccount.image;
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
@@ -113,8 +106,6 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
 
   return (
     <>
-      {/* La personne ouvre sa propre page : son avatar et son nom sont les
-          seuls éléments de grande taille, le reste de la page reste discret. */}
       <div className="flex flex-wrap items-center gap-5">
         <button
           type="button"
@@ -124,9 +115,6 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
           className="group relative size-20 shrink-0 overflow-hidden rounded-full border border-border bg-muted outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
         >
           {image ? (
-            // Data URL produite côté client (voir resizeImageToDataUrl) :
-            // next/image ne sait pas l'optimiser, il faudrait la passer en
-            // `unoptimized` pour aboutir au même <img>.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={image} alt="" className="size-full object-cover" />
           ) : (
@@ -151,8 +139,6 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
         />
 
         <div className="min-w-0">
-          {/* Le nom porte le <h1> : la page n'a pas de titre séparé, c'est
-              lui qui l'ouvre. */}
           <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
             {name || "Votre nom"}
           </h1>
@@ -196,8 +182,6 @@ export function AccountForm({ initialAccount }: { initialAccount: InitialAccount
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
-            {/* L'e-mail n'est pas modifiable : l'afficher comme un champ de
-                saisie grisé donnait l'impression d'un formulaire cassé. */}
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">E-mail</p>
               <p className="text-sm text-muted-foreground">

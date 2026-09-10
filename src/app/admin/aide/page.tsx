@@ -16,9 +16,6 @@ export default async function AdminAidePage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      {/* Le Direct a plus sa place ici que sur la vue d'ensemble : une
-          demande d'aide qui arrive attend une réponse, tandis que la liste
-          des clients se consulte. */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">

@@ -38,9 +38,6 @@ const NAV_ITEMS = [
   { href: "/admin/journal", label: "Journal", icon: ScrollText },
 ];
 
-// Lien symétrique à "Administration" dans DashboardSidebar : un admin est
-// aussi un compte utilisateur, ce lien lui permet de revenir à son propre
-// tableau de bord sans repasser par une URL tapée à la main.
 export function AdminSidebar({
   openHelpRequestCount,
 }: {

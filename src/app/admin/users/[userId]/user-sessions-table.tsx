@@ -13,8 +13,6 @@ import {
 import { formatDate } from "@/lib/catalog";
 import { RevokeSessionButton } from "../revoke-session-button";
 
-// Même taille de page que partout ailleurs dans l'admin. Un compte ancien
-// accumule des dizaines de sessions expirées, qui s'affichaient toutes.
 export const SESSIONS_PAGE_SIZE = 20;
 
 type SessionRow = {
@@ -24,9 +22,6 @@ type SessionRow = {
   ipAddress: string | null;
   userAgent: string | null;
   token: string;
-  // Calculé au chargement des données, pas pendant le rendu : l'heure
-  // courante est impure, et un composant doit rendre la même chose à
-  // données égales.
   expired: boolean;
 };
 
@@ -76,9 +71,6 @@ export function UserSessionsTable({
                   <TableRow key={s.id} className={s.expired ? "opacity-60" : undefined}>
                     <TableCell>{formatDate(s.createdAt)}</TableCell>
                     <TableCell>
-                      {/* L'opacité seule ne suffirait pas : elle ne dit rien
-                          à un lecteur d'écran et se perd en plein soleil sur
-                          un écran de téléphone. */}
                       <Badge variant={s.expired ? "outline" : "secondary"}>
                         {s.expired ? "Expirée" : "Active"}
                       </Badge>

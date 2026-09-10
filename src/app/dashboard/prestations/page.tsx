@@ -25,16 +25,10 @@ export default async function PrestationsPage({
     orderBy: { createdAt: "desc" },
   });
 
-  // Indique juste si une prestation a déjà été activée au moins une fois
-  // (badge "Activer à nouveau" dans le catalogue) — un service peut
-  // désormais être activé plusieurs fois, ce n'est plus un état unique par
-  // service.
   const statusByServiceId = new Map(
     clientServices.map((cs) => [cs.serviceId, cs.status])
   );
 
-  // Catalogue d'activation limité à la communication client automatisée pour
-  // l'instant (les autres catégories ne sont pas encore ouvertes à la vente).
   const serviceDTOs = services.filter((s) => s.category === "COMMUNICATION");
 
   const myServices: MyServiceDTO[] = clientServices.map(toMyServiceDTO);

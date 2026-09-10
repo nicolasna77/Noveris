@@ -31,20 +31,12 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { validatePromoCodeForService } from "@/lib/stripe-promo-codes";
 import { applyDiscount, describeDiscount, firstPaymentCents } from "@/lib/promo-codes";
 
-// Délègue à src/lib/session.ts (mémoïsé par requête) plutôt que de
-// réappeler auth.api.getSession directement — une seconde implémentation
-// indépendante de "qui est connecté" ne bénéficierait pas d'un futur
-// changement apporté à getSession (ex. vérification bannissement, audit).
 async function requireUserId() {
   const session = await getSession();
   if (!session) throw new Error("UNAUTHENTICATED");
   return session.user.id;
 }
 
-// Une organisation est à usage unique pour l'instant (voir organizationClient
-// dans src/lib/auth.ts) — pas d'invitation d'équipe — mais on vérifie quand
-// même l'appartenance plutôt que de faire confiance à l'organizationId
-// fourni par le client.
 async function requireOrgMember(organizationId: string, userId: string) {
   const member = await db.member.findFirst({ where: { organizationId, userId } });
   if (!member) throw new Error("UNAUTHORIZED");
@@ -53,23 +45,12 @@ async function requireOrgMember(organizationId: string, userId: string) {
 const appUrl = () =>
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-// Les pages qui affichent l'état d'une prestation (Vue d'ensemble, la liste
-// des prestations, et le détail d'une prestation donnée) — regroupé ici pour
-// que les actions ci-dessous n'aient pas chacune à retenir la liste complète
-// des chemins concernés.
 function revalidateDashboard(clientServiceId?: string) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/prestations");
   if (clientServiceId) revalidatePath(`/dashboard/services/${clientServiceId}`);
 }
 
-// Ouvre la Checkout Session Stripe d'une prestation (déjà créée en base, en
-// attente de paiement) — couvre à la fois les frais de mise en place (ligne
-// ponctuelle) et l'abonnement mensuel (ligne récurrente), selon ce que la
-// prestation facture. Partagé par activateService (nouvelle activation) et
-// resumeServiceCheckout (reprise de paiement) : les deux finissent par payer
-// la même chose pour la même ligne, seule la façon d'arriver au
-// ClientService diffère.
 async function createCheckoutSession(
   clientServiceId: string,
   service: {
@@ -79,8 +60,6 @@ async function createCheckoutSession(
     monthlyPriceCents: number | null;
   },
   user: { stripeCustomerId: string | null; email: string },
-  // Une remise déjà validée par validatePromoCodeForService, jamais un code
-  // brut venu du navigateur : ce qu'on facture ne se décide pas côté client.
   promotionCodeId: string | null = null
 ): Promise<string> {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
@@ -125,10 +104,6 @@ async function createCheckoutSession(
   return checkoutSession.url!;
 }
 
-// Active une prestation pour une organisation — toujours une nouvelle ligne :
-// un client peut activer plusieurs fois le même service (ex. deux boutiques),
-// distinguées par `name`. Pour reprendre le paiement d'une activation
-// existante (abandonnée ou résiliée), voir resumeServiceCheckout ci-dessous.
 export async function activateService(
   serviceId: string,
   organizationId: string,
@@ -155,10 +130,6 @@ export async function activateService(
     throw new Error(`Le champ « ${missing.label} » est requis.`);
   }
 
-  // Revalidé ici même si le client vient de le vérifier : ce qu'on facture ne
-  // se décide jamais dans le navigateur, et le code a pu expirer ou atteindre
-  // son plafond entre-temps. Avant de créer l'activation, pour ne pas laisser
-  // une ligne en attente de paiement derrière un code refusé.
   let promotion: { promotionCodeId: string; code: string } | null = null;
   if (promoCode?.trim()) {
     const result = await validatePromoCodeForService(promoCode, service.slug);
@@ -200,14 +171,6 @@ export async function activateService(
     );
   } catch (err) {
     if (!promotion) throw err;
-    // Stripe peut refuser un code que nous avions accepté : un code réservé
-    // aux nouveaux clients, pour un client qui a déjà payé. Vérifié sur
-    // Stripe : le refus tombe dès la création de la session, avec le code
-    // promotion_code_customer_not_first_time.
-    //
-    // L'activation vient d'être créée et n'a jamais été payée : on la retire
-    // (son historique suit, en cascade), sans quoi retenter sans le code
-    // buterait sur « vous avez déjà une solution nommée… ».
     await db.clientService.delete({ where: { id: clientService.id } });
     if ((err as { code?: string }).code === "promotion_code_customer_not_first_time") {
       throw new Error(
@@ -223,10 +186,6 @@ export async function activateService(
   return { checkoutUrl };
 }
 
-// Reprend le paiement d'une activation existante — bouton "Reprendre le
-// paiement" (PENDING_PAYMENT abandonné) ou "Réactiver" (CANCELED) sur une
-// ligne précise, plutôt que de retrouver/créer une ligne par service comme
-// avant (impossible dès qu'un service peut être activé plusieurs fois).
 export async function resumeServiceCheckout(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -245,11 +204,6 @@ export async function resumeServiceCheckout(clientServiceId: string) {
 
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
 
-  // Un client qui revient payer une activation abandonnée garde son code s'il
-  // est encore valable ; sinon il paie le tarif normal, plutôt que d'être
-  // bloqué par un code expiré entre-temps — la page Stripe affiche de toute
-  // façon le vrai total avant qu'il paie. Une réactivation après résiliation,
-  // elle, ne réutilise pas le code : la remise a déjà été consommée.
   let promotionCodeId: string | null = null;
   let promoCode: string | null = null;
   if (clientService.status === "PENDING_PAYMENT" && clientService.promoCode) {
@@ -278,8 +232,6 @@ export async function resumeServiceCheckout(clientServiceId: string) {
     );
   } catch (err) {
     if (!promotionCodeId) throw err;
-    // Même refus possible qu'à l'activation (code réservé aux nouveaux
-    // clients) : on reprend au tarif normal plutôt que de bloquer la reprise.
     await db.clientService.update({ where: { id: clientServiceId }, data: { promoCode: null } });
     checkoutUrl = await createCheckoutSession(clientService.id, clientService.service, user);
   }
@@ -297,13 +249,8 @@ export type PromoPreview =
     }
   | { ok: false; reason: string };
 
-// Vérifie un code avant le paiement, pour que le client voie sa remise avant
-// d'être redirigé chez Stripe. Renvoie un résultat plutôt que de lever une
-// erreur : un code refusé est une réponse attendue, pas une panne.
 export async function previewPromoCode(serviceId: string, code: string): Promise<PromoPreview> {
   const userId = await requireUserId();
-  // Chaque essai interroge Stripe, et le champ permettrait sinon de deviner
-  // des codes à la chaîne.
   if (!(await checkRateLimit("promo-code-preview", userId, "10 m", 20))) {
     return { ok: false, reason: "Trop d'essais. Réessayez dans quelques minutes." };
   }
@@ -325,8 +272,6 @@ export async function previewPromoCode(serviceId: string, code: string): Promise
   };
 }
 
-// Met à jour la configuration d'une prestation déjà souscrite (ex. : contexte
-// métier, objectif des appels…) sans repasser par un paiement.
 export async function updateServiceConfiguration(
   clientServiceId: string,
   configuration: Configuration
@@ -359,10 +304,6 @@ export async function updateServiceConfiguration(
   revalidateDashboard(clientServiceId);
 }
 
-// Déconnecte l'agenda Google d'une prestation (le client peut vouloir en
-// reconnecter un autre, ou n'en veut plus) — suppression simple, pas de
-// révocation côté Google (le client peut la faire lui-même depuis son
-// compte Google si besoin).
 export async function disconnectGoogleCalendar(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -378,12 +319,6 @@ export async function disconnectGoogleCalendar(clientServiceId: string) {
   revalidateDashboard(clientServiceId);
 }
 
-// Termine le parcours d'auto-connexion WhatsApp (Embedded Signup — voir
-// src/app/dashboard/whatsapp-connection.tsx) : échange le code renvoyé par
-// FB.login contre un jeton propre à ce client, abonne notre app à son WABA
-// (sinon on ne recevrait jamais ses messages), enregistre son numéro pour
-// l'API Cloud, et va chercher le numéro lisible pour confirmation à
-// l'écran.
 export async function completeWhatsAppEmbeddedSignup(
   clientServiceId: string,
   code: string,
@@ -416,9 +351,6 @@ export async function completeWhatsAppEmbeddedSignup(
   revalidateDashboard(clientServiceId);
 }
 
-// Déconnecte le compte WhatsApp d'une prestation — suppression simple, pas
-// de révocation côté Meta (le client peut retirer l'accès de l'app Noveris
-// lui-même depuis son Gestionnaire d'entreprise si besoin).
 export async function disconnectWhatsApp(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -441,11 +373,6 @@ export async function disconnectWhatsApp(clientServiceId: string) {
   revalidateDashboard(clientServiceId);
 }
 
-// Termine la connexion self-service de la Page Facebook (Facebook Login for
-// Business, voir messenger-connection.tsx) : échange le code contre un
-// jeton utilisateur, retrouve la Page gérée et son jeton propre (voir
-// fetchManagedPage dans src/lib/messenger.ts), abonne notre app à ses
-// webhooks, et stocke le tout sur le ClientService.
 export async function completeMessengerConnection(clientServiceId: string, code: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -474,9 +401,6 @@ export async function completeMessengerConnection(clientServiceId: string, code:
   revalidateDashboard(clientServiceId);
 }
 
-// Déconnecte la Page Facebook d'une prestation — suppression simple, pas de
-// révocation côté Meta (le client peut retirer l'accès de l'app Noveris
-// lui-même depuis son Gestionnaire d'entreprise si besoin).
 export async function disconnectMessenger(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -498,10 +422,6 @@ export async function disconnectMessenger(clientServiceId: string) {
   revalidateDashboard(clientServiceId);
 }
 
-// Déconnecte le compte Instagram d'une prestation — la connexion elle-même
-// se fait par redirect (voir src/app/api/instagram/connect et callback,
-// completeInstagramConnection dans src/lib/instagram.ts), pas par une
-// action serveur invoquée depuis le client comme WhatsApp/Messenger.
 export async function disconnectInstagram(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -536,9 +456,6 @@ async function requireOwnedTelephonyService(
   if (!TELEPHONY_SERVICE_SLUGS.has(clientService.service.slug)) {
     throw new Error("Cette solution ne prend pas de numéro de téléphone.");
   }
-  // Achat autorisé une fois le paiement confirmé (CONFIGURING) — pas besoin
-  // d'attendre le passage à ACTIVE par l'équipe Noveris, le numéro fait
-  // partie de la configuration que le client met en place lui-même.
   if (clientService.status !== "CONFIGURING" && clientService.status !== "ACTIVE") {
     throw new Error("La solution doit être payée avant de choisir un numéro.");
   }
@@ -548,8 +465,6 @@ async function requireOwnedTelephonyService(
   return clientService;
 }
 
-// Recherche de numéros disponibles pour une prestation donnée — pas de
-// paramètres exposés au client pour l'instant (voir searchAvailableNumbers).
 export async function searchPhoneNumbers(
   clientServiceId: string
 ): Promise<AvailableNumber[]> {
@@ -558,8 +473,6 @@ export async function searchPhoneNumbers(
   return searchAvailableNumbers();
 }
 
-// Achète le numéro choisi et l'assigne à la prestation — le webhook voix est
-// configuré automatiquement à l'achat (voir purchasePhoneNumber).
 export async function purchasePhoneNumberForService(
   clientServiceId: string,
   phoneNumber: string
@@ -569,13 +482,6 @@ export async function purchasePhoneNumberForService(
 
   const purchased = await purchasePhoneNumber(phoneNumber);
 
-  // Deux appels concurrents (double clic, deux onglets) passeraient tous les
-  // deux le contrôle "pas déjà de numéro" dans requireOwnedTelephonyService
-  // avant qu'aucun des deux n'écrive — chacun achèterait alors un vrai numéro
-  // chez Twilio, et le second `update` écraserait le SID du premier en base,
-  // le laissant orphelin (jamais relâché). Le `where` ci-dessous ne réussit
-  // que pour le premier arrivé ; le perdant relâche immédiatement le numéro
-  // qu'il vient d'acheter au lieu de l'assigner.
   const { count } = await db.clientService.updateMany({
     where: { id: clientServiceId, externalPhoneNumber: null },
     data: {
@@ -592,9 +498,6 @@ export async function purchasePhoneNumberForService(
   revalidateDashboard(clientServiceId);
 }
 
-// Résilie une prestation active ou en cours de configuration : annule
-// l'abonnement Stripe sous-jacent (s'il existe — les frais de mise en place
-// déjà payés ne sont pas remboursés) puis marque la prestation résiliée.
 export async function cancelService(clientServiceId: string) {
   const [userId, clientService] = await Promise.all([
     requireUserId(),
@@ -612,14 +515,9 @@ export async function cancelService(clientServiceId: string) {
     try {
       await stripeClient.subscriptions.cancel(clientService.stripeSubscriptionId);
     } catch {
-      // Déjà annulé côté Stripe (ex. webhook customer.subscription.deleted
-      // déjà traité) — on continue pour refléter l'état côté application.
     }
   }
 
-  // Relâche le numéro Twilio pour arrêter sa facturation (best-effort, voir
-  // releasePhoneNumber) — sinon un numéro acheté en libre-service continuerait
-  // à coûter de l'argent à Noveris après résiliation.
   if (clientService.externalPhoneNumberSid) {
     await releasePhoneNumber(clientService.externalPhoneNumberSid);
   }

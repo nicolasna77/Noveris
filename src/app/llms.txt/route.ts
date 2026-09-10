@@ -2,14 +2,6 @@ import { db } from "@/lib/db";
 import { absoluteUrl, FAQS, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { CATEGORY_LABELS, formatCents, type ServiceCategory } from "@/lib/catalog";
 
-// /llms.txt — l'offre en texte brut, pour les agents qui répondent à
-// « qui installe un standard téléphonique IA pour un artisan, et à quel
-// prix ? ». Un agent qui lit une page React doit en reconstruire le sens ;
-// ici tout est déjà dit, prix compris.
-//
-// Les tarifs viennent de la base, comme partout ailleurs : un prix modifié
-// depuis /admin/services est à jour ici sans que personne y pense.
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {

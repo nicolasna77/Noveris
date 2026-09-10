@@ -5,8 +5,6 @@ import { AlertTriangle } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { NoverisLogo } from "@/components/brand";
 
-// Error boundaries doivent rester un composant client simple (pas de
-// SiteHeader — Server Component asynchrone).
 export default function GlobalError({
   reset,
 }: {

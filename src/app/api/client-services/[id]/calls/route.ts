@@ -13,9 +13,6 @@ function readMetadata(metadata: unknown) {
   };
 }
 
-// Lu en polling par call-activity.tsx (appels en cours + récapitulatif) —
-// même raison de ne pas utiliser requireUser() que usage/route.ts : une API
-// JSON doit répondre 401, pas rediriger vers /login.
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }

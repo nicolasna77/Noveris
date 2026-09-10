@@ -27,9 +27,6 @@ const NAV_ITEMS = [
   { href: "/dashboard/aide", label: "Aide", icon: LifeBuoy },
 ];
 
-// Un lien "Administration" est ajouté ici pour les admins — sans lui, un
-// admin perdrait tout accès à /admin depuis cet espace (voir le lien
-// symétrique "Tableau de bord" dans AdminSidebar).
 export function DashboardSidebar({
   isAdmin,
   activeOrganization,

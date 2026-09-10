@@ -7,11 +7,6 @@ const PROGRESS_STEPS = [
   { status: "ACTIVE", label: "Actif" },
 ] as const;
 
-// Repère visuel du cycle de vie d'une prestation (voir section 2 du cahier
-// des charges) — n'a de sens que pour les statuts non terminaux. L'étape en
-// cours est signalée à la fois par `aria-current="step"` (lecteurs d'écran)
-// et par un contour propre au pastille (pas seulement une couleur, pour les
-// utilisateurs malvoyants ou daltoniens — WCAG 1.4.1).
 export function ServiceProgress({ status }: { status: ClientServiceStatus }) {
   if (status === "CANCELED") return null;
   const currentIndex = PROGRESS_STEPS.findIndex((s) => s.status === status);

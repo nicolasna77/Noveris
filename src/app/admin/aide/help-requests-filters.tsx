@@ -20,8 +20,6 @@ export function HelpRequestsFilters() {
 
   return (
     <div className="mb-4">
-      {/* `items` : sans lui, le déclencheur affiche la valeur brute
-          (« resolved ») au lieu du libellé. */}
       <Select
         value={searchParams.get("status") ?? "open"}
         onValueChange={(value) =>

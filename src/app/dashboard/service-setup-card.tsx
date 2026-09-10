@@ -20,11 +20,6 @@ import { MessengerConnection } from "./messenger-connection";
 import { PhoneNumberPurchase } from "./phone-number-purchase";
 import { WhatsAppConnection } from "./whatsapp-connection";
 
-// Ce qui manque pour que la solution fonctionne vraiment, et à qui d'agir.
-// Sans ça, un client dont le standard téléphonique n'a pas encore de numéro
-// voit une page qui décrit un état sans jamais dire que l'IA ne peut pas
-// encore décrocher — l'achat du numéro n'était qu'un bouton parmi les
-// réglages. La carte disparaît d'elle-même une fois tout en place.
 export function ServiceSetupCard({ item }: { item: MyServiceDTO }) {
   if (item.status === "CANCELED") return null;
 
