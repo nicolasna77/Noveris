@@ -16,7 +16,11 @@ export function HeroSection({ services }: { services: ServiceDTO[] }) {
   const fromPrice = monthlyPrices.length > 0 ? Math.min(...monthlyPrices) : null;
 
   return (
-    <section className="border-b border-border">
+    <section className="relative isolate overflow-hidden border-b border-border">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[url(/dot-grid.svg)] bg-size-[1440px_1056px] bg-top opacity-60 mask-[linear-gradient(to_bottom,transparent_58%,black_80%)] lg:mask-[linear-gradient(to_right,transparent_30%,black_65%)] dark:opacity-70 dark:invert"
+      />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1fr)_32rem]">
         <div>
           <p className="mb-6 text-sm text-muted-foreground">
