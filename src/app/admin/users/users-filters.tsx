@@ -10,6 +10,15 @@ import {
 } from "@/components/ui/select";
 import { useQueryParamFilters } from "@/hooks/use-query-param-filters";
 
+// Passés à `items` : sans eux, le Select de Base UI affiche la valeur brute
+// (« ADMIN », « all ») dans son déclencheur au lieu du libellé. Une seule
+// source pour la liste et le déclencheur.
+const ROLE_FILTER_LABELS = {
+  all: "Tous les rôles",
+  ADMIN: "Administrateurs",
+  CLIENT: "Clients",
+};
+
 export function UsersFilters() {
   const { searchParams, updateParams } = useQueryParamFilters();
 
@@ -41,14 +50,17 @@ export function UsersFilters() {
         onValueChange={(value) =>
           updateParams({ role: value === "all" ? null : value })
         }
+        items={ROLE_FILTER_LABELS}
       >
         <SelectTrigger className="w-48" aria-label="Filtrer par rôle">
           <SelectValue placeholder="Tous les rôles" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Tous les rôles</SelectItem>
-          <SelectItem value="ADMIN">Administrateurs</SelectItem>
-          <SelectItem value="CLIENT">Clients</SelectItem>
+          {Object.entries(ROLE_FILTER_LABELS).map(([value, label]) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

@@ -47,8 +47,11 @@ export function ClientsFilters() {
         />
       </form>
 
+      {/* `items` : sans lui, le déclencheur affiche la valeur brute
+          (« PENDING_PAYMENT ») au lieu du libellé. */}
       <Select
         value={searchParams.get("status") ?? "all"}
+        items={{ all: "Tous les statuts", ...STATUS_LABELS }}
         onValueChange={(value) =>
           updateParams({ status: value === "all" ? null : value })
         }

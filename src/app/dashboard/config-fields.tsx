@@ -84,6 +84,9 @@ function renderFieldInput({
       return (
         <Select
           value={typeof value === "string" ? value : null}
+          // Sans `items`, le déclencheur affiche la valeur brute de l'option
+          // (« appointment ») au lieu de son libellé.
+          items={field.options}
           onValueChange={(next) => {
             onChange(next ?? "");
             markTouched();

@@ -126,7 +126,13 @@ export function ServiceEditDialog({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="service-category">Catégorie</Label>
-                  <Select name="category" defaultValue={service.category}>
+                  {/* `items` : sans lui, le déclencheur affiche la valeur
+                      brute (« COMMUNICATION ») au lieu du libellé. */}
+                  <Select
+                    name="category"
+                    defaultValue={service.category}
+                    items={CATEGORY_LABELS}
+                  >
                     <SelectTrigger id="service-category" className="w-full">
                       <SelectValue />
                     </SelectTrigger>

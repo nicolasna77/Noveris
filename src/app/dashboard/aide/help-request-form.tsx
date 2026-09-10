@@ -54,6 +54,18 @@ export function HelpRequestForm({
     });
   }
 
+  // Le libellé d'une option, partagé par la liste et le déclencheur. Sans
+  // `items`, le Select de Base UI affichait dans le champ la valeur brute —
+  // ici l'identifiant technique de l'activation — au lieu de son nom.
+  const serviceLabel = (service: (typeof services)[number]) =>
+    service.name !== service.serviceName
+      ? `${service.name} (${service.serviceName})`
+      : service.name;
+  const serviceItems = {
+    [NO_SERVICE_VALUE]: "Question générale",
+    ...Object.fromEntries(services.map((s) => [s.clientServiceId, serviceLabel(s)])),
+  };
+
   return (
     <Card>
       <CardContent>
@@ -68,6 +80,7 @@ export function HelpRequestForm({
                   clientServiceId: value ?? NO_SERVICE_VALUE,
                 }))
               }
+              items={serviceItems}
             >
               <SelectTrigger id="help-service" className="w-full">
                 <SelectValue />
@@ -81,10 +94,7 @@ export function HelpRequestForm({
                     key={service.clientServiceId}
                     value={service.clientServiceId}
                   >
-                    {service.name}
-                    {service.name !== service.serviceName
-                      ? ` (${service.serviceName})`
-                      : ""}
+                    {serviceLabel(service)}
                   </SelectItem>
                 ))}
               </SelectContent>

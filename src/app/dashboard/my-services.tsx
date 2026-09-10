@@ -124,11 +124,14 @@ export function MyServices({ items }: { items: MyServiceDTO[] }) {
             />
           </div>
 
+          {/* `items` : sans lui, le déclencheur affiche la valeur brute
+              (« ACTIVE », « all ») au lieu du libellé. */}
           <Select
             value={statusFilter}
             onValueChange={(value) =>
               setStatusFilter(value as ClientServiceStatus | "all")
             }
+            items={{ all: "Tous les statuts", ...STATUS_LABELS }}
           >
             <SelectTrigger className="w-44" aria-label="Filtrer par statut">
               <SelectValue placeholder="Tous les statuts" />

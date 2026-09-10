@@ -45,9 +45,12 @@ export function GeneratePanel() {
       <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-2">
           <Label htmlFor="channel">Réseau</Label>
+          {/* `items` : sans lui, le Select de Base UI affiche la valeur brute
+              (« LINKEDIN ») dans son déclencheur au lieu du libellé. */}
           <Select
             value={channel}
             onValueChange={(value) => setChannel(value as MarketingChannel)}
+            items={Object.fromEntries(CHANNELS.map((c) => [c, CHANNEL_RULES[c].label]))}
           >
             <SelectTrigger id="channel">
               <SelectValue />
