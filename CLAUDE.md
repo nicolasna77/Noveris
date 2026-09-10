@@ -66,6 +66,13 @@ déjà coûté du temps, tous sont vérifiés.
   processus tenu par l'IDE ; utiliser `taskkill //PID <pid> //F` après
   `netstat -ano | grep ":3000"`.
 
+- **Prisma 7 : `migrate dev` ne régénère plus le client.** La migration
+  s'applique à la base, mais les types restent ceux d'avant : `tsc` signale
+  des champs ou des valeurs d'énumération « inexistants » alors qu'ils sont
+  bien dans le schéma et dans la base. Lancer `npx prisma generate` après
+  chaque `migrate dev`, puis redémarrer `next dev` (piège précédent) — dans
+  cet ordre, sinon le serveur recharge l'ancien client.
+
 - **`generateStaticParams` sur une page qui lit la session.** Une page
   appelant `getSession()` lit les en-têtes de la requête : elle ne peut pas
   être rendue à l'avance. Si `generateStaticParams` ne renvoie aucun
