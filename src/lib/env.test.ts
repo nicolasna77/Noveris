@@ -126,6 +126,15 @@ describe("production", () => {
     ).not.toContain("rk_");
   });
 
+  it("signale une URL d'application qui n'est pas le domaine de production", () => {
+    expect(
+      inspectEnv(production({ VERCEL_PROJECT_PRODUCTION_URL: "noveris-equipe.vercel.app" })).warnings.join(" ")
+    ).toContain("NEXT_PUBLIC_APP_URL");
+    expect(
+      inspectEnv(production({ VERCEL_PROJECT_PRODUCTION_URL: "noveris.fr" })).warnings.join(" ")
+    ).not.toContain("NEXT_PUBLIC_APP_URL");
+  });
+
   it("signale une limitation de débit limitée à une instance sans Upstash", () => {
     expect(inspectEnv(production()).warnings.join(" ")).toContain("Upstash");
   });

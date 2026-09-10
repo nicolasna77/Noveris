@@ -1,3 +1,5 @@
+import { toOrigin } from "@/lib/trusted-origins";
+
 type Rule = {
   name: string;
   validate?: (value: string) => string | null;
@@ -146,6 +148,13 @@ export function inspectEnv(source: Source): EnvReport {
     if (read(source, "STRIPE_SECRET_KEY")?.startsWith("sk_")) {
       warnings.push(
         "STRIPE_SECRET_KEY est une clé secrète complète : préférez une clé restreinte (rk_) limitée aux ressources utilisées."
+      );
+    }
+    const productionHost = read(source, "VERCEL_PROJECT_PRODUCTION_URL");
+    const appUrl = read(source, "NEXT_PUBLIC_APP_URL");
+    if (productionHost && appUrl && toOrigin(appUrl) !== toOrigin(productionHost)) {
+      warnings.push(
+        `NEXT_PUBLIC_APP_URL (${appUrl}) ne correspond pas au domaine de production (${productionHost}) : les liens des e-mails et les retours de paiement pointent vers une autre adresse.`
       );
     }
     if (read(source, "UPSTASH_REDIS_REST_URL") === null) {

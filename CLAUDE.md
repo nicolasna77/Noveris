@@ -83,9 +83,13 @@ déjà coûté du temps, tous sont vérifiés.
   développement, où la base est peuplée.
 
 - **better-auth refuse une origine inattendue.** Le serveur répond 403
-  « Invalid origin » à toute requête dont l'origine ne correspond pas à sa
-  `baseURL` (`BETTER_AUTH_URL`, sinon `NEXT_PUBLIC_APP_URL`) — d'où la
-  variable passée au serveur de test dans `playwright.config.ts`. Le client
+  « Invalid origin » quand l'origine de la page n'est pas dans ses
+  `trustedOrigins` — d'où la variable passée au serveur de test dans
+  `playwright.config.ts`. Traître en production : seules les requêtes qui
+  portent un cookie de session sont contrôlées, si bien qu'une connexion
+  Google réussit et que tout ce qui suit échoue (changer d'organisation, se
+  déconnecter…). `src/lib/trusted-origins.ts` accepte donc les domaines Vercel
+  du projet et `BETTER_AUTH_TRUSTED_ORIGINS`. Le client
   (`src/lib/auth-client.ts`) ne fixe volontairement aucune `baseURL` : il
   vise l'origine de la page, sans quoi les previews Vercel échouent en CORS,
   silencieusement.

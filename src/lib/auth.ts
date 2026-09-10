@@ -10,6 +10,7 @@ import { handleStripeEvent } from "@/lib/stripe-webhooks";
 import { prepareAccountDeletion, removeOrphanOrganizations } from "@/lib/account-deletion";
 import { sendEmailVerificationEmail, sendPasswordResetEmail } from "@/lib/email/notifications";
 import { redisRateLimitStorage } from "@/lib/rate-limit";
+import { trustedOrigins } from "@/lib/trusted-origins";
 
 export { stripeClient };
 
@@ -23,6 +24,7 @@ export const auth = betterAuth({
     process.env.BETTER_AUTH_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
     "http://localhost:3000",
+  trustedOrigins: trustedOrigins(),
   secret: process.env.BETTER_AUTH_SECRET,
   database: prismaAdapter(db, {
     provider: "postgresql",

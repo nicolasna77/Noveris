@@ -48,7 +48,8 @@ export function OrganizationSwitcher({
     setSwitchingId(null);
 
     if (error) {
-      toast.error(error.message ?? "Impossible de changer d'organisation.");
+      console.error("[organisation] changement refusé :", error);
+      toast.error("Impossible de changer d'organisation. Rechargez la page puis réessayez.");
       return;
     }
     router.refresh();

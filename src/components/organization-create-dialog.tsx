@@ -39,14 +39,16 @@ export function OrganizationCreateDialog({
     if (!trimmedName) return;
 
     setIsSubmitting(true);
-    const { error } = await authClient.organization.create({
+    const { data, error } = await authClient.organization.create({
       name: trimmedName,
       slug: slugify(trimmedName),
     });
+    if (data) await authClient.organization.setActive({ organizationId: data.id });
     setIsSubmitting(false);
 
     if (error) {
-      toast.error(error.message ?? "Impossible de créer l'organisation.");
+      console.error("[organisation] création refusée :", error);
+      toast.error("Impossible de créer l'organisation. Rechargez la page puis réessayez.");
       return;
     }
 
