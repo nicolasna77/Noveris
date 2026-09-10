@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -7,7 +7,16 @@ import { cn } from "@/lib/utils";
 import { JsonLd, organizationSchema } from "@/components/json-ld";
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 
-const outfit = Outfit({subsets:['latin'],variable:'--font-sans'});
+// Deux familles, comme le prévoit le thème shadcn : Geist pour le texte et
+// l'interface, Bricolage Grotesque pour les titres (voir --font-heading dans
+// globals.css). Outfit était chargée ici mais jamais affichée : la règle :root
+// de globals.css redéfinissait --font-sans vers Geist, et les deux rôles du
+// thème se résolvaient en une seule famille.
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  axes: ["opsz", "wdth"],
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +61,7 @@ export default function RootLayout({
     <html
       lang="fr"
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", outfit.variable)}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", bricolage.variable)}
     >
       <body className="min-h-full flex flex-col">
         <JsonLd data={organizationSchema()} />
