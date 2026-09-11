@@ -5,10 +5,7 @@ test.use({ storageState: ADMIN_STATE });
 
 test("le détail d'un utilisateur montre ce que voit le client", async ({ page }) => {
   await page.goto("/admin/users");
-  await page
-    .getByRole("link", { name: /Voir|Détail|marc|sophie|karim|elise/i })
-    .first()
-    .click();
+  await page.getByRole("link", { name: "Marc Lefèvre" }).click();
   await page.waitForURL(/\/admin\/users\/[^/]+$/);
 
   await expect(page.getByRole("heading", { name: "Ce que voit le client" })).toBeVisible();
