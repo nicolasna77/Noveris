@@ -30,7 +30,7 @@ export function ProblemSection() {
     <section className="border-b border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-4xl">
             Chaque tâche répétitive vous coûte du temps que vous ne facturez
             pas
           </h2>

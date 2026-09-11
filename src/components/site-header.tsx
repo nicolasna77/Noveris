@@ -7,12 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { getSession, isAdmin } from "@/lib/session";
 import { getCatalog } from "@/lib/get-catalog";
-
-const NAV_LINKS = [
-  { href: "/#methode", label: "Notre méthode" },
-  { href: "/#abonnement", label: "Support prioritaire" },
-  { href: "/contact", label: "Contact" },
-];
+import { SITE_NAV_LINKS } from "@/lib/site";
 
 export async function SiteHeader() {
   const [session, services] = await Promise.all([getSession(), getCatalog()]);
@@ -44,7 +39,7 @@ export async function SiteHeader() {
         </div>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <PrestationsMenu services={services} />
-          {NAV_LINKS.map((link) => (
+          {SITE_NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}

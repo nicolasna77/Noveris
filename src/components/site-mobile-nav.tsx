@@ -14,14 +14,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { MobileNavLink } from "@/components/mobile-nav-link";
 import { CATEGORY_LABELS, type ServiceCategory, type ServiceDTO } from "@/lib/catalog";
+import { SITE_NAV_LINKS } from "@/lib/site";
 
 const MENU_CATEGORIES: ServiceCategory[] = ["COMMUNICATION", "INFORMATION"];
-
-const NAV_LINKS = [
-  { href: "/#methode", label: "Notre méthode" },
-  { href: "/#abonnement", label: "Support prioritaire" },
-  { href: "/contact", label: "Contact" },
-];
 
 export function SiteMobileNav({
   services,
@@ -82,7 +77,7 @@ export function SiteMobileNav({
             <Separator />
 
             <ul className="flex flex-col gap-0.5">
-              {NAV_LINKS.map((link) => (
+              {SITE_NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <MobileNavLink href={link.href}>{link.label}</MobileNavLink>
                 </li>

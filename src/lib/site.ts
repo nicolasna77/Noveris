@@ -1,5 +1,10 @@
 export const SITE_NAME = "Noveris";
 
+export const SITE_NAV_LINKS = [
+  { href: "/#methode", label: "Notre méthode" },
+  { href: "/contact", label: "Contact" },
+];
+
 export const SITE_DESCRIPTION =
   "Noveris installe des automatisations IA clé-en-main pour artisans, coachs, indépendants et TPE/PME : standard téléphonique, assistants de messagerie, documents administratifs. L'équipe installe, connecte et surveille — aucune compétence technique requise.";
 

@@ -33,11 +33,6 @@ export function SiteFooter() {
                   Méthode
                 </Link>
               </li>
-              <li>
-                <Link href="/#abonnement" className="hover:text-foreground">
-                  Support prioritaire
-                </Link>
-              </li>
             </ul>
           </div>
           <div>
