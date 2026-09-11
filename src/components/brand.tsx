@@ -24,10 +24,16 @@ export function NoverisMark({ className }: { className?: string }) {
   );
 }
 
-export function NoverisLogo({ className }: { className?: string }) {
+export function NoverisLogo({
+  className,
+  href = "/",
+}: {
+  className?: string;
+  href?: string;
+}) {
   return (
     <Link
-      href="/"
+      href={href}
       className={cn("flex items-center gap-2 font-semibold", className)}
     >
       <NoverisMark className="size-7 shrink-0" />

@@ -46,7 +46,11 @@ export function SpendChartView({
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-[240px] w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[240px] w-full"
+          aria-hidden="true"
+        >
           <BarChart data={data}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
@@ -71,6 +75,13 @@ export function SpendChartView({
             />
           </BarChart>
         </ChartContainer>
+        <ul className="sr-only">
+          {data.map((bucket) => (
+            <li key={bucket.label}>
+              {bucket.label} : {formatCents(bucket.totalCents)}
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );

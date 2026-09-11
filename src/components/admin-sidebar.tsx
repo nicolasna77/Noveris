@@ -48,7 +48,10 @@ export function AdminSidebar({
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <NoverisLogo className="px-2 py-1 group-data-[collapsible=icon]:justify-center [&>span:last-child]:group-data-[collapsible=icon]:hidden" />
+        <NoverisLogo
+          href="/admin"
+          className="px-2 py-1 group-data-[collapsible=icon]:justify-center [&>span:last-child]:group-data-[collapsible=icon]:hidden"
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
